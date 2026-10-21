@@ -13,7 +13,7 @@ const LOCAL_STORAGE_LEGACY_KEY = 'metta_custom_edit_password';
 
 // One-way cryptographic SHA-256 hash of the default ecosystem administrative password.
 // The plaintext password is never exposed in git commits or repository source files.
-const DEFAULT_PASSWORD_HASH = '18752d90bb3bc8b7ddbae9a208b508f2100644cf9ef7a5584dd6e58f43020d40';
+const DEFAULT_PASSWORD_HASH = '03b2b29012624229918350c8c886bc2dad3d6bbf6122024843ac316b1a7371ca';
 
 /**
  * Computes the SHA-256 digest of a string using Web Crypto API.
