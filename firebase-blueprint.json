@@ -1,0 +1,79 @@
+{
+  "entities": {
+    "PublishedDataset": {
+      "title": "PublishedDataset",
+      "description": "Published ecosystem entities and global metadata",
+      "type": "object",
+      "properties": {
+        "entities": {
+          "type": "array",
+          "description": "List of ecosystem entities"
+        },
+        "totalCount": {
+          "type": "number",
+          "description": "Total count of published entities"
+        },
+        "updatedAtIso": {
+          "type": "string",
+          "description": "ISO timestamp of last update"
+        }
+      },
+      "required": ["entities", "totalCount"]
+    },
+    "ContinentsConfig": {
+      "title": "ContinentsConfig",
+      "description": "Continent and cluster polygon boundaries and layer quadrant dimensions",
+      "type": "object",
+      "properties": {
+        "shapes": {
+          "type": "object",
+          "description": "Map of continent names to point arrays"
+        },
+        "layerQuadrantSizes": {
+          "type": "object",
+          "description": "Custom quadrant dimensions keyed by layer (1, 2, 3, all)"
+        }
+      },
+      "required": ["shapes"]
+    },
+    "ContributionSubmission": {
+      "title": "ContributionSubmission",
+      "description": "Community proposed edits or reviews for entities",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique submission ID"
+        },
+        "entityId": {
+          "type": "string",
+          "description": "ID of target entity"
+        },
+        "entityName": {
+          "type": "string",
+          "description": "Name of target entity"
+        },
+        "submitterEmail": {
+          "type": "string",
+          "description": "Email address of contributor"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "approved", "rejected"],
+          "description": "Review status"
+        }
+      },
+      "required": ["id", "entityId", "entityName", "submitterEmail", "status"]
+    }
+  },
+  "firestore": {
+    "/ecosystem/{docId}": {
+      "schema": "PublishedDataset",
+      "description": "Published dataset documents including published_dataset and continents_config"
+    },
+    "/contributions/{contributionId}": {
+      "schema": "ContributionSubmission",
+      "description": "Community contributions submitted via Help us improve this data"
+    }
+  }
+}

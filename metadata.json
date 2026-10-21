@@ -1,0 +1,6 @@
+{
+  "name": "Metta Tropical Ecosystem Map",
+  "description": "An in-depth cartography of organizations, people, and cornerstone ideas working to create life-affirming futures.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

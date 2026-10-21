@@ -1,0 +1,26 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+
+# Environment and secrets (do NOT publish passwords or API keys to GitHub)
+.env
+.env*
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
+!.env.example
+
+# Local credentials, certificates and secret keys
+*.local
+*.pem
+*.key
+credentials.json
+service-account.json
+secrets.*
+.secrets
+

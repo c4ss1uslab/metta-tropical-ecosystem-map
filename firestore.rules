@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Connection test document
+    match /test/{document=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Shared published ecosystem dataset & metadata
+    match /ecosystem/{document=**} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Community contributions submitted via "Help us improve this data"
+    match /contributions/{document=**} {
+      allow read: if true;
+      allow write: if true;
+    }
+  }
+}
+
