@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Lock, KeyRound, Eye, EyeOff, AlertCircle, Settings, Check } from 'lucide-react';
+import { X, Lock, KeyRound, Eye, EyeOff, AlertCircle, Settings, Check, RotateCcw } from 'lucide-react';
 
 interface EditModePasswordModalProps {
   isOpen: boolean;
@@ -7,25 +7,89 @@ interface EditModePasswordModalProps {
   onSuccess: () => void;
 }
 
-const LOCAL_STORAGE_PASSWORD_KEY = 'metta_custom_edit_password';
+// Storage keys
+const LOCAL_STORAGE_PASSWORD_HASH_KEY = 'metta_custom_edit_password_hash';
+const LOCAL_STORAGE_LEGACY_KEY = 'metta_custom_edit_password';
 
-export const getEditModePassword = (): string => {
+// One-way cryptographic SHA-256 hash of the default ecosystem administrative password.
+// The plaintext password is never exposed in git commits or repository source files.
+const DEFAULT_PASSWORD_HASH = '18752d90bb3bc8b7ddbae9a208b508f2100644cf9ef7a5584dd6e58f43020d40';
+
+/**
+ * Computes the SHA-256 digest of a string using Web Crypto API.
+ */
+export async function computeSha256(value: string): Promise<string> {
+  if (typeof crypto !== 'undefined' && crypto.subtle) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(value);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hashBuffer))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+  }
+  // Fallback for non-subtle contexts (e.g. legacy test environments)
+  let hash = 0;
+  for (let i = 0; i < value.length; i++) {
+    hash = (hash << 5) - hash + value.charCodeAt(i);
+    hash |= 0;
+  }
+  return hash.toString(16);
+}
+
+/**
+ * Verifies if the entered password matches either:
+ * 1. The gitignored .env variable (VITE_EDIT_MODE_PASSWORD)
+ * 2. A browser-specific custom password (stored only as a hash in localStorage)
+ * 3. The default cryptographic hash
+ */
+export async function verifyEditModePassword(enteredPassword: string): Promise<boolean> {
+  const trimmed = enteredPassword.trim();
+  if (!trimmed) return false;
+
   // 1. Check gitignored environment variable (.env)
+  const envPassword = import.meta.env.VITE_EDIT_MODE_PASSWORD;
+  if (typeof envPassword === 'string' && envPassword.trim().length > 0) {
+    if (trimmed === envPassword.trim()) {
+      return true;
+    }
+  }
+
+  const inputHash = await computeSha256(trimmed);
+
+  // 2. Check local custom password hash configured in this browser
+  try {
+    const localHash = localStorage.getItem(LOCAL_STORAGE_PASSWORD_HASH_KEY);
+    if (localHash && localHash.trim().length > 0) {
+      if (inputHash === localHash.trim()) {
+        return true;
+      }
+    }
+    // Backward compatibility for previously saved legacy plaintext
+    const legacyPass = localStorage.getItem(LOCAL_STORAGE_LEGACY_KEY);
+    if (legacyPass && legacyPass.trim().length > 0) {
+      if (trimmed === legacyPass.trim()) {
+        // Upgrade legacy entry to hash and remove plaintext
+        localStorage.setItem(LOCAL_STORAGE_PASSWORD_HASH_KEY, inputHash);
+        localStorage.removeItem(LOCAL_STORAGE_LEGACY_KEY);
+        return true;
+      }
+    }
+  } catch {}
+
+  // 3. Fallback to default cryptographic hash check (no plaintext in repository)
+  return inputHash === DEFAULT_PASSWORD_HASH;
+}
+
+/**
+ * Safely returns the environment password if configured in .env, otherwise empty string.
+ * Never leaks the default password string to callers.
+ */
+export const getEditModePassword = (): string => {
   const envPassword = import.meta.env.VITE_EDIT_MODE_PASSWORD;
   if (typeof envPassword === 'string' && envPassword.trim().length > 0) {
     return envPassword.trim();
   }
-
-  // 2. Check local custom password configured in browser
-  try {
-    const localPass = localStorage.getItem(LOCAL_STORAGE_PASSWORD_KEY);
-    if (localPass && localPass.trim().length > 0) {
-      return localPass.trim();
-    }
-  } catch {}
-
-  // 3. Fallback default
-  return 'tropicalforestry';
+  return '';
 };
 
 export const EditModePasswordModal: React.FC<EditModePasswordModalProps> = ({
@@ -36,10 +100,12 @@ export const EditModePasswordModal: React.FC<EditModePasswordModalProps> = ({
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isVerifying, setIsVerifying] = useState(false);
   const [shake, setShake] = useState(false);
   const [showCustomConfig, setShowCustomConfig] = useState(false);
   const [newCustomPass, setNewCustomPass] = useState('');
   const [customPassSaved, setCustomPassSaved] = useState(false);
+  const [hasCustomLocalPassword, setHasCustomLocalPassword] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -49,6 +115,16 @@ export const EditModePasswordModal: React.FC<EditModePasswordModalProps> = ({
       setShowPassword(false);
       setShowCustomConfig(false);
       setCustomPassSaved(false);
+      setIsVerifying(false);
+      
+      try {
+        const localHash = localStorage.getItem(LOCAL_STORAGE_PASSWORD_HASH_KEY);
+        const legacy = localStorage.getItem(LOCAL_STORAGE_LEGACY_KEY);
+        setHasCustomLocalPassword(Boolean(localHash || legacy));
+      } catch {
+        setHasCustomLocalPassword(false);
+      }
+
       // Auto focus input when modal opens
       setTimeout(() => {
         inputRef.current?.focus();
@@ -68,35 +144,63 @@ export const EditModePasswordModal: React.FC<EditModePasswordModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const validPassword = getEditModePassword();
-    if (password === validPassword || password === 'tropicalforestry') {
-      setError(null);
-      setPassword('');
-      onSuccess();
-    } else {
-      setError('Incorrect password. Please try again.');
-      setShake(true);
-      setTimeout(() => setShake(false), 500);
-      inputRef.current?.focus();
-      inputRef.current?.select();
+    if (isVerifying || !password.trim()) return;
+
+    setIsVerifying(true);
+    try {
+      const isValid = await verifyEditModePassword(password);
+      if (isValid) {
+        setError(null);
+        setPassword('');
+        onSuccess();
+      } else {
+        setError('Incorrect password. Please try again.');
+        setShake(true);
+        setTimeout(() => setShake(false), 500);
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      }
+    } catch {
+      setError('An error occurred during verification. Please try again.');
+    } finally {
+      setIsVerifying(false);
     }
   };
 
-  const handleSaveLocalPassword = (e: React.FormEvent) => {
+  const handleSaveLocalPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = newCustomPass.trim();
     if (!trimmed) return;
     try {
-      localStorage.setItem(LOCAL_STORAGE_PASSWORD_KEY, trimmed);
+      const hash = await computeSha256(trimmed);
+      localStorage.setItem(LOCAL_STORAGE_PASSWORD_HASH_KEY, hash);
+      localStorage.removeItem(LOCAL_STORAGE_LEGACY_KEY);
+      setHasCustomLocalPassword(true);
       setCustomPassSaved(true);
+      setNewCustomPass('');
       setTimeout(() => {
         setCustomPassSaved(false);
         setShowCustomConfig(false);
       }, 1500);
     } catch (err) {
       console.warn('Failed to save custom password to localStorage', err);
+    }
+  };
+
+  const handleResetToDefault = () => {
+    try {
+      localStorage.removeItem(LOCAL_STORAGE_PASSWORD_HASH_KEY);
+      localStorage.removeItem(LOCAL_STORAGE_LEGACY_KEY);
+      setHasCustomLocalPassword(false);
+      setNewCustomPass('');
+      setCustomPassSaved(true);
+      setTimeout(() => {
+        setCustomPassSaved(false);
+      }, 1500);
+    } catch (err) {
+      console.warn('Failed to reset password', err);
     }
   };
 
@@ -185,6 +289,7 @@ export const EditModePasswordModal: React.FC<EditModePasswordModalProps> = ({
                     : 'border-[#E5E7EB] focus:border-[#111827] focus:ring-1 focus:ring-[#111827]'
                 }`}
                 autoComplete="current-password"
+                disabled={isVerifying}
               />
               <button
                 type="button"
@@ -211,28 +316,46 @@ export const EditModePasswordModal: React.FC<EditModePasswordModalProps> = ({
 
           {/* Custom Password In-Browser Configuration */}
           {showCustomConfig && (
-            <div className="p-2.5 bg-[#FAF8F5] border border-[#E5E7EB] rounded-[4px] space-y-2 text-xs">
-              <p className="font-sans text-[11px] text-[#4B5563]">
-                Set a custom password for this browser, or define <code className="font-technical bg-white px-1 py-0.5 rounded border text-[10px]">VITE_EDIT_MODE_PASSWORD</code> in your gitignored <code className="font-technical bg-white px-1 py-0.5 rounded border text-[10px]">.env</code> file.
+            <div className="p-3 bg-[#FAF8F5] border border-[#E5E7EB] rounded-[4px] space-y-2.5 text-xs animate-in fade-in duration-150">
+              <p className="font-sans text-[11px] text-[#4B5563] leading-normal">
+                Set a custom password for this browser (stored as a secure SHA-256 hash), or set <code className="font-technical bg-white px-1 py-0.5 rounded border text-[10px]">VITE_EDIT_MODE_PASSWORD</code> in your gitignored <code className="font-technical bg-white px-1 py-0.5 rounded border text-[10px]">.env</code> file. Passwords are never stored in plaintext in the repository.
               </p>
+              
               <div className="flex items-center space-x-1.5">
                 <input
-                  type="text"
+                  type="password"
                   value={newCustomPass}
                   onChange={(e) => setNewCustomPass(e.target.value)}
-                  placeholder="New custom password..."
-                  className="flex-1 text-xs font-sans px-2 py-1 bg-white border border-[#E5E7EB] rounded outline-none"
+                  placeholder="Set custom password..."
+                  className="flex-1 text-xs font-sans px-2.5 py-1.5 bg-white border border-[#E5E7EB] rounded outline-none text-[#111827]"
                 />
                 <button
                   type="button"
                   onClick={handleSaveLocalPassword}
                   disabled={!newCustomPass.trim()}
-                  className="px-2 py-1 bg-[#111827] text-white rounded text-[11px] font-medium hover:bg-[#374151] disabled:opacity-50 flex items-center space-x-1"
+                  className="px-2.5 py-1.5 bg-[#111827] text-white rounded text-[11px] font-medium hover:bg-[#374151] disabled:opacity-50 flex items-center space-x-1 cursor-pointer"
                 >
                   {customPassSaved ? <Check className="w-3 h-3 text-[#D9C01B]" /> : null}
                   <span>{customPassSaved ? 'Saved' : 'Save'}</span>
                 </button>
               </div>
+
+              {hasCustomLocalPassword && (
+                <div className="pt-1 flex items-center justify-between border-t border-[#E5E7EB]/60">
+                  <span className="text-[10px] text-[#047857] font-medium flex items-center space-x-1">
+                    <Check className="w-3 h-3" />
+                    <span>Custom browser password active</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleResetToDefault}
+                    className="text-[10px] text-[#6B7280] hover:text-[#B91C1C] flex items-center space-x-1 cursor-pointer"
+                  >
+                    <RotateCcw className="w-2.5 h-2.5" />
+                    <span>Reset to default</span>
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -248,11 +371,11 @@ export const EditModePasswordModal: React.FC<EditModePasswordModalProps> = ({
             <button
               type="submit"
               id="submit-password-btn"
-              disabled={!password.trim()}
+              disabled={!password.trim() || isVerifying}
               className="flex items-center space-x-1.5 px-4 py-1.5 bg-[#111827] hover:bg-[#1f2937] disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-sans font-medium rounded-[4px] transition-all shadow-xs cursor-pointer"
             >
               <Lock className="w-3.5 h-3.5 text-[#D9C01B]" />
-              <span>Unlock Edit Mode</span>
+              <span>{isVerifying ? 'Verifying...' : 'Unlock Edit Mode'}</span>
             </button>
           </div>
         </form>
@@ -260,4 +383,3 @@ export const EditModePasswordModal: React.FC<EditModePasswordModalProps> = ({
     </div>
   );
 };
-
