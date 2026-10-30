@@ -3,11 +3,11 @@ import {
   ZoomIn, ZoomOut, Maximize2, Move, Eye, Shield, Sparkles, Navigation, Globe, Map as MapIcon, RotateCcw, RotateCw, Plus, Trash2, Mountain, Layers, Network, Star, Save, Unlock, X, Sliders, Wand2, ChevronUp, ChevronDown, Undo2, Redo2
 } from 'lucide-react';
 import { EcosystemEntity, CategoryQuadrant, FieldCluster, MapViewport, ContinentInfo, EcotoneCorridorInfo, getEntityCompleteness, DATA_COMPLETENESS_CONFIG, getCompletenessConfig, LayerQuadrantSizes, LayerQuadrantConfig, DEFAULT_LAYER_QUADRANT_SIZES, getQuadrantSizesForLayer } from '../types';
-import { QUADRANT_CENTERS, generateContinentLabelPath, isEntityDomainElevation, getEntityIntersectionZone, getEntityQuadrantGradient, INTERSECTION_ZONES, calculateEcotoneCorridors, getEntityClusterWithNumber, formatClusterWithNumber, normalizeArchipelagoBaseName, isEntityPrimaryToArchipelago, suggestContinent } from '../utils/layoutGenerator';
+import { QUADRANT_CENTERS, generateContinentLabelPath, getContinentLabelCenter, isEntityDomainElevation, getEntityIntersectionZone, getEntityQuadrantGradient, INTERSECTION_ZONES, calculateEcotoneCorridors, getEntityClusterWithNumber, formatClusterWithNumber, normalizeArchipelagoBaseName, isEntityPrimaryToArchipelago, suggestContinent, entityMatchesArchipelago } from '../utils/layoutGenerator';
 import { calculateAutoFitQuadrantSizes } from '../utils/layerClassifier';
 import { ChangelogWidget } from './ChangelogWidget';
 import { getConnectedEntityIds } from '../utils/socialMedia';
-import { areEntitiesDirectlyLinked } from '../utils/excelParser';
+import { areEntitiesDirectlyLinked, ensureUniqueEntityIds } from '../utils/excelParser';
 
 const sanitizeId = (str: string) => str.replace(/[^a-zA-Z0-9_-]/g, '_');
 
@@ -109,6 +109,11 @@ interface RpgMapCanvasProps {
   onResetContinentLabel?: (continentName: string) => void;
   onMoveContinentSubLabel?: (continentName: string, deltaX: number, deltaY: number) => void;
   onResetContinentSubLabel?: (continentName: string) => void;
+  onUpdateContinentCurvature?: (continentName: string, titleCurvature?: number, subTitleCurvature?: number) => void;
+  onUpdateAllContinentsCurvature?: (titleCurvature: number, subTitleCurvature?: number) => void;
+  onResetContinentCurvature?: (continentName: string) => void;
+  onRotateContinentLabel?: (continentName: string, rotation: number, isSubLabel?: boolean, linkBoth?: boolean) => void;
+  onResetContinentRotation?: (continentName: string) => void;
   onScaleContinent?: (continentName: string, factor: number) => void;
   onFitContinentTightly?: (continentName: string) => void;
   focusedEntityId?: string | null;
@@ -168,6 +173,11 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
   onResetContinentLabel,
   onMoveContinentSubLabel,
   onResetContinentSubLabel,
+  onUpdateContinentCurvature,
+  onUpdateAllContinentsCurvature,
+  onResetContinentCurvature,
+  onRotateContinentLabel,
+  onResetContinentRotation,
   onScaleContinent,
   onFitContinentTightly,
   focusedEntityId,
@@ -202,7 +212,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
 
   // Filter out entities with hidden field tags or belonging to hidden continents
   const visibleEntities = useMemo(() => {
-    return entities.filter(ent => {
+    const list = entities.filter(ent => {
       // Focus mode: ONLY show focused entity and its connected entities! Everything else on map is hidden.
       if (focusVisibleIds) {
         if (!focusVisibleIds.has(ent.id)) return false;
@@ -213,6 +223,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
       if (ent.fields.length === 0) return true;
       return ent.fields.some(f => !hiddenFields.includes(f));
     });
+    return ensureUniqueEntityIds(list);
   }, [entities, hiddenFields, hiddenContinents, focusVisibleIds]);
 
   // Multi-selection state (holds all currently selected entity IDs in edit mode)
@@ -459,6 +470,17 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
   } | null>(null);
   const labelDragStartWorldRef = useRef<{ x: number; y: number } | null>(null);
 
+  // Archipelago Label Free Rotation state in Edit Mode (supports live 360° free rotation & 15° snapping)
+  const [draggingLabelRotation, setDraggingLabelRotation] = useState<{
+    continentName: string;
+    target: 'name' | 'subLabel';
+    centerX: number;
+    centerY: number;
+    initialRotation: number;
+    currentRotation: number;
+    startAngleRad: number;
+  } | null>(null);
+
   // Active Quadrant Sizes for the current Layer
   const currentQuadrantSizes = useMemo(() => {
     return quadrantSizes || getQuadrantSizesForLayer(activeLayer, allLayerQuadrantSizes);
@@ -536,7 +558,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
   // Global window mousemove/mouseup listener for smooth node dragging, multi-entity group movement, continent vertex reshaping, continent translation, marquee selection, and quadrant resizing
   useEffect(() => {
     if (!editMode) return;
-    if (!draggingNodeId && !draggingGroupIds && !draggingVertex && !draggingContinentName && !isMarqueeSelecting && !draggingLabel && !draggingQuadrantResize) return;
+    if (!draggingNodeId && !draggingGroupIds && !draggingVertex && !draggingContinentName && !isMarqueeSelecting && !draggingLabel && !draggingQuadrantResize && !draggingLabelRotation) return;
 
     const handleWindowMouseMove = (e: MouseEvent) => {
       const world = getWorldCoords(e);
@@ -681,6 +703,28 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
         }
         return;
       }
+
+      // 5. Rotating an archipelago label (name or sub-title) freely anywhere on the canvas
+      if (draggingLabelRotation) {
+        hasDraggedRef.current = true;
+        const { centerX, centerY, startAngleRad, initialRotation } = draggingLabelRotation;
+        const currentAngleRad = Math.atan2(world.y - centerY, world.x - centerX);
+        const deltaRad = currentAngleRad - startAngleRad;
+        let deltaDeg = deltaRad * (180 / Math.PI);
+        let rawDeg = initialRotation + deltaDeg;
+
+        while (rawDeg > 180) rawDeg -= 360;
+        while (rawDeg <= -180) rawDeg += 360;
+
+        let finalDeg = Math.round(rawDeg);
+        if (e.shiftKey) {
+          // Snap to 15-degree increments when holding Shift
+          finalDeg = Math.round(finalDeg / 15) * 15;
+        }
+
+        setDraggingLabelRotation(prev => prev ? { ...prev, currentRotation: finalDeg } : null);
+        return;
+      }
     };
 
     const handleWindowMouseUp = (e: MouseEvent) => {
@@ -793,11 +837,24 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
         setMarqueeCurrentClient(null);
       }
 
+      if (draggingLabelRotation) {
+        const finalRot = draggingLabelRotation.currentRotation;
+        if (onRotateContinentLabel) {
+          onRotateContinentLabel(
+            draggingLabelRotation.continentName,
+            finalRot,
+            draggingLabelRotation.target === 'subLabel'
+          );
+        }
+        setDraggingLabelRotation(null);
+      }
+
       setDraggingNodeId(null);
       setDraggingVertex(null);
       setDraggingContinentName(null);
       setDraggingLabel(null);
       setDraggingQuadrantResize(null);
+      setDraggingLabelRotation(null);
     };
 
     window.addEventListener('mousemove', handleWindowMouseMove);
@@ -830,6 +887,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
     onMoveContinent,
     onContinentMoveEnd,
     draggingLabel,
+    draggingLabelRotation,
     draggingQuadrantResize,
     isUniformQuadrantSizing,
     activeLayer,
@@ -845,6 +903,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
     onContinentMoveEnd,
     onMoveContinentLabel,
     onMoveContinentSubLabel,
+    onRotateContinentLabel,
     visibleEntities,
     entities,
     onSelectEntity
@@ -1616,8 +1675,10 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
             {showContinents && visibleContinentsList.map(cont => {
               const pathId = `continent-label-path-${sanitizeId(cont.name)}`;
               const subPathId = `continent-sublabel-path-${sanitizeId(cont.name)}`;
+              const titleCurv = cont.titleCurvature !== undefined ? cont.titleCurvature : 0.7;
+              const subTitleCurv = cont.subTitleCurvature !== undefined ? cont.subTitleCurvature : 0.7;
 
-              const labelPathD = cont.labelPath || generateContinentLabelPath(
+              const labelPathD = generateContinentLabelPath(
                 cont.centerX,
                 cont.centerY,
                 cont.minX,
@@ -1625,10 +1686,12 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
                 cont.minY,
                 cont.maxY,
                 cont.controlPoints,
-                0
+                0,
+                titleCurv,
+                cont.name
               );
 
-              const subLabelPathD = cont.subLabelPath || generateContinentLabelPath(
+              const subLabelPathD = generateContinentLabelPath(
                 cont.centerX,
                 cont.centerY,
                 cont.minX,
@@ -1636,7 +1699,9 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
                 cont.minY,
                 cont.maxY,
                 cont.controlPoints,
-                -22
+                -22,
+                subTitleCurv,
+                `${cont.count} ${cont.count === 1 ? 'entity' : 'entities'}`
               );
 
               return (
@@ -1725,7 +1790,14 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
             {showContinents && visibleContinentsList.map(cont => {
               if (!cont.pathData) return null;
               const isHovered = editMode && hoveredContinent === cont.name;
-              const isSelected = selectedContinentName === cont.name;
+              const isSelected = selectedContinentName === cont.name ||
+                Boolean(selectedContinentName && (
+                  normalizeArchipelagoBaseName(selectedContinentName) === normalizeArchipelagoBaseName(cont.name) ||
+                  formatClusterWithNumber(selectedContinentName).toLowerCase() === formatClusterWithNumber(cont.name).toLowerCase()
+                ));
+              const displayCount = isSelected
+                ? (visibleEntities.filter(e => entityMatchesArchipelago(e, cont.name)).length || cont.count)
+                : cont.count;
               const isBeingMoved = draggingContinentName === cont.name;
               const dragTransform = isBeingMoved && continentDragDelta
                 ? `translate(${continentDragDelta.dx}, ${continentDragDelta.dy})`
@@ -1753,6 +1825,20 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
               const darkTextColor = getDarkerContinentColor(cont.category);
               const pathId = `continent-label-path-${sanitizeId(cont.name)}`;
               const subPathId = `continent-sublabel-path-${sanitizeId(cont.name)}`;
+
+              const titleCenter = getContinentLabelCenter(cont, false);
+              const subTitleCenter = getContinentLabelCenter(cont, true);
+
+              const isRotatingThisTitle = draggingLabelRotation?.continentName === cont.name && draggingLabelRotation.target === 'name';
+              const isRotatingThisSub = draggingLabelRotation?.continentName === cont.name && draggingLabelRotation.target === 'subLabel';
+
+              const currentTitleRot = isRotatingThisTitle
+                ? draggingLabelRotation.currentRotation
+                : (cont.labelRotation || 0);
+
+              const currentSubRot = isRotatingThisSub
+                ? draggingLabelRotation.currentRotation
+                : (cont.subLabelRotation !== undefined ? cont.subLabelRotation : (cont.labelRotation || 0));
 
               return (
                 <g key={`continent-hull-${cont.name}`} transform={dragTransform}>
@@ -1804,23 +1890,39 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
                     className="pointer-events-none"
                   />
 
-                  {/* Interactive Circling Archipelago Labels (Name & Smaller Entity Count - Freely Draggable in Edit Mode) */}
+                  {/* Interactive Circling Archipelago Labels (Name & Smaller Entity Count - Freely Draggable & Rotatable in Edit Mode) */}
                   <g>
-                    {/* 1. Continent Name (Freely Draggable Anywhere) */}
+                    {/* 1. Continent Name (Freely Draggable Anywhere & Rotatable Freely 360°) */}
                     <g
                       className={editMode ? 'pointer-events-auto cursor-grab active:cursor-grabbing' : 'pointer-events-auto cursor-pointer'}
-                      transform={`translate(${cont.labelOffsetX || 0}, ${cont.labelOffsetY || 0})`}
+                      transform={`translate(${cont.labelOffsetX || 0}, ${cont.labelOffsetY || 0}) rotate(${currentTitleRot}, ${titleCenter.x}, ${titleCenter.y})`}
                       onClick={(e) => handleContinentClick(e, cont.name)}
                       onMouseDown={(e) => {
                         if (editMode) {
                           e.stopPropagation();
                           const world = getWorldCoords(e);
-                          setDraggingLabel({
-                            continentName: cont.name,
-                            target: 'name',
-                            lastWorldX: world.x,
-                            lastWorldY: world.y
-                          });
+                          if (e.altKey) {
+                            const initialRot = cont.labelRotation || 0;
+                            const pivotX = titleCenter.x + (cont.labelOffsetX || 0);
+                            const pivotY = titleCenter.y + (cont.labelOffsetY || 0);
+                            const angleRad = Math.atan2(world.y - pivotY, world.x - pivotX);
+                            setDraggingLabelRotation({
+                              continentName: cont.name,
+                              target: 'name',
+                              centerX: pivotX,
+                              centerY: pivotY,
+                              initialRotation: initialRot,
+                              currentRotation: initialRot,
+                              startAngleRad: angleRad
+                            });
+                          } else {
+                            setDraggingLabel({
+                              continentName: cont.name,
+                              target: 'name',
+                              lastWorldX: world.x,
+                              lastWorldY: world.y
+                            });
+                          }
                           hasDraggedRef.current = false;
                         }
                       }}
@@ -1836,14 +1938,14 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
                       }}
                     >
                       {editMode && (
-                        <title>Drag to move archipelago name freely anywhere</title>
+                        <title>Drag to move position. Alt+Drag or drag top knob to rotate freely. Hold Shift for 15° snap.</title>
                       )}
                       <text
                         className="font-editorial uppercase select-none transition-all"
                         style={{
-                          fontSize: Math.max(16, Math.min(26, 14 + cont.count * 0.7)),
+                          fontSize: Math.max(15, Math.min(cont.name.length > 36 ? 18 : 24, 14 + displayCount * 0.55)),
                           fontWeight: 800,
-                          letterSpacing: '0.22em',
+                          letterSpacing: cont.name.length > 38 ? '0.12em' : cont.name.length > 28 ? '0.16em' : '0.22em',
                           fill: darkTextColor,
                           paintOrder: 'stroke fill',
                           stroke: '#FFFFFF',
@@ -1862,23 +1964,123 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
                           {cont.name}
                         </textPath>
                       </text>
+
+                      {/* On-Map Rotation Knob & Angle Feedback in Edit Mode */}
+                      {editMode && (isHovered || isSelected || isRotatingThisTitle) && (
+                        <g className="pointer-events-auto cursor-grab active:cursor-grabbing group">
+                          {/* Stem indicator line to rotation knob */}
+                          <line
+                            x1={titleCenter.x}
+                            y1={titleCenter.y - 6}
+                            x2={titleCenter.x}
+                            y2={titleCenter.y - 32}
+                            stroke={darkTextColor}
+                            strokeWidth={1.5}
+                            strokeDasharray="3 2"
+                            opacity={0.75}
+                          />
+                          {/* Circular Rotate Grip Knob */}
+                          <g
+                            transform={`translate(${titleCenter.x}, ${titleCenter.y - 32})`}
+                            onMouseDown={(e) => {
+                              e.stopPropagation();
+                              const world = getWorldCoords(e);
+                              const curRot = cont.labelRotation || 0;
+                              const pivotX = titleCenter.x + (cont.labelOffsetX || 0);
+                              const pivotY = titleCenter.y + (cont.labelOffsetY || 0);
+                              const angleRad = Math.atan2(world.y - pivotY, world.x - pivotX);
+                              setDraggingLabelRotation({
+                                continentName: cont.name,
+                                target: 'name',
+                                centerX: pivotX,
+                                centerY: pivotY,
+                                initialRotation: curRot,
+                                currentRotation: curRot,
+                                startAngleRad: angleRad
+                              });
+                              hasDraggedRef.current = false;
+                            }}
+                            onDoubleClick={(e) => {
+                              e.stopPropagation();
+                              onRotateContinentLabel?.(cont.name, 0, false);
+                            }}
+                          >
+                            <circle
+                              r={10}
+                              fill="#FFFFFF"
+                              stroke={darkTextColor}
+                              strokeWidth={2}
+                              className="shadow-sm group-hover:scale-125 transition-transform"
+                            />
+                            {/* Rotation icon */}
+                            <path
+                              d="M -4.5,-2.5 A 5 5 0 1 1 -2,4.5 M -4.5,-2.5 L -4.5,-6 L -1,-3.5 Z"
+                              fill={darkTextColor}
+                              transform="scale(0.85)"
+                            />
+                            <title>Drag freely to rotate archipelago title (-180° to +180°). Hold Shift for 15° steps. Double-click to reset to 0°.</title>
+                          </g>
+
+                          {/* Live Angle Pill when rotating */}
+                          {isRotatingThisTitle && (
+                            <g transform={`translate(${titleCenter.x}, ${titleCenter.y - 54})`} className="pointer-events-none select-none">
+                              <rect
+                                x={-36}
+                                y={-11}
+                                width={72}
+                                height={22}
+                                rx={11}
+                                fill="#111827"
+                                stroke="#FFFFFF"
+                                strokeWidth={1.5}
+                              />
+                              <text
+                                textAnchor="middle"
+                                dominantBaseline="central"
+                                fill="#FBBF24"
+                                fontSize="11"
+                                fontWeight="bold"
+                                fontFamily="monospace"
+                              >
+                                {currentTitleRot > 0 ? `+${currentTitleRot}°` : `${currentTitleRot}°`}
+                              </text>
+                            </g>
+                          )}
+                        </g>
+                      )}
                     </g>
 
-                    {/* 2. Smaller Entity Count Sub-title (Freely Draggable Anywhere) */}
+                    {/* 2. Smaller Entity Count Sub-title (Freely Draggable & Rotatable Anywhere) */}
                     <g
                       className={editMode ? 'pointer-events-auto cursor-grab active:cursor-grabbing' : 'pointer-events-auto cursor-pointer'}
-                      transform={`translate(${cont.subLabelOffsetX || 0}, ${cont.subLabelOffsetY || 0})`}
+                      transform={`translate(${cont.subLabelOffsetX || 0}, ${cont.subLabelOffsetY || 0}) rotate(${currentSubRot}, ${subTitleCenter.x}, ${subTitleCenter.y})`}
                       onClick={(e) => handleContinentClick(e, cont.name)}
                       onMouseDown={(e) => {
                         if (editMode) {
                           e.stopPropagation();
                           const world = getWorldCoords(e);
-                          setDraggingLabel({
-                            continentName: cont.name,
-                            target: 'subLabel',
-                            lastWorldX: world.x,
-                            lastWorldY: world.y
-                          });
+                          if (e.altKey) {
+                            const curSub = cont.subLabelRotation !== undefined ? cont.subLabelRotation : (cont.labelRotation || 0);
+                            const pivotX = subTitleCenter.x + (cont.subLabelOffsetX || 0);
+                            const pivotY = subTitleCenter.y + (cont.subLabelOffsetY || 0);
+                            const angleRad = Math.atan2(world.y - pivotY, world.x - pivotX);
+                            setDraggingLabelRotation({
+                              continentName: cont.name,
+                              target: 'subLabel',
+                              centerX: pivotX,
+                              centerY: pivotY,
+                              initialRotation: curSub,
+                              currentRotation: curSub,
+                              startAngleRad: angleRad
+                            });
+                          } else {
+                            setDraggingLabel({
+                              continentName: cont.name,
+                              target: 'subLabel',
+                              lastWorldX: world.x,
+                              lastWorldY: world.y
+                            });
+                          }
                           hasDraggedRef.current = false;
                         }
                       }}
@@ -1894,12 +2096,12 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
                       }}
                     >
                       {editMode && (
-                        <title>Drag to move entity count sub-title freely anywhere</title>
+                        <title>Drag to move position. Alt+Drag or drag top knob to rotate sub-title freely.</title>
                       )}
                       <text
                         className="font-technical uppercase select-none transition-all"
                         style={{
-                          fontSize: Math.max(10, Math.min(13, 9 + cont.count * 0.25)),
+                          fontSize: Math.max(10, Math.min(13, 9 + displayCount * 0.25)),
                           fontWeight: 700,
                           letterSpacing: '0.16em',
                           fill: darkTextColor,
@@ -1917,9 +2119,90 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
                           textAnchor="middle"
                           spacing="auto"
                         >
-                          {cont.count} {cont.count === 1 ? 'entity' : 'entities'}
+                          {displayCount} {displayCount === 1 ? 'entity' : 'entities'}
                         </textPath>
                       </text>
+
+                      {/* On-Map Sub-title Rotation Knob in Edit Mode */}
+                      {editMode && (isHovered || isSelected || isRotatingThisSub) && (
+                        <g className="pointer-events-auto cursor-grab active:cursor-grabbing group">
+                          <line
+                            x1={subTitleCenter.x}
+                            y1={subTitleCenter.y - 4}
+                            x2={subTitleCenter.x}
+                            y2={subTitleCenter.y - 24}
+                            stroke={darkTextColor}
+                            strokeWidth={1.25}
+                            strokeDasharray="2 2"
+                            opacity={0.65}
+                          />
+                          <g
+                            transform={`translate(${subTitleCenter.x}, ${subTitleCenter.y - 24})`}
+                            onMouseDown={(e) => {
+                              e.stopPropagation();
+                              const world = getWorldCoords(e);
+                              const curSub = cont.subLabelRotation !== undefined ? cont.subLabelRotation : (cont.labelRotation || 0);
+                              const pivotX = subTitleCenter.x + (cont.subLabelOffsetX || 0);
+                              const pivotY = subTitleCenter.y + (cont.subLabelOffsetY || 0);
+                              const angleRad = Math.atan2(world.y - pivotY, world.x - pivotX);
+                              setDraggingLabelRotation({
+                                continentName: cont.name,
+                                target: 'subLabel',
+                                centerX: pivotX,
+                                centerY: pivotY,
+                                initialRotation: curSub,
+                                currentRotation: curSub,
+                                startAngleRad: angleRad
+                              });
+                              hasDraggedRef.current = false;
+                            }}
+                            onDoubleClick={(e) => {
+                              e.stopPropagation();
+                              onRotateContinentLabel?.(cont.name, 0, true);
+                            }}
+                          >
+                            <circle
+                              r={8}
+                              fill="#FFFFFF"
+                              stroke={darkTextColor}
+                              strokeWidth={1.75}
+                              className="shadow-sm group-hover:scale-125 transition-transform"
+                            />
+                            <path
+                              d="M -3.5,-2 A 4 4 0 1 1 -1.5,3.5 M -3.5,-2 L -3.5,-5 L -0.5,-3 Z"
+                              fill={darkTextColor}
+                              transform="scale(0.75)"
+                            />
+                            <title>Drag freely to rotate archipelago sub-title (-180° to +180°). Double-click to reset.</title>
+                          </g>
+
+                          {/* Live Sub-title Angle Pill */}
+                          {isRotatingThisSub && (
+                            <g transform={`translate(${subTitleCenter.x}, ${subTitleCenter.y - 42})`} className="pointer-events-none select-none">
+                              <rect
+                                x={-30}
+                                y={-10}
+                                width={60}
+                                height={20}
+                                rx={10}
+                                fill="#111827"
+                                stroke="#FFFFFF"
+                                strokeWidth={1.5}
+                              />
+                              <text
+                                textAnchor="middle"
+                                dominantBaseline="central"
+                                fill="#38BDF8"
+                                fontSize="10"
+                                fontWeight="bold"
+                                fontFamily="monospace"
+                              >
+                                {currentSubRot > 0 ? `+${currentSubRot}°` : `${currentSubRot}°`}
+                              </text>
+                            </g>
+                          )}
+                        </g>
+                      )}
                     </g>
                   </g>
                 </g>
@@ -2036,13 +2319,74 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
                   {/* Floating Archipelago Quick Action Controls in Edit Mode */}
                   {isContinentActive && (
                     <foreignObject
-                      x={cont.centerX - 130}
+                      x={cont.centerX - 225}
                       y={cont.minY - 44}
-                      width={260}
+                      width={450}
                       height={36}
                       className="pointer-events-auto overflow-visible select-none"
                     >
                       <div className="flex items-center justify-center gap-1 bg-[#111827]/95 text-white backdrop-blur-xs px-2.5 py-1 rounded-full shadow-lg border border-white/20 text-[11px] font-technical">
+                        {onUpdateContinentCurvature && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const currentCurv = cont.titleCurvature !== undefined ? cont.titleCurvature : 0.7;
+                              let nextCurv = 0;
+                              if (currentCurv <= 0.05) nextCurv = 0.35;
+                              else if (currentCurv < 0.5) nextCurv = 0.7;
+                              else if (currentCurv < 0.85) nextCurv = 1.0;
+                              else nextCurv = 0;
+                              onUpdateContinentCurvature(cont.name, nextCurv, nextCurv);
+                            }}
+                            className="px-2 py-0.5 bg-[#5B21B6]/80 hover:bg-[#5B21B6] text-white hover:text-[#D9C01B] font-bold rounded-[3px] cursor-pointer transition-colors"
+                            title="Click to cycle title curve: Straight (0%) ↔ Gentle (35%) ↔ Natural (70%) ↔ Curved (100%)"
+                          >
+                            {(cont.titleCurvature ?? 0.7) <= 0.05 ? '― Straight' : (cont.titleCurvature ?? 0.7) < 0.5 ? '∿ Gentle' : (cont.titleCurvature ?? 0.7) < 0.85 ? '⌒ Natural' : '⌒ Curved'}
+                          </button>
+                        )}
+                        {/* Quick Rotate Buttons */}
+                        {onRotateContinentLabel && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const current = cont.labelRotation || 0;
+                                onRotateContinentLabel(cont.name, current - 15, false);
+                              }}
+                              className="px-1.5 py-0.5 bg-white/10 hover:bg-white/25 rounded-[3px] text-white hover:text-[#D9C01B] font-bold cursor-pointer transition-colors"
+                              title="Rotate title 15° counter-clockwise"
+                            >
+                              ↺ -15°
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const current = cont.labelRotation || 0;
+                                onRotateContinentLabel(cont.name, current + 15, false);
+                              }}
+                              className="px-1.5 py-0.5 bg-white/10 hover:bg-white/25 rounded-[3px] text-white hover:text-[#D9C01B] font-bold cursor-pointer transition-colors"
+                              title="Rotate title 15° clockwise"
+                            >
+                              ↻ +15°
+                            </button>
+                          </>
+                        )}
+                        {(Boolean(cont.labelRotation || cont.subLabelRotation)) && onResetContinentRotation && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onResetContinentRotation(cont.name);
+                            }}
+                            className="px-1.5 py-0.5 text-[#FBBF24] hover:text-white rounded-[3px] cursor-pointer transition-colors font-semibold"
+                            title="Reset title & sub-title rotation back to 0°"
+                          >
+                            0°
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={(e) => {
@@ -2086,7 +2430,22 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
                             className="px-1.5 py-0.5 text-white/70 hover:text-white rounded-[3px] cursor-pointer transition-colors"
                             title="Reset to smooth auto-hull"
                           >
-                            Reset
+                            Reset Shape
+                          </button>
+                        )}
+                        {(Boolean(cont.labelOffsetX || cont.labelOffsetY || cont.subLabelOffsetX || cont.subLabelOffsetY || cont.labelRotation || cont.subLabelRotation)) && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onResetContinentLabel?.(cont.name);
+                              onResetContinentSubLabel?.(cont.name);
+                              onResetContinentRotation?.(cont.name);
+                            }}
+                            className="px-1.5 py-0.5 text-white/70 hover:text-[#D9C01B] rounded-[3px] cursor-pointer transition-colors"
+                            title="Reset label position and angle back to default"
+                          >
+                            Reset Labels
                           </button>
                         )}
                       </div>
@@ -2099,7 +2458,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
         </svg>
 
         {/* ENTITY NODE PINS & CARDS */}
-        {visibleEntities.map(entity => {
+        {visibleEntities.map((entity, entIdx) => {
           const isSelected = selectedEntity?.id === entity.id;
           const isMultiSelected = selectedEntityIds.has(entity.id);
           const isHovered = hoveredEntity?.id === entity.id;
@@ -2246,7 +2605,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
 
           return (
             <div
-              key={entity.id}
+              key={entity.id || `node-${entIdx}`}
               className={`node-element absolute -translate-x-1/2 -translate-y-1/2 ${
                 isNodeBeingDragged || isArchipelagoBeingDragged
                   ? 'transition-none z-[80] pointer-events-none drop-shadow-xl'

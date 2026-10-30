@@ -1,6 +1,6 @@
 import { EcosystemEntity, SyncResult, SyncMode } from '../types';
 import { sanitizeEntitySocialProfiles } from './socialMedia';
-import { sanitizeEntityObsoleteFields } from './excelParser';
+import { sanitizeEntityObsoleteFields, ensureUniqueEntityIds } from './excelParser';
 import { formatClusterWithNumber, normalizeArchipelagoBaseName } from './layoutGenerator';
 
 export interface SyncOptions {
@@ -26,12 +26,18 @@ export function syncDatasets(
   const mode: SyncMode = options.mode || 'replace';
   const preserveCoordinates = options.preserveCoordinates !== false;
 
+  const normalizeName = (str?: string) => str ? str.toLowerCase().replace(/[\s\-_.,;:'"()]+/g, ' ').trim() : '';
+
   const existingMapById = new Map<string, EcosystemEntity>();
   const existingMapByName = new Map<string, EcosystemEntity>();
+  const existingMapByNormName = new Map<string, EcosystemEntity>();
 
   existingEntities.forEach(ent => {
     existingMapById.set(ent.id, ent);
-    existingMapByName.set(ent.name.trim().toLowerCase(), ent);
+    const cleanName = ent.name.trim().toLowerCase();
+    existingMapByName.set(cleanName, ent);
+    const norm = normalizeName(ent.name);
+    if (norm) existingMapByNormName.set(norm, ent);
   });
 
   const added: EcosystemEntity[] = [];
@@ -44,35 +50,36 @@ export function syncDatasets(
   const processedExistingIds = new Set<string>();
 
   incomingEntities.forEach(incoming => {
-    // Try matching by ID first, then by normalized name
+    // Try matching by ID first, then exact name, then normalized name
     let matched = existingMapById.get(incoming.id);
     if (!matched) {
       matched = existingMapByName.get(incoming.name.trim().toLowerCase());
+    }
+    if (!matched) {
+      matched = existingMapByNormName.get(normalizeName(incoming.name));
     }
 
     if (matched) {
       processedExistingIds.add(matched.id);
 
-      // Preserve existing position coordinates if desired
+      // Preserve existing position coordinates strictly
       let preservedX = incoming.x;
       let preservedY = incoming.y;
       let preservedCustomFlag = incoming.isCustomPosition;
 
-      if (preserveCoordinates) {
-        // If the entity's category quadrant or archipelago changed, do NOT keep obsolete coordinates
-        const quadrantChanged = Boolean(incoming.category && matched.category && incoming.category !== matched.category);
-        const incomingCont = incoming.continent ? normalizeArchipelagoBaseName(incoming.continent) : '';
-        const matchedCont = matched.continent ? normalizeArchipelagoBaseName(matched.continent) : '';
-        const continentChanged = Boolean(incomingCont && matchedCont && incomingCont !== matchedCont);
-        const canPreserve = !quadrantChanged && !continentChanged && Boolean(matched.isCustomPosition);
+      const hasMatchedCoords = typeof matched.x === 'number' && typeof matched.y === 'number' && (matched.x !== 0 || matched.y !== 0);
 
-        preservedX = canPreserve ? matched.x : incoming.x;
-        preservedY = canPreserve ? matched.y : incoming.y;
-        preservedCustomFlag = canPreserve ? Boolean(matched.isCustomPosition) : false;
-
-        if (canPreserve && (preservedX !== 0 || preservedY !== 0)) {
-          preservedCoordinatesCount++;
-        }
+      if (preserveCoordinates && hasMatchedCoords) {
+        // Keep current coordinates intact!
+        preservedX = matched.x;
+        preservedY = matched.y;
+        preservedCustomFlag = true;
+        preservedCoordinatesCount++;
+      } else if (hasMatchedCoords && (incoming.x === 0 && incoming.y === 0)) {
+        // Fallback: If incoming has no coordinates, always keep matched coordinates
+        preservedX = matched.x;
+        preservedY = matched.y;
+        preservedCustomFlag = true;
       }
 
       // Check if anything actually changed in content
@@ -136,6 +143,8 @@ export function syncDatasets(
     }
   });
 
+  const uniqueDataset = ensureUniqueEntityIds(finalDataset);
+
   const result: SyncResult = {
     mode,
     added,
@@ -143,8 +152,8 @@ export function syncDatasets(
     removed: mode === 'replace' ? removed : [],
     preservedCoordinatesCount,
     unchangedCount,
-    totalNew: finalDataset.length
+    totalNew: uniqueDataset.length
   };
 
-  return { updatedDataset: finalDataset, result };
+  return { updatedDataset: uniqueDataset, result };
 }

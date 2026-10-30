@@ -22,6 +22,7 @@ export interface ContributionSubmission {
   id: string;
   entityId: string;
   entityName: string;
+  isNewEntity?: boolean;
   submitterEmail: string;
   submitterRelationship?: string;
   submittedAt: string; // ISO 8601
@@ -243,7 +244,8 @@ export async function saveContributionSubmission(
   proposedEntity: EcosystemEntity,
   submitterEmail: string,
   submitterRelationship?: string,
-  reviewerNotes?: string
+  reviewerNotes?: string,
+  isNewEntity?: boolean
 ): Promise<ContributionSubmission> {
   const diffs = computeEntityDiff(originalEntity, proposedEntity);
 
@@ -253,6 +255,7 @@ export async function saveContributionSubmission(
     id: submissionId,
     entityId: originalEntity.id,
     entityName: proposedEntity.name || originalEntity.name,
+    isNewEntity: Boolean(isNewEntity),
     submitterEmail: submitterEmail.trim(),
     submitterRelationship: submitterRelationship ? submitterRelationship.trim() : undefined,
     submittedAt: new Date().toISOString(),
@@ -374,6 +377,7 @@ export function subscribeToPipelineUpdates(callback: () => void): () => void {
               id: docSnap.id,
               entityId: data.entityId,
               entityName: data.entityName || '',
+              isNewEntity: Boolean(data.isNewEntity),
               submitterEmail: data.submitterEmail || '',
               submitterRelationship: data.submitterRelationship,
               submittedAt: data.submittedAt || new Date().toISOString(),

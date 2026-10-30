@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { EcosystemEntity, FilterState, MapViewport, FieldCluster, ContinentInfo, SyncResult, CategoryQuadrant, EntityType, SidebarListScope, CommunityNote, DataQualityStatus, DataCompletenessLevel, getEntityCompleteness, ArchipelagoMeta, LayerQuadrantConfig, LayerQuadrantSizes, DEFAULT_LAYER_QUADRANT_SIZES, getQuadrantSizesForLayer } from './types';
-import { INITIAL_ENTITIES } from './data/sampleEcosystem';
+import { 
+  INITIAL_ENTITIES, 
+  INITIAL_CONTINENT_SHAPES, 
+  INITIAL_ARCHIPELAGO_METADATA, 
+  INITIAL_LAYER_QUADRANT_SIZES 
+} from './data/sampleEcosystem';
+import { Compass } from 'lucide-react';
 import { 
   calculateEntityLayout, 
   recalculateArchipelagoLayout, 
@@ -20,7 +26,7 @@ import {
   calculateExpandedContinentHull,
   fitContinentTightlyAroundEntities
 } from './utils/layoutGenerator';
-import { exportEntities, ExportFormat, sanitizeEntityObsoleteFields, getEntitySpreadsheetField, splitLanguageValues, entityMatchesRelationship } from './utils/excelParser';
+import { exportEntities, ExportFormat, sanitizeEntityObsoleteFields, getEntitySpreadsheetField, splitLanguageValues, entityMatchesRelationship, ensureUniqueEntityIds } from './utils/excelParser';
 import { sanitizeEntitySocialProfiles } from './utils/socialMedia';
 import { Header } from './components/Header';
 import { LeftSidebar } from './components/LeftSidebar';
@@ -33,6 +39,7 @@ import { DirectoryView } from './components/DirectoryView';
 import { ReviewPipelineModal } from './components/ReviewPipelineModal';
 import { DismissChangesModal } from './components/DismissChangesModal';
 import { PositionSnapshotModal } from './components/PositionSnapshotModal';
+import { SubmitEntityModal } from './components/SubmitEntityModal';
 import { 
   persistPublishedDatasetToFirestore, 
   fetchPublishedDatasetFromFirestore, 
@@ -55,22 +62,42 @@ export default function App() {
   const [customContinentShapes, setCustomContinentShapes] = useState<Record<string, [number, number][]>>(() => {
     try {
       const saved = localStorage.getItem(CONTINENTS_STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
+          const clean: Record<string, [number, number][]> = {};
+          for (const [k, v] of Object.entries(parsed)) {
+            const formatted = formatClusterWithNumber(k) || k;
+            clean[formatted] = v as [number, number][];
+          }
+          return clean;
+        }
+      }
     } catch (e) {
       console.warn('Failed to parse continent shapes from localStorage', e);
     }
-    return {};
+    return INITIAL_CONTINENT_SHAPES || {};
   });
 
   // Custom archipelago metadata (quadrant assignments, descriptions, label offsets)
   const [archipelagoMetadata, setArchipelagoMetadata] = useState<Record<string, ArchipelagoMeta>>(() => {
     try {
       const saved = localStorage.getItem(ARCHIPELAGO_METADATA_STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
+          const clean: Record<string, ArchipelagoMeta> = {};
+          for (const [k, v] of Object.entries(parsed)) {
+            const formatted = formatClusterWithNumber(k) || k;
+            clean[formatted] = { ...(clean[formatted] || {}), ...(v as ArchipelagoMeta) };
+          }
+          return clean;
+        }
+      }
     } catch (e) {
       console.warn('Failed to parse archipelago metadata from localStorage', e);
     }
-    return {};
+    return INITIAL_ARCHIPELAGO_METADATA || {};
   });
 
   // Layer-specific quadrant dimensions (loaded dynamically according to active layer)
@@ -80,24 +107,25 @@ export default function App() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed && typeof parsed === 'object') {
-          return { ...DEFAULT_LAYER_QUADRANT_SIZES, ...parsed };
+          return { ...DEFAULT_LAYER_QUADRANT_SIZES, ...(INITIAL_LAYER_QUADRANT_SIZES || {}), ...parsed };
         }
       }
     } catch (e) {
       console.warn('Failed to parse layer quadrant sizes from localStorage', e);
     }
-    return DEFAULT_LAYER_QUADRANT_SIZES;
+    return INITIAL_LAYER_QUADRANT_SIZES ? { ...DEFAULT_LAYER_QUADRANT_SIZES, ...INITIAL_LAYER_QUADRANT_SIZES } : DEFAULT_LAYER_QUADRANT_SIZES;
   });
 
   // Initialize dataset & calculate layout with guaranteed anti-overlap clearance
   const [entities, setEntities] = useState<EcosystemEntity[]>(() => {
-    let baseEntities = INITIAL_ENTITIES;
+    let baseEntities = ensureUniqueEntityIds(INITIAL_ENTITIES);
     try {
       const savedDataset = localStorage.getItem(FULL_DATASET_STORAGE_KEY);
       if (savedDataset) {
         const parsed = JSON.parse(savedDataset);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          baseEntities = parsed;
+        // Discard any stale <50 entity caches from earlier versions
+        if (Array.isArray(parsed) && parsed.length >= 50) {
+          baseEntities = ensureUniqueEntityIds(parsed);
         }
       }
     } catch (e) {
@@ -115,6 +143,9 @@ export default function App() {
     // Ensure all entities are thoroughly sanitized and have relationship data & categorizedFields
     baseEntities = baseEntities.map(ent => {
       const sanitized = sanitizeEntityObsoleteFields(sanitizeEntitySocialProfiles(ent));
+      if (sanitized.continent) {
+        sanitized.continent = formatClusterWithNumber(sanitized.continent);
+      }
       const init = INITIAL_ENTITIES.find(e => e.id === sanitized.id);
       if (init) {
         if (!sanitized.ourRelationship && init.ourRelationship) {
@@ -133,7 +164,30 @@ export default function App() {
       return sanitized;
     });
 
-    const { entities: layouted } = calculateEntityLayout(baseEntities);
+    baseEntities = ensureUniqueEntityIds(baseEntities);
+
+    // Initial overrides from archipelago metadata
+    let initialMeta = INITIAL_ARCHIPELAGO_METADATA || {};
+    try {
+      const savedMeta = localStorage.getItem(ARCHIPELAGO_METADATA_STORAGE_KEY);
+      if (savedMeta) {
+        const parsed = JSON.parse(savedMeta);
+        if (parsed && typeof parsed === 'object') {
+          initialMeta = { ...initialMeta, ...parsed };
+        }
+      }
+    } catch {}
+
+    const initialOverrides: Record<string, CategoryQuadrant> = {};
+    Object.entries(initialMeta).forEach(([name, meta]) => {
+      if (meta?.quadrant) {
+        initialOverrides[name] = meta.quadrant;
+        initialOverrides[formatClusterWithNumber(name)] = meta.quadrant;
+        initialOverrides[normalizeArchipelagoBaseName(name)] = meta.quadrant;
+      }
+    });
+
+    const { entities: layouted } = calculateEntityLayout(baseEntities, { archipelagoQuadrantOverrides: initialOverrides });
 
     // Restore custom positions from localStorage if available
     try {
@@ -162,33 +216,23 @@ export default function App() {
                 isCustomPosition: true,
                 notes: savedPos.notes || ent.notes,
                 communityNotes: (savedPos as any).communityNotes || ent.communityNotes,
-                continent: savedPos.continent || ent.continent,
-                dataCompleteness: getEntityCompleteness({ dataCompleteness: savedPos.dataCompleteness, dataQuality: savedPos.dataQuality || ent.dataCompleteness || ent.dataQuality }),
-                dataQuality: getEntityCompleteness({ dataCompleteness: savedPos.dataCompleteness, dataQuality: savedPos.dataQuality || ent.dataCompleteness || ent.dataQuality })
+                continent: savedPos.continent ? formatClusterWithNumber(savedPos.continent) : ent.continent,
+                dataCompleteness: getEntityCompleteness(ent),
+                dataQuality: getEntityCompleteness(ent)
               };
             }
           }
           return ent;
         });
 
-        // Upgrade legacy stacked layout to version 4 with spacious quadrant archipelagos
-        const layoutVersion = localStorage.getItem('metta_layout_version');
-        if (layoutVersion !== 'v4') {
-          try {
-            localStorage.setItem('metta_layout_version', 'v4');
-          } catch {}
-          const { entities: cleanLayout } = recalculateArchipelagoLayout(mapped, { resetCustomPositions: true });
-          return cleanLayout;
-        }
-
         // Load saved positions directly without collision detection modifying them
-        return mapped;
+        return ensureUniqueEntityIds(mapped);
       }
     } catch (e) {
       console.warn('Failed to parse saved positions from localStorage', e);
     }
 
-    return layouted;
+    return ensureUniqueEntityIds(layouted);
   });
 
   // Calculate field clusters, continents, and layout geometry
@@ -221,6 +265,17 @@ export default function App() {
       const subLabelOffsetX = meta?.subLabelOffset?.x !== undefined ? meta.subLabelOffset.x : labelOffsetX;
       const subLabelOffsetY = meta?.subLabelOffset?.y !== undefined ? meta.subLabelOffset.y : labelOffsetY;
 
+      // Curvature: 0 = straight horizontal line, 0.35 = gentle, 0.7 = natural arch, 1.0+ = curved
+      const globalMeta = archipelagoMetadata['__global__'];
+      const defaultTitleCurv = globalMeta?.titleCurvature !== undefined ? globalMeta.titleCurvature : 0.7;
+      const defaultSubTitleCurv = globalMeta?.subTitleCurvature !== undefined ? globalMeta.subTitleCurvature : 0.7;
+      const titleCurvature = meta?.titleCurvature !== undefined ? meta.titleCurvature : defaultTitleCurv;
+      const subTitleCurvature = meta?.subTitleCurvature !== undefined ? meta.subTitleCurvature : defaultSubTitleCurv;
+
+      // Rotation: angle in degrees (-180 to 180 or 0 to 360) for archipelago title and sub-title
+      const labelRotation = meta?.labelRotation ?? 0;
+      const subLabelRotation = meta?.subLabelRotation !== undefined ? meta.subLabelRotation : labelRotation;
+
       // Resilient lookup across all variations (exact, numbered, clean base, without prefix)
       const customPoints = customContinentShapes[cont.name]
         || customContinentShapes[formattedContName]
@@ -251,8 +306,8 @@ export default function App() {
         const sMaxX = maxX + 25;
         const sMinY = minY - 25;
         const sMaxY = maxY + 25;
-        const labelPath = generateContinentLabelPath(cX, cY, sMinX, sMaxX, sMinY, sMaxY, effectivePoints, 0);
-        const subLabelPath = generateContinentLabelPath(cX, cY, sMinX, sMaxX, sMinY, sMaxY, effectivePoints, -22);
+        const labelPath = generateContinentLabelPath(cX, cY, sMinX, sMaxX, sMinY, sMaxY, effectivePoints, 0, titleCurvature, cont.name);
+        const subLabelPath = generateContinentLabelPath(cX, cY, sMinX, sMaxX, sMinY, sMaxY, effectivePoints, -22, subTitleCurvature, `${cont.count} ${cont.count === 1 ? 'entity' : 'entities'}`);
         return {
           ...cont,
           description: customDesc,
@@ -264,6 +319,10 @@ export default function App() {
           labelOffsetY,
           subLabelOffsetX,
           subLabelOffsetY,
+          titleCurvature,
+          subTitleCurvature,
+          labelRotation,
+          subLabelRotation,
           centerX: cX,
           centerY: cY,
           minX: sMinX,
@@ -274,13 +333,44 @@ export default function App() {
         };
       }
 
+      const labelPath = generateContinentLabelPath(
+        cont.centerX,
+        cont.centerY,
+        cont.minX,
+        cont.maxX,
+        cont.minY,
+        cont.maxY,
+        cont.controlPoints,
+        0,
+        titleCurvature,
+        cont.name
+      );
+      const subLabelPath = generateContinentLabelPath(
+        cont.centerX,
+        cont.centerY,
+        cont.minX,
+        cont.maxX,
+        cont.minY,
+        cont.maxY,
+        cont.controlPoints,
+        -22,
+        subTitleCurvature,
+        `${cont.count} ${cont.count === 1 ? 'entity' : 'entities'}`
+      );
+
       return {
         ...cont,
         description: customDesc,
         labelOffsetX,
         labelOffsetY,
         subLabelOffsetX,
-        subLabelOffsetY
+        subLabelOffsetY,
+        titleCurvature,
+        subTitleCurvature,
+        labelRotation,
+        subLabelRotation,
+        labelPath,
+        subLabelPath
       };
     });
   }, [rawContinents, customContinentShapes, archipelagoMetadata, entities]);
@@ -376,17 +466,22 @@ export default function App() {
   // Page Views: 'map' | 'directory'
   const [currentView, setCurrentView] = useState<'map' | 'directory'>('map');
 
+  // Initial loading state to prevent flash of unhydrated layout
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+
 
 
   // Modals
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
   const [aboutModalOpen, setAboutModalOpen] = useState(false);
+  const [submitEntityModalOpen, setSubmitEntityModalOpen] = useState(false);
   const [discoveryModalOpen, setDiscoveryModalOpen] = useState(false);
   const [reviewPipelineModalOpen, setReviewPipelineModalOpen] = useState(false);
   const [positionSnapshotModalOpen, setPositionSnapshotModalOpen] = useState(false);
   const [dismissModalOpen, setDismissModalOpen] = useState(false);
   const [isDismissing, setIsDismissing] = useState(false);
   const [dismissSuccessToast, setDismissSuccessToast] = useState(false);
+  const [syncSuccessToast, setSyncSuccessToast] = useState<{ title: string; details: string[] } | null>(null);
   const [isCloudSyncing, setIsCloudSyncing] = useState(false);
 
   // Cloud sync, uncommitted changes, and quota status
@@ -445,21 +540,21 @@ export default function App() {
       const saved = localStorage.getItem(COMMITTED_BASELINE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.entities && Array.isArray(parsed.entities) && parsed.entities.length > 0) {
+        if (parsed.entities && Array.isArray(parsed.entities) && parsed.entities.length >= 50) {
           return {
             entities: parsed.entities,
-            customContinentShapes: parsed.customContinentShapes || {},
-            archipelagoMetadata: parsed.archipelagoMetadata || {},
-            layerQuadrantSizes: parsed.layerQuadrantSizes || DEFAULT_LAYER_QUADRANT_SIZES
+            customContinentShapes: parsed.customContinentShapes || INITIAL_CONTINENT_SHAPES || {},
+            archipelagoMetadata: parsed.archipelagoMetadata || INITIAL_ARCHIPELAGO_METADATA || {},
+            layerQuadrantSizes: parsed.layerQuadrantSizes || INITIAL_LAYER_QUADRANT_SIZES || DEFAULT_LAYER_QUADRANT_SIZES
           };
         }
       }
     } catch {}
     return {
       entities: INITIAL_ENTITIES.filter(ent => ent.type !== 'Idea'),
-      customContinentShapes: {},
-      archipelagoMetadata: {},
-      layerQuadrantSizes: DEFAULT_LAYER_QUADRANT_SIZES
+      customContinentShapes: INITIAL_CONTINENT_SHAPES || {},
+      archipelagoMetadata: INITIAL_ARCHIPELAGO_METADATA || {},
+      layerQuadrantSizes: INITIAL_LAYER_QUADRANT_SIZES ? { ...DEFAULT_LAYER_QUADRANT_SIZES, ...INITIAL_LAYER_QUADRANT_SIZES } : DEFAULT_LAYER_QUADRANT_SIZES
     };
   })());
 
@@ -610,13 +705,21 @@ export default function App() {
       }
 
       // 4. Sanitize and recalculate layout
-      const sanitized = restoredEntities.map(ent => sanitizeEntityObsoleteFields(sanitizeEntitySocialProfiles(ent)));
-      const { entities: layouted } = calculateEntityLayout(sanitized);
+      const uniqueRestored = ensureUniqueEntityIds(restoredEntities);
+      const sanitized = uniqueRestored.map(ent => {
+        const clean = sanitizeEntityObsoleteFields(sanitizeEntitySocialProfiles(ent));
+        if (clean.continent) {
+          clean.continent = formatClusterWithNumber(clean.continent);
+        }
+        return clean;
+      });
+      const { entities: layouted } = calculateEntityLayout(ensureUniqueEntityIds(sanitized));
+      const uniqueLayouted = ensureUniqueEntityIds(layouted);
 
       // 5. Update localStorage with clean reverted state
       try {
         const customMap: Record<string, Partial<EcosystemEntity>> = {};
-        layouted.forEach(ent => {
+        uniqueLayouted.forEach(ent => {
           if (ent.isCustomPosition) {
             customMap[ent.id] = {
               name: ent.name,
@@ -630,7 +733,7 @@ export default function App() {
           }
         });
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(customMap));
-        localStorage.setItem(FULL_DATASET_STORAGE_KEY, JSON.stringify(layouted));
+        localStorage.setItem(FULL_DATASET_STORAGE_KEY, JSON.stringify(uniqueLayouted));
         localStorage.setItem(CONTINENTS_STORAGE_KEY, JSON.stringify(restoredShapes));
         localStorage.setItem(ARCHIPELAGO_METADATA_STORAGE_KEY, JSON.stringify(restoredMeta));
         localStorage.setItem(LAYER_QUADRANTS_STORAGE_KEY, JSON.stringify(restoredQuadrantSizes));
@@ -639,14 +742,14 @@ export default function App() {
       }
 
       // 6. Update local state
-      setEntities(layouted);
+      setEntities(uniqueLayouted);
       setCustomContinentShapes(restoredShapes);
       setArchipelagoMetadata(restoredMeta);
       setLayerQuadrantSizes(restoredQuadrantSizes);
 
       // Refresh currently selected entity if active
       if (selectedEntity) {
-        const matched = layouted.find(e => e.id === selectedEntity.id);
+        const matched = uniqueLayouted.find(e => e.id === selectedEntity.id);
         setSelectedEntity(matched || null);
       }
 
@@ -657,7 +760,7 @@ export default function App() {
 
       // 8. Update baseline ref
       committedSnapshotRef.current = {
-        entities: JSON.parse(JSON.stringify(layouted)),
+        entities: JSON.parse(JSON.stringify(uniqueLayouted)),
         customContinentShapes: JSON.parse(JSON.stringify(restoredShapes)),
         archipelagoMetadata: JSON.parse(JSON.stringify(restoredMeta)),
         layerQuadrantSizes: JSON.parse(JSON.stringify(restoredQuadrantSizes))
@@ -798,7 +901,7 @@ export default function App() {
         if (savedDatasetRaw) {
           try {
             const parsed = JSON.parse(savedDatasetRaw);
-            if (Array.isArray(parsed) && parsed.length > 0) {
+            if (Array.isArray(parsed) && parsed.length >= 50) {
               localEntities = parsed;
             }
           } catch {}
@@ -807,12 +910,14 @@ export default function App() {
         // If client had pending uncommitted changes from a previous session (e.g. refreshed page while editing):
         if (hasPendingLocal && localEntities && localEntities.length > 0) {
           console.info('Found uncommitted local changes on boot. Committing to Firestore...');
-          const { entities: layouted } = calculateEntityLayout(localEntities);
-          setEntities(layouted);
+          const uniqueLocal = ensureUniqueEntityIds(localEntities);
+          const { entities: layouted } = calculateEntityLayout(uniqueLocal);
+          const uniqueLayouted = ensureUniqueEntityIds(layouted);
+          setEntities(uniqueLayouted);
           if (Object.keys(localShapes).length > 0) {
             setCustomContinentShapes(localShapes);
           }
-          triggerCloudCommit(layouted, localShapes);
+          triggerCloudCommit(uniqueLayouted, localShapes);
           return;
         }
 
@@ -832,9 +937,13 @@ export default function App() {
         }
 
         if (cloudEntities && Array.isArray(cloudEntities) && cloudEntities.length > 0) {
-          const sanitized = cloudEntities.map(ent => {
+          const uniqueCloud = ensureUniqueEntityIds(cloudEntities);
+          const sanitized = uniqueCloud.map(ent => {
             const clean = sanitizeEntityObsoleteFields(sanitizeEntitySocialProfiles(ent));
-            if (localCustomMap[clean.id] && localCustomMap[clean.id].isCustomPosition) {
+            if (clean.continent) {
+              clean.continent = formatClusterWithNumber(clean.continent);
+            }
+            if (hasPendingLocal && localCustomMap[clean.id] && localCustomMap[clean.id].isCustomPosition) {
               return {
                 ...clean,
                 x: localCustomMap[clean.id].x ?? clean.x,
@@ -842,18 +951,32 @@ export default function App() {
                 isCustomPosition: true
               };
             }
+            const hasCoords = typeof clean.x === 'number' && typeof clean.y === 'number' && (clean.x !== 0 || clean.y !== 0) && Number.isFinite(clean.x) && Number.isFinite(clean.y);
+            if (hasCoords) {
+              return {
+                ...clean,
+                isCustomPosition: true
+              };
+            }
             return clean;
           });
-          const { entities: layouted } = calculateEntityLayout(sanitized, { archipelagoQuadrantOverrides: overrides });
-          setEntities(layouted);
-          entitiesRef.current = layouted;
+          const { entities: layouted } = calculateEntityLayout(ensureUniqueEntityIds(sanitized), {
+            forceRecalculate: false,
+            archipelagoQuadrantOverrides: overrides
+          });
+          const uniqueLayouted = ensureUniqueEntityIds(layouted);
+          setEntities(uniqueLayouted);
+          entitiesRef.current = uniqueLayouted;
 
           try {
-            localStorage.setItem(FULL_DATASET_STORAGE_KEY, JSON.stringify(layouted));
+            localStorage.setItem(FULL_DATASET_STORAGE_KEY, JSON.stringify(uniqueLayouted));
           } catch {}
         }
 
-        const mergedShapes = { ...(cloudShapes || {}), ...localShapes };
+        const mergedShapes = hasPendingLocal
+          ? { ...(INITIAL_CONTINENT_SHAPES || {}), ...(cloudShapes || {}), ...localShapes }
+          : { ...(INITIAL_CONTINENT_SHAPES || {}), ...localShapes, ...(cloudShapes || {}) };
+
         if (Object.keys(mergedShapes).length > 0) {
           const healedShapes = healAndAlignContinentShapes(mergedShapes, entitiesRef.current);
           setCustomContinentShapes(healedShapes);
@@ -865,7 +988,9 @@ export default function App() {
 
         if (cloudMeta && Object.keys(cloudMeta).length > 0) {
           setArchipelagoMetadata(prev => {
-            const merged = { ...cloudMeta, ...prev };
+            const merged = hasPendingLocal
+              ? { ...(INITIAL_ARCHIPELAGO_METADATA || {}), ...cloudMeta, ...prev }
+              : { ...(INITIAL_ARCHIPELAGO_METADATA || {}), ...prev, ...cloudMeta };
             archipelagoMetadataRef.current = merged;
             try {
               localStorage.setItem(ARCHIPELAGO_METADATA_STORAGE_KEY, JSON.stringify(merged));
@@ -876,7 +1001,9 @@ export default function App() {
 
         if (cloudQuadrants && Object.keys(cloudQuadrants).length > 0) {
           setLayerQuadrantSizes(prev => {
-            const merged = { ...DEFAULT_LAYER_QUADRANT_SIZES, ...cloudQuadrants, ...prev };
+            const merged = hasPendingLocal
+              ? { ...DEFAULT_LAYER_QUADRANT_SIZES, ...(INITIAL_LAYER_QUADRANT_SIZES || {}), ...cloudQuadrants, ...prev }
+              : { ...DEFAULT_LAYER_QUADRANT_SIZES, ...(INITIAL_LAYER_QUADRANT_SIZES || {}), ...prev, ...cloudQuadrants };
             layerQuadrantSizesRef.current = merged;
             try {
               localStorage.setItem(LAYER_QUADRANTS_STORAGE_KEY, JSON.stringify(merged));
@@ -899,8 +1026,19 @@ export default function App() {
         }
       } catch (err) {
         console.warn('Failed to load published dataset from Firestore:', err);
+      } finally {
+        if (isMounted) {
+          setIsInitialLoading(false);
+        }
       }
     }
+
+    // Safety timeout: release initial loading state after max 2s so the UI is never stalled
+    const safetyTimer = setTimeout(() => {
+      if (isMounted) {
+        setIsInitialLoading(false);
+      }
+    }, 2000);
 
     loadCloudDataset();
 
@@ -923,12 +1061,24 @@ export default function App() {
       }
 
       if (updatedList && updatedList.length > 0) {
-        const sanitized = updatedList.map(ent => sanitizeEntityObsoleteFields(sanitizeEntitySocialProfiles(ent)));
-        const { entities: layouted } = calculateEntityLayout(sanitized, { archipelagoQuadrantOverrides: overrides });
-        setEntities(layouted);
-        entitiesRef.current = layouted;
+        const uniqueList = ensureUniqueEntityIds(updatedList);
+        const sanitized = uniqueList.map(ent => {
+          const clean = sanitizeEntityObsoleteFields(sanitizeEntitySocialProfiles(ent));
+          const hasCoords = typeof clean.x === 'number' && typeof clean.y === 'number' && (clean.x !== 0 || clean.y !== 0) && Number.isFinite(clean.x) && Number.isFinite(clean.y);
+          return {
+            ...clean,
+            isCustomPosition: hasCoords ? true : clean.isCustomPosition
+          };
+        });
+        const { entities: layouted } = calculateEntityLayout(ensureUniqueEntityIds(sanitized), {
+          forceRecalculate: false,
+          archipelagoQuadrantOverrides: overrides
+        });
+        const uniqueLayouted = ensureUniqueEntityIds(layouted);
+        setEntities(uniqueLayouted);
+        entitiesRef.current = uniqueLayouted;
         try {
-          localStorage.setItem(FULL_DATASET_STORAGE_KEY, JSON.stringify(layouted));
+          localStorage.setItem(FULL_DATASET_STORAGE_KEY, JSON.stringify(uniqueLayouted));
         } catch {}
       }
       if (updatedShapes && Object.keys(updatedShapes).length > 0) {
@@ -966,6 +1116,7 @@ export default function App() {
 
     return () => {
       isMounted = false;
+      clearTimeout(safetyTimer);
       unsub();
       if (cloudSyncTimerRef.current) {
         clearTimeout(cloudSyncTimerRef.current);
@@ -1007,8 +1158,9 @@ export default function App() {
           isCustomPosition: ent.isCustomPosition
         };
       });
+      const uniqueEntities = ensureUniqueEntityIds(updatedEntities);
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(customMap));
-      localStorage.setItem(FULL_DATASET_STORAGE_KEY, JSON.stringify(updatedEntities));
+      localStorage.setItem(FULL_DATASET_STORAGE_KEY, JSON.stringify(uniqueEntities));
       if (continentShapesToSave !== undefined && continentShapesToSave !== null) {
         localStorage.setItem(CONTINENTS_STORAGE_KEY, JSON.stringify(continentShapesToSave));
       }
@@ -1189,7 +1341,10 @@ export default function App() {
   const handleUpdateEntity = useCallback((updated: EcosystemEntity) => {
     const cleanUpdated = sanitizeEntityObsoleteFields(sanitizeEntitySocialProfiles(updated));
     setEntities(prev => {
-      const next = prev.map(ent => ent.id === cleanUpdated.id ? cleanUpdated : ent);
+      const exists = prev.some(ent => ent.id === cleanUpdated.id);
+      const next = exists
+        ? prev.map(ent => ent.id === cleanUpdated.id ? cleanUpdated : ent)
+        : [...prev, cleanUpdated];
       saveToLocalStorage(next);
       return next;
     });
@@ -1381,12 +1536,13 @@ export default function App() {
       // 3. Entity Type
       if (!filterState.entityTypes[ent.type]) return false;
 
-      // 4. Data Completeness Status
+      // 4. Data Completeness Status (Column X)
       const dc = getEntityCompleteness(ent);
-      if (filterState.dataCompleteness && filterState.dataCompleteness[dc] === false) {
-        return false;
-      }
-      if (filterState.dataQuality && (filterState.dataQuality as any)[dc] === false) {
+      if (filterState.dataCompleteness) {
+        if (filterState.dataCompleteness[dc] === false) {
+          return false;
+        }
+      } else if (filterState.dataQuality && (filterState.dataQuality as any)[dc] === false) {
         return false;
       }
 
@@ -1684,10 +1840,10 @@ export default function App() {
     const targetArchipelago = selectedContinentName || (activeListScope?.type === 'continent' ? activeListScope.name : null);
     if (targetArchipelago) {
       const contInfo = baseContinents.find(c => normalizeArchipelagoBaseName(c.name) === normalizeArchipelagoBaseName(targetArchipelago));
-      return calculateFocusArchipelagoPositions(matched, targetArchipelago, contInfo, baseContinents);
+      return ensureUniqueEntityIds(calculateFocusArchipelagoPositions(matched, targetArchipelago, contInfo, baseContinents));
     }
 
-    return matched;
+    return ensureUniqueEntityIds(matched);
   }, [entities, filterState, activeListScope, selectedContinentName, baseContinents]);
 
   // Merge dynamic focus hull expansion with base continents when an archipelago is focused
@@ -1699,27 +1855,42 @@ export default function App() {
     const targetBase = normalizeArchipelagoBaseName(targetFocusArchipelago);
 
     return baseContinents.map(cont => {
-      // In edit mode or if continent has a custom shape, NEVER force-expand boundaries or override the user's sizing!
-      if (editMode || cont.isCustomShape) {
+      const isFocused = normalizeArchipelagoBaseName(cont.name) === targetBase;
+      if (!isFocused) {
         return cont;
       }
-      // If this continent is currently focused, expand its auto-hull to wrap around all
-      // primary + guest entities appearing in this archipelago
-      if (normalizeArchipelagoBaseName(cont.name) === targetBase) {
-        const focusEntities = filteredEntities.filter(e => entityMatchesArchipelago(e, targetFocusArchipelago));
-        if (focusEntities.length > 0) {
-          const expanded = calculateExpandedContinentHull(cont, focusEntities);
-          return {
-            ...expanded,
-            description: cont.description,
-            labelOffsetX: cont.labelOffsetX,
-            labelOffsetY: cont.labelOffsetY,
-            subLabelOffsetX: cont.subLabelOffsetX,
-            subLabelOffsetY: cont.subLabelOffsetY
-          };
-        }
+
+      // Count all entities appearing in this archipelago during focus (primary + guest / additional entities)
+      const focusEntities = filteredEntities.filter(e => entityMatchesArchipelago(e, targetFocusArchipelago));
+      const focusedCount = focusEntities.length > 0 ? focusEntities.length : cont.count;
+
+      // In edit mode or if continent has a custom shape, NEVER force-expand boundaries or override the user's sizing, but DO update the count!
+      if (editMode || cont.isCustomShape) {
+        return {
+          ...cont,
+          count: focusedCount
+        };
       }
-      return cont;
+
+      // If this continent is currently focused and using auto-hull, expand its auto-hull to wrap around all
+      // primary + guest entities appearing in this archipelago
+      if (focusEntities.length > 0) {
+        const expanded = calculateExpandedContinentHull(cont, focusEntities);
+        return {
+          ...expanded,
+          count: focusedCount,
+          description: cont.description,
+          labelOffsetX: cont.labelOffsetX,
+          labelOffsetY: cont.labelOffsetY,
+          subLabelOffsetX: cont.subLabelOffsetX,
+          subLabelOffsetY: cont.subLabelOffsetY
+        };
+      }
+
+      return {
+        ...cont,
+        count: focusedCount
+      };
     });
   }, [baseContinents, selectedContinentName, activeListScope, filteredEntities, editMode]);
 
@@ -2077,10 +2248,159 @@ export default function App() {
       const formatted = formatClusterWithNumber(continentName);
       const next = { ...prev };
       if (next[continentName]) {
-        next[continentName] = { ...next[continentName], labelOffset: { x: 0, y: 0 }, subLabelOffset: undefined };
+        next[continentName] = { ...next[continentName], labelOffset: { x: 0, y: 0 }, subLabelOffset: undefined, labelRotation: 0, subLabelRotation: 0 };
       }
       if (next[formatted]) {
-        next[formatted] = { ...next[formatted], labelOffset: { x: 0, y: 0 }, subLabelOffset: undefined };
+        next[formatted] = { ...next[formatted], labelOffset: { x: 0, y: 0 }, subLabelOffset: undefined, labelRotation: 0, subLabelRotation: 0 };
+      }
+      try {
+        localStorage.setItem(ARCHIPELAGO_METADATA_STORAGE_KEY, JSON.stringify(next));
+      } catch {}
+      saveToLocalStorage(entitiesRef.current, customContinentShapesRef.current, false, next);
+      return next;
+    });
+  }, [saveToLocalStorage, pushHistorySnapshot]);
+
+  // Update archipelago title and/or sub-title curvature (0 = straight horizontal line, 0.35 = gentle, 0.7 = natural, 1.0+ = curved)
+  const handleUpdateContinentCurvature = useCallback((
+    continentName: string,
+    titleCurvature?: number,
+    subTitleCurvature?: number
+  ) => {
+    pushHistorySnapshot('Update archipelago curvature');
+    setArchipelagoMetadata(prev => {
+      const formatted = formatClusterWithNumber(continentName);
+      const existing = prev[continentName] || prev[formatted] || {};
+      const updated: ArchipelagoMeta = {
+        ...existing,
+        ...(titleCurvature !== undefined ? { titleCurvature } : {}),
+        ...(subTitleCurvature !== undefined ? { subTitleCurvature } : {})
+      };
+      const next = {
+        ...prev,
+        [continentName]: updated,
+        [formatted]: updated
+      };
+      try {
+        localStorage.setItem(ARCHIPELAGO_METADATA_STORAGE_KEY, JSON.stringify(next));
+      } catch {}
+      saveToLocalStorage(entitiesRef.current, customContinentShapesRef.current, false, next);
+      return next;
+    });
+  }, [saveToLocalStorage, pushHistorySnapshot]);
+
+  // Update title and sub-title curvature for ALL archipelagos across the entire map
+  const handleUpdateAllContinentsCurvature = useCallback((
+    titleCurvature: number,
+    subTitleCurvature?: number
+  ) => {
+    pushHistorySnapshot('Update all archipelagos curvature');
+    setArchipelagoMetadata(prev => {
+      const next = { ...prev };
+      const subCurv = subTitleCurvature !== undefined ? subTitleCurvature : titleCurvature;
+
+      // Update global default
+      next['__global__'] = {
+        titleCurvature,
+        subTitleCurvature: subCurv
+      };
+
+      // Also explicitly update any known archipelagos
+      continents.forEach(cont => {
+        const formatted = formatClusterWithNumber(cont.name);
+        const existing = next[cont.name] || next[formatted] || {};
+        const updated: ArchipelagoMeta = {
+          ...existing,
+          titleCurvature,
+          subTitleCurvature: subCurv
+        };
+        next[cont.name] = updated;
+        next[formatted] = updated;
+      });
+
+      try {
+        localStorage.setItem(ARCHIPELAGO_METADATA_STORAGE_KEY, JSON.stringify(next));
+      } catch {}
+      saveToLocalStorage(entitiesRef.current, customContinentShapesRef.current, false, next);
+      return next;
+    });
+  }, [continents, saveToLocalStorage, pushHistorySnapshot]);
+
+  // Reset archipelago curvature to default
+  const handleResetContinentCurvature = useCallback((continentName: string) => {
+    pushHistorySnapshot('Reset archipelago curvature');
+    setArchipelagoMetadata(prev => {
+      const formatted = formatClusterWithNumber(continentName);
+      const next = { ...prev };
+      if (next[continentName]) {
+        const copy = { ...next[continentName] };
+        delete copy.titleCurvature;
+        delete copy.subTitleCurvature;
+        next[continentName] = copy;
+      }
+      if (next[formatted]) {
+        const copy = { ...next[formatted] };
+        delete copy.titleCurvature;
+        delete copy.subTitleCurvature;
+        next[formatted] = copy;
+      }
+      try {
+        localStorage.setItem(ARCHIPELAGO_METADATA_STORAGE_KEY, JSON.stringify(next));
+      } catch {}
+      saveToLocalStorage(entitiesRef.current, customContinentShapesRef.current, false, next);
+      return next;
+    });
+  }, [saveToLocalStorage, pushHistorySnapshot]);
+
+  // Rotate archipelago title and/or sub-title freely (degrees from -180 to 180 or 0 to 360)
+  const handleRotateContinentLabel = useCallback((
+    continentName: string,
+    rotation: number,
+    isSubLabel = false,
+    linkBoth = false
+  ) => {
+    pushHistorySnapshot(isSubLabel ? 'Rotate archipelago sub-title' : 'Rotate archipelago title');
+    setArchipelagoMetadata(prev => {
+      const formatted = formatClusterWithNumber(continentName);
+      const existing = prev[continentName] || prev[formatted] || {};
+      const updated: ArchipelagoMeta = {
+        ...existing,
+        ...(linkBoth
+          ? { labelRotation: rotation, subLabelRotation: rotation }
+          : isSubLabel
+          ? { subLabelRotation: rotation }
+          : { labelRotation: rotation })
+      };
+      const next = {
+        ...prev,
+        [continentName]: updated,
+        [formatted]: updated
+      };
+      try {
+        localStorage.setItem(ARCHIPELAGO_METADATA_STORAGE_KEY, JSON.stringify(next));
+      } catch {}
+      saveToLocalStorage(entitiesRef.current, customContinentShapesRef.current, false, next);
+      return next;
+    });
+  }, [saveToLocalStorage, pushHistorySnapshot]);
+
+  // Reset archipelago title and sub-title rotation to 0 degrees
+  const handleResetContinentRotation = useCallback((continentName: string) => {
+    pushHistorySnapshot('Reset archipelago rotation');
+    setArchipelagoMetadata(prev => {
+      const formatted = formatClusterWithNumber(continentName);
+      const next = { ...prev };
+      if (next[continentName]) {
+        const copy = { ...next[continentName] };
+        delete copy.labelRotation;
+        delete copy.subLabelRotation;
+        next[continentName] = copy;
+      }
+      if (next[formatted]) {
+        const copy = { ...next[formatted] };
+        delete copy.labelRotation;
+        delete copy.subLabelRotation;
+        next[formatted] = copy;
       }
       try {
         localStorage.setItem(ARCHIPELAGO_METADATA_STORAGE_KEY, JSON.stringify(next));
@@ -2809,8 +3129,9 @@ export default function App() {
     localStorage.removeItem(CONTINENTS_STORAGE_KEY);
     localStorage.removeItem(FULL_DATASET_STORAGE_KEY);
     setCustomContinentShapes({});
-    const { entities: fresh } = recalculateArchipelagoLayout(INITIAL_ENTITIES, { resetCustomPositions: true });
-    setEntities(fresh);
+    const uniqueInitial = ensureUniqueEntityIds(INITIAL_ENTITIES);
+    const { entities: fresh } = recalculateArchipelagoLayout(uniqueInitial, { resetCustomPositions: true });
+    setEntities(ensureUniqueEntityIds(fresh));
   }, []);
 
   // Handle Smart Sync from uploaded spreadsheet
@@ -2825,46 +3146,83 @@ export default function App() {
     if (columnComments && Object.keys(columnComments).length > 0) {
       registerColumnComments(columnComments);
     }
-    // Sanitize dataset against transformation focus leaking into social profiles
-    const sanitized = updatedDataset.map(sanitizeEntitySocialProfiles);
-    // Layout entities cleanly into non-overlapping archipelago quadrant layout
-    const { entities: recalculated } = recalculateArchipelagoLayout(sanitized, {
-      resetCustomPositions: result.mode === 'replace' || !result.preservedCoordinatesCount
+
+    // Extract quadrant overrides from metadata
+    const overrides: Record<string, CategoryQuadrant> = {};
+    if (archipelagoMetadataRef.current && typeof archipelagoMetadataRef.current === 'object') {
+      Object.entries(archipelagoMetadataRef.current).forEach(([name, meta]: [string, any]) => {
+        if (meta?.quadrant) {
+          overrides[name] = meta.quadrant;
+          overrides[formatClusterWithNumber(name)] = meta.quadrant;
+          overrides[normalizeArchipelagoBaseName(name)] = meta.quadrant;
+        }
+      });
+    }
+
+    // Sanitize dataset and lock any entity with existing coordinates so positions NEVER change
+    const unique = ensureUniqueEntityIds(updatedDataset);
+    const sanitized = unique.map(ent => {
+      const clean = sanitizeEntitySocialProfiles(ent);
+      const hasCoords = typeof clean.x === 'number' && typeof clean.y === 'number' && (clean.x !== 0 || clean.y !== 0) && Number.isFinite(clean.x) && Number.isFinite(clean.y);
+      return {
+        ...clean,
+        isCustomPosition: hasCoords ? true : clean.isCustomPosition
+      };
     });
-    setEntities(recalculated);
 
-    // Reset stale custom shapes so organic hulls match new archipelago positions
-    setCustomContinentShapes({});
-    try {
-      localStorage.removeItem(CONTINENTS_STORAGE_KEY);
-    } catch {}
+    // Only compute coordinates for brand-new entities that do not have coordinates yet
+    const { entities: positioned } = calculateEntityLayout(sanitized, {
+      forceRecalculate: false,
+      archipelagoQuadrantOverrides: overrides
+    });
+    const uniqueFinal = ensureUniqueEntityIds(positioned);
+    setEntities(uniqueFinal);
+    entitiesRef.current = uniqueFinal;
 
-    // Save full dataset & positions
-    saveToLocalStorage(recalculated);
+    // Preserve all existing custom archipelago shapes, metadata, and quadrant sizes
+    const currentShapes = customContinentShapesRef.current || {};
+    const currentMeta = archipelagoMetadataRef.current || {};
+    const currentQuadrants = layerQuadrantSizesRef.current;
 
-    // Persist to Firestore cloud database with updated column comments
-    persistPublishedDatasetToFirestore(recalculated, undefined, undefined, columnComments || getAllColumnComments()).catch(e => {
+    // Save full dataset & positions without wiping shapes
+    saveToLocalStorage(uniqueFinal, currentShapes, true, currentMeta, currentQuadrants);
+
+    // Persist to Firestore cloud database with preserved shapes and comments
+    persistPublishedDatasetToFirestore(
+      uniqueFinal,
+      currentShapes,
+      currentMeta,
+      columnComments || getAllColumnComments(),
+      currentQuadrants
+    ).catch(e => {
       console.warn('Failed to persist synced dataset to Firestore:', e);
     });
 
     if (result.mode === 'replace') {
       const removedCount = result.removed?.length || 0;
-      alert(
-        `Ecosystem Data Replaced Successfully!\n\n` +
-        `• Replaced active map with ${result.totalNew} entities from spreadsheet\n` +
-        `• ${result.updated.length} entries matched & updated\n` +
-        `• ${removedCount} previous entries replaced\n` +
-        `• ${result.preservedCoordinatesCount} custom map coordinates preserved`
-      );
+      setSyncSuccessToast({
+        title: 'Ecosystem Data Updated Successfully',
+        details: [
+          `${result.totalNew} total entities on map`,
+          `${result.updated.length} entries matched & updated`,
+          `${removedCount > 0 ? `${removedCount} previous entries replaced` : 'Map active nodes synchronized'}`,
+          `${result.preservedCoordinatesCount} initiative coordinates preserved with 0 changes`
+        ]
+      });
     } else {
-      alert(
-        `Data Added to Ecosystem Successfully!\n\n` +
-        `• Added +${result.added.length} new entities\n` +
-        `• ${result.updated.length} matching entries updated\n` +
-        `• Total active nodes on map: ${result.totalNew}\n` +
-        `• ${result.preservedCoordinatesCount} custom map coordinates preserved`
-      );
+      setSyncSuccessToast({
+        title: 'Data Added to Ecosystem Successfully',
+        details: [
+          `Added +${result.added.length} new entities`,
+          `${result.updated.length} matching entries updated`,
+          `Total active nodes on map: ${result.totalNew}`,
+          `${result.preservedCoordinatesCount} existing initiative coordinates preserved`
+        ]
+      });
     }
+    setTimeout(() => {
+      setSyncSuccessToast(null);
+    }, 6000);
   }, [saveToLocalStorage]);
 
   // Export dataset to chosen format (.xlsx, .csv, .json)
@@ -2880,30 +3238,53 @@ export default function App() {
     updatedQuadrants?: LayerQuadrantConfig,
     commitToCloudImmediately = false
   ) => {
-    setEntities(updatedEntities);
-    entitiesRef.current = updatedEntities;
+    // Ensure all entities with valid coordinates have isCustomPosition: true locked in place
+    const lockedEntities = updatedEntities.map(e => ({
+      ...e,
+      isCustomPosition: (typeof e.x === 'number' && typeof e.y === 'number' && (e.x !== 0 || e.y !== 0)) ? true : e.isCustomPosition
+    }));
+    const uniqueLocked = ensureUniqueEntityIds(lockedEntities);
 
-    if (updatedShapes) {
-      setCustomContinentShapes(updatedShapes);
-      customContinentShapesRef.current = updatedShapes;
+    setEntities(uniqueLocked);
+    entitiesRef.current = uniqueLocked;
+
+    const shapesToApply = updatedShapes || customContinentShapesRef.current;
+    if (shapesToApply && Object.keys(shapesToApply).length > 0) {
+      setCustomContinentShapes(shapesToApply);
+      customContinentShapesRef.current = shapesToApply;
     }
 
-    if (updatedMeta) {
-      setArchipelagoMetadata(updatedMeta);
-      archipelagoMetadataRef.current = updatedMeta;
+    const metaToApply = updatedMeta || archipelagoMetadataRef.current;
+    if (metaToApply && Object.keys(metaToApply).length > 0) {
+      setArchipelagoMetadata(metaToApply);
+      archipelagoMetadataRef.current = metaToApply;
     }
 
-    if (updatedQuadrants) {
-      setLayerQuadrantSizes(updatedQuadrants);
-      layerQuadrantSizesRef.current = updatedQuadrants;
+    const quadrantsToApply = updatedQuadrants || layerQuadrantSizesRef.current;
+    if (quadrantsToApply) {
+      setLayerQuadrantSizes(quadrantsToApply);
+      layerQuadrantSizesRef.current = quadrantsToApply;
+    }
+
+    // Update committed baseline snapshot
+    if (commitToCloudImmediately) {
+      committedSnapshotRef.current = {
+        entities: JSON.parse(JSON.stringify(uniqueLocked)),
+        customContinentShapes: JSON.parse(JSON.stringify(shapesToApply || {})),
+        archipelagoMetadata: JSON.parse(JSON.stringify(metaToApply || {})),
+        layerQuadrantSizes: JSON.parse(JSON.stringify(quadrantsToApply || {}))
+      };
+      try {
+        localStorage.setItem(COMMITTED_BASELINE_KEY, JSON.stringify(committedSnapshotRef.current));
+      } catch {}
     }
 
     saveToLocalStorage(
-      updatedEntities,
-      updatedShapes || customContinentShapesRef.current,
+      uniqueLocked,
+      shapesToApply,
       commitToCloudImmediately,
-      updatedMeta || archipelagoMetadataRef.current,
-      updatedQuadrants || layerQuadrantSizesRef.current
+      metaToApply,
+      quadrantsToApply
     );
   }, [saveToLocalStorage]);
 
@@ -2989,6 +3370,7 @@ export default function App() {
         onOpenPositionSnapshotModal={() => setPositionSnapshotModalOpen(true)}
         onExportData={handleExportData}
         onOpenAbout={() => setAboutModalOpen(true)}
+        onOpenContribute={() => setSubmitEntityModalOpen(true)}
         onOpenDirectoryModal={() => {
           setSelectedEntity(null);
           setCurrentView('directory');
@@ -3107,6 +3489,11 @@ export default function App() {
           onResetContinentLabel={handleResetContinentLabel}
           onMoveContinentSubLabel={handleMoveContinentSubLabel}
           onResetContinentSubLabel={handleResetContinentSubLabel}
+          onUpdateContinentCurvature={handleUpdateContinentCurvature}
+          onUpdateAllContinentsCurvature={handleUpdateAllContinentsCurvature}
+          onResetContinentCurvature={handleResetContinentCurvature}
+          onRotateContinentLabel={handleRotateContinentLabel}
+          onResetContinentRotation={handleResetContinentRotation}
           onScaleContinent={handleScaleContinent}
           onFitContinentTightly={handleFitContinentTightly}
           focusedEntityId={focusedEntityId}
@@ -3219,6 +3606,11 @@ export default function App() {
                 onResetContinentLabel={handleResetContinentLabel}
                 onMoveContinentSubLabel={handleMoveContinentSubLabel}
                 onResetContinentSubLabel={handleResetContinentSubLabel}
+                onUpdateContinentCurvature={handleUpdateContinentCurvature}
+                onUpdateAllContinentsCurvature={handleUpdateAllContinentsCurvature}
+                onResetContinentCurvature={handleResetContinentCurvature}
+                onRotateContinentLabel={handleRotateContinentLabel}
+                onResetContinentRotation={handleResetContinentRotation}
                 onScaleContinent={handleScaleContinent}
                 onFitContinentTightly={handleFitContinentTightly}
                 setEditMode={setEditMode}
@@ -3241,6 +3633,14 @@ export default function App() {
         isOpen={aboutModalOpen}
         onClose={() => setAboutModalOpen(false)}
         totalEntitiesCount={entities.length}
+      />
+
+      {/* Submit New Entity Contribution Modal */}
+      <SubmitEntityModal
+        isOpen={submitEntityModalOpen}
+        onClose={() => setSubmitEntityModalOpen(false)}
+        allEntities={entities}
+        continents={continents}
       />
 
       {/* Discovery Quests Modal (Deactivated for the time being) */}
@@ -3292,6 +3692,34 @@ export default function App() {
         </div>
       )}
 
+      {/* Sync Success Notification Toast */}
+      {syncSuccessToast && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 animate-in fade-in slide-in-from-top-3 max-w-md w-full px-4">
+          <div className="p-4 bg-[#111827] text-white border border-[#374151] rounded-[6px] shadow-2xl text-xs font-sans">
+            <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#374151]">
+              <div className="flex items-center space-x-2">
+                <span className="text-emerald-400 font-bold text-sm">✓</span>
+                <span className="font-editorial text-sm font-semibold">{syncSuccessToast.title}</span>
+              </div>
+              <button
+                onClick={() => setSyncSuccessToast(null)}
+                className="text-[#9CA3AF] hover:text-white p-0.5 rounded cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            <ul className="space-y-1 font-technical text-[11px] text-[#D1D5DB]">
+              {syncSuccessToast.details.map((detail, idx) => (
+                <li key={idx} className="flex items-start space-x-1.5">
+                  <span className="text-emerald-400">•</span>
+                  <span>{detail}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
       {/* Floating Cloud / Storage Sync Notification Toast */}
       {cloudSyncStatus.state !== 'idle' && (
         <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-all duration-300">
@@ -3313,6 +3741,27 @@ export default function App() {
             {cloudSyncStatus.state === 'saved_locally' && <span>💾</span>}
             {(cloudSyncStatus.state === 'quota_exceeded' || cloudSyncStatus.state === 'error') && <span>ℹ️</span>}
             <span>{cloudSyncStatus.message}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Initial Loading Veil to eliminate layout flash / jumping on cold boot */}
+      {isInitialLoading && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#FAF8F5] transition-opacity duration-300 pointer-events-auto">
+          <div className="flex flex-col items-center max-w-sm text-center px-6">
+            <div className="relative w-16 h-16 mb-5 flex items-center justify-center">
+              <div className="absolute inset-0 rounded-full border border-[#D9C01B] opacity-40 animate-ping" />
+              <div className="w-14 h-14 rounded-full border border-[#D9C01B]/80 bg-white shadow-sm flex items-center justify-center">
+                <Compass className="w-7 h-7 text-[#111827] animate-spin" style={{ animationDuration: '6s' }} />
+              </div>
+            </div>
+            <h2 className="text-xl font-editorial font-medium text-[#111827] tracking-tight mb-2">
+              Metta Tropical Ecosystem
+            </h2>
+            <p className="text-xs font-technical text-[#8C877F] flex items-center justify-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#D9C01B] animate-pulse" />
+              <span>Loading ecosystem map...</span>
+            </p>
           </div>
         </div>
       )}

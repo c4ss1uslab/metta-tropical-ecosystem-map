@@ -83,54 +83,105 @@ export const DATA_COMPLETENESS_CONFIG: Record<DataCompletenessLevel, DataComplet
   }
 };
 
-export const getEntityCompleteness = (entity?: { dataCompleteness?: any; dataQuality?: any } | null): DataCompletenessLevel => {
+export const getEntityCompleteness = (entity?: {
+  dataCompleteness?: any;
+  dataQuality?: any;
+  filledFields?: any;
+  categorizedFields?: any;
+  extraFields?: any;
+} | null): DataCompletenessLevel => {
   if (!entity) return 'Bottom 25%';
-  const raw = entity.dataCompleteness || entity.dataQuality;
-  if (!raw) return 'Bottom 25%';
 
-  const str = String(raw).trim();
-  if (str === 'Top 10%' || str === 'Top 25%' || str === 'Top 50%' || str === 'Top 75%' || str === 'Bottom 25%') {
-    return str as DataCompletenessLevel;
-  }
+  // 1. Direct property on entity
+  let raw = entity.dataCompleteness || entity.dataQuality;
 
-  const clean = str.toLowerCase();
-  if (clean.includes('top 10') || clean === '10%' || (clean.includes('10%') && clean.includes('top')) || clean === 'top10') {
-    return 'Top 10%';
-  }
-  if (clean.includes('top 25') || (clean.includes('25%') && clean.includes('top')) || clean === 'top25') {
-    return 'Top 25%';
-  }
-  if (clean.includes('top 50') || clean.includes('50%') || clean === 'top50') {
-    return 'Top 50%';
-  }
-  if (clean.includes('top 75') || clean.includes('75%') || clean === 'top75') {
-    return 'Top 75%';
-  }
-  if (clean.includes('bottom') || clean.includes('lowest') || clean.includes('bot 25') || (clean.includes('25%') && clean.includes('bottom'))) {
-    return 'Bottom 25%';
+  // 2. Check categorizedFields.Overview (where Column X Data Completeness is mapped)
+  if (!raw || raw === 'Bottom 25%') {
+    const overviewVal = entity.categorizedFields?.Overview?.['Data Completeness']
+      || entity.categorizedFields?.Overview?.['Completeness']
+      || entity.categorizedFields?.Overview?.['X']
+      || entity.categorizedFields?.Overview?.['Data Completeness (X)'];
+    if (overviewVal) {
+      raw = overviewVal;
+    }
   }
 
-  // Handle numbers or percentages directly e.g. "95%", 0.95, 90
-  const numMatch = clean.match(/(\d+(?:\.\d+)?)/);
-  if (numMatch) {
-    let num = parseFloat(numMatch[1]);
-    if (num <= 1 && num > 0) num = num * 100;
-    if (num >= 90) return 'Top 10%';
-    if (num >= 75) return 'Top 25%';
-    if (num >= 50) return 'Top 50%';
-    if (num >= 25) return 'Top 75%';
-    return 'Bottom 25%';
+  // 3. Check extraFields from spreadsheet
+  if (!raw || raw === 'Bottom 25%') {
+    const extraVal = entity.extraFields?.['Data Completeness']
+      || entity.extraFields?.['Completeness']
+      || entity.extraFields?.['Data Completeness Tier']
+      || entity.extraFields?.['X']
+      || entity.extraFields?.['col_24']
+      || entity.extraFields?.['__col_24'];
+    if (extraVal) {
+      raw = extraVal;
+    }
   }
 
-  // Legacy mappings for backward compatibility
-  if (clean.includes('verified') || clean.includes('green') || clean.includes('high')) {
-    return 'Top 10%';
+  // Normalize string if found
+  if (raw) {
+    const str = String(raw).trim();
+    if (str === 'Top 10%' || str === 'Top 25%' || str === 'Top 50%' || str === 'Top 75%' || str === 'Bottom 25%') {
+      return str as DataCompletenessLevel;
+    }
+
+    const clean = str.toLowerCase();
+
+    // Check explicit tier labels
+    if (clean.includes('bottom') || clean.includes('lowest') || clean.includes('bot 25') || (clean.includes('25%') && clean.includes('bottom')) || clean === 'bot25') {
+      return 'Bottom 25%';
+    }
+    if (clean.includes('top 10') || clean === '10%' || (clean.includes('10%') && clean.includes('top')) || clean === 'top10') {
+      return 'Top 10%';
+    }
+    if (clean.includes('top 25') || (clean.includes('25%') && clean.includes('top')) || clean === 'top25') {
+      return 'Top 25%';
+    }
+    if (clean.includes('top 50') || clean === '50%' || clean === 'top50' || (clean.includes('50%') && clean.includes('top'))) {
+      return 'Top 50%';
+    }
+    if (clean.includes('top 75') || clean === '75%' || clean === 'top75' || (clean.includes('75%') && clean.includes('top'))) {
+      return 'Top 75%';
+    }
+
+    // Handle numbers or percentages directly e.g. "95%", 0.95, 90
+    const numMatch = clean.match(/(\d+(?:\.\d+)?)/);
+    if (numMatch) {
+      let num = parseFloat(numMatch[1]);
+      if (num <= 1 && num > 0) num = num * 100;
+      if (num >= 90) return 'Top 10%';
+      if (num >= 75) return 'Top 25%';
+      if (num >= 50) return 'Top 50%';
+      if (num >= 25) return 'Top 75%';
+      return 'Bottom 25%';
+    }
+
+    // Legacy mappings for backward compatibility
+    if (clean.includes('verified') || clean.includes('green') || clean.includes('high')) {
+      return 'Top 10%';
+    }
+    if (clean.includes('partial') || clean.includes('yellow') || clean.includes('medium')) {
+      return 'Top 50%';
+    }
+    if (clean.includes('unverified') || clean.includes('red') || clean.includes('low')) {
+      return 'Top 75%';
+    }
   }
-  if (clean.includes('partial') || clean.includes('yellow') || clean.includes('medium')) {
-    return 'Top 50%';
-  }
-  if (clean.includes('unverified') || clean.includes('red') || clean.includes('low')) {
-    return 'Top 75%';
+
+  // 4. Fallback to Column W: Filled Fields percentile ranking if Column X was missing or empty
+  const ff = entity.filledFields
+    || entity.extraFields?.['Filled Fields']
+    || entity.categorizedFields?.Overview?.['Filled Fields'];
+  if (ff !== undefined && ff !== null && String(ff).trim() !== '') {
+    const num = parseInt(String(ff).replace(/[^\d]/g, ''), 10);
+    if (!isNaN(num) && num > 0) {
+      if (num >= 32) return 'Top 10%';
+      if (num >= 26) return 'Top 25%';
+      if (num >= 18) return 'Top 50%';
+      if (num >= 13) return 'Top 75%';
+      return 'Bottom 25%';
+    }
   }
 
   return 'Bottom 25%';
@@ -216,7 +267,7 @@ export interface EcosystemEntity {
   secondaryCategories?: CategoryQuadrant[]; // Additional quadrants this entity intersects with (e.g. ['Inner', 'Social'])
   isTransitionZone?: boolean; // Whether placed in an ecotone (intersection)
   isDomainElevation?: boolean; // Backward compatibility alias
-  continent?: string; // Archipelago / Island / Cluster name e.g. "22. Regenerative Education", "1. Sanctuary of Somatics & Healing"
+  continent?: string; // Archipelago / Island / Cluster name e.g. "1. Wisdom Traditions", "22. Regenerative Education"
   otherArchipelagos?: string[]; // Other Archipelagos that aren't the first one assigned to that entity
   fields: string[]; // Keywords & Topics tags (sourced from Keywords/Topics column only)
   approach?: string[]; // Sourced from Approach column
@@ -344,6 +395,10 @@ export interface ContinentInfo {
   labelOffsetY?: number;
   subLabelOffsetX?: number;
   subLabelOffsetY?: number;
+  titleCurvature?: number;
+  subTitleCurvature?: number;
+  labelRotation?: number;
+  subLabelRotation?: number;
   visible: boolean;
   isCustomShape?: boolean;
 }
@@ -353,6 +408,10 @@ export interface ArchipelagoMeta {
   description?: string;
   labelOffset?: { x: number; y: number };
   subLabelOffset?: { x: number; y: number };
+  titleCurvature?: number;
+  subTitleCurvature?: number;
+  labelRotation?: number;
+  subLabelRotation?: number;
 }
 
 export interface EcotoneCorridorInfo {
@@ -493,7 +552,9 @@ export interface ContributionSubmission {
   id: string;
   entityId: string;
   entityName: string;
+  isNewEntity?: boolean;
   submitterEmail: string;
+  submitterRelationship?: string;
   submittedAt: string;
   status: 'pending' | 'approved' | 'rejected';
   originalEntity: EcosystemEntity;

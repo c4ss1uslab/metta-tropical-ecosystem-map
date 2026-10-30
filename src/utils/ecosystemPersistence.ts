@@ -2,6 +2,7 @@ import { EcosystemEntity, LayerQuadrantConfig } from '../types';
 import { db } from '../firebase';
 import { doc, getDoc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { registerColumnComments, getAllColumnComments } from './columnComments';
+import { loadStoredParsingRules, saveStoredParsingRules } from './parsingRules';
 import { 
   normalizeArchipelagoBaseName, 
   formatClusterWithNumber, 
@@ -9,6 +10,7 @@ import {
   isEntityDomainElevation, 
   fitContinentTightlyAroundEntities 
 } from './layoutGenerator';
+import { ensureUniqueEntityIds } from './excelParser';
 
 const PUBLISHED_DATASET_DOC = 'published_dataset';
 const CONTINENTS_CONFIG_DOC = 'continents_config';
@@ -65,18 +67,15 @@ export function decodeContinentShapesFromFirestore(
 }
 
 /**
- * Automatically heals and aligns continent shapes with member entities.
- * If an archipelago shape has drifted (e.g. from entity layout updates or quadrant moves),
- * or if it contains extreme outlier points caused by corrupted vertex dragging,
- * this prunes outliers and recenters the polygon directly on the member entities so that
- * the stored coordinates match the on-screen entities with zero offset.
+ * Validates and preserves custom continent polygon shapes.
+ * Ensures shapes contain clean, finite coordinate pairs and removes NaN/corrupt vertices,
+ * while strictly preserving the user's exact polygon positions without arbitrary displacement.
  */
 export function healAndAlignContinentShapes(
   shapes?: Record<string, [number, number][]> | null,
   entities?: EcosystemEntity[] | null
 ): Record<string, [number, number][]> {
   if (!shapes || typeof shapes !== 'object') return {};
-  if (!entities || !Array.isArray(entities) || entities.length === 0) return { ...shapes };
 
   const healed: Record<string, [number, number][]> = {};
 
@@ -86,58 +85,42 @@ export function healAndAlignContinentShapes(
     const baseName = normalizeArchipelagoBaseName(name);
     const formattedName = formatClusterWithNumber(name);
 
-    // Find member entities for this archipelago
-    const memberEntities = entities.filter(e =>
-      !isEntityDomainElevation(e) && (
-        (e.continent && normalizeArchipelagoBaseName(e.continent) === baseName) ||
-        isEntityPrimaryToArchipelago(e, name) ||
-        (e.continent && formatClusterWithNumber(e.continent) === formattedName)
-      )
-    );
-
-    // If no member entities, keep as is
-    if (memberEntities.length === 0) {
-      healed[name] = rawPoints;
-      continue;
+    // Sanitize points to ensure finite numbers
+    const validPts: [number, number][] = [];
+    for (const pt of rawPoints) {
+      if (Array.isArray(pt) && pt.length >= 2) {
+        const x = Number(pt[0]);
+        const y = Number(pt[1]);
+        if (Number.isFinite(x) && Number.isFinite(y)) {
+          validPts.push([Math.round(x), Math.round(y)]);
+        }
+      }
     }
 
-    const entCenterX = Math.round(memberEntities.reduce((s, e) => s + e.x, 0) / memberEntities.length);
-    const entCenterY = Math.round(memberEntities.reduce((s, e) => s + e.y, 0) / memberEntities.length);
-
-    // Check median of points to identify outlier points
-    const sortedX = rawPoints.map(p => p[0]).sort((a, b) => a - b);
-    const sortedY = rawPoints.map(p => p[1]).sort((a, b) => a - b);
-    const medianX = sortedX[Math.floor(sortedX.length / 2)];
-    const medianY = sortedY[Math.floor(sortedY.length / 2)];
-
-    // Filter out extreme corrupted outliers (> 650px from median)
-    const validPts = rawPoints.filter(p => Math.hypot(p[0] - medianX, p[1] - medianY) <= 650);
-
-    // If too few valid points left, regenerate from member entities tightly
+    // If too few valid points left, fallback only if entities are provided
     if (validPts.length < 3) {
-      const regenerated = fitContinentTightlyAroundEntities(memberEntities, 35);
-      healed[name] = regenerated;
-      healed[formattedName] = regenerated;
+      if (entities && Array.isArray(entities) && entities.length > 0) {
+        const memberEntities = entities.filter(e =>
+          !isEntityDomainElevation(e) && (
+            (e.continent && normalizeArchipelagoBaseName(e.continent) === baseName) ||
+            isEntityPrimaryToArchipelago(e, name) ||
+            (e.continent && formatClusterWithNumber(e.continent) === formattedName)
+          )
+        );
+        if (memberEntities.length >= 1) {
+          const regenerated = fitContinentTightlyAroundEntities(memberEntities, 35);
+          healed[name] = regenerated;
+          healed[formattedName] = regenerated;
+          continue;
+        }
+      }
       continue;
     }
 
-    const shapeCenterX = Math.round(validPts.reduce((s, p) => s + p[0], 0) / validPts.length);
-    const shapeCenterY = Math.round(validPts.reduce((s, p) => s + p[1], 0) / validPts.length);
-    const driftDist = Math.hypot(entCenterX - shapeCenterX, entCenterY - shapeCenterY);
-
-    // If drift is significant (> 35px) or outliers were removed, shift points so shape is centered at entities
-    if (driftDist > 35 || validPts.length < rawPoints.length) {
-      const shiftX = entCenterX - shapeCenterX;
-      const shiftY = entCenterY - shapeCenterY;
-      const aligned: [number, number][] = validPts.map(([x, y]) => [
-        Math.round(x + shiftX),
-        Math.round(y + shiftY)
-      ]);
-      healed[name] = aligned;
-      healed[formattedName] = aligned;
-    } else {
+    // Preserve exact polygon shape points without shifting or drifting
+    healed[formattedName] = validPts;
+    if (name === formattedName || name === baseName) {
       healed[name] = validPts;
-      healed[formattedName] = validPts;
     }
   }
 
@@ -192,7 +175,8 @@ export async function persistPublishedDatasetToFirestore(
 ): Promise<PersistResult> {
   try {
     const entitiesDocRef = doc(db, 'ecosystem', PUBLISHED_DATASET_DOC);
-    const cleanEntities = sanitizeForFirestore(entities);
+    const uniqueEntities = ensureUniqueEntityIds(entities);
+    const cleanEntities = sanitizeForFirestore(uniqueEntities);
     const commentsToSave = columnComments || getAllColumnComments();
 
     const payload: any = {
@@ -204,6 +188,11 @@ export async function persistPublishedDatasetToFirestore(
 
     if (commentsToSave && Object.keys(commentsToSave).length > 0) {
       payload.columnComments = sanitizeForFirestore(commentsToSave);
+    }
+
+    const rulesToSave = loadStoredParsingRules();
+    if (rulesToSave && rulesToSave.length > 0) {
+      payload.parsingRules = sanitizeForFirestore(rulesToSave);
     }
 
     await setDoc(entitiesDocRef, payload);
@@ -271,11 +260,14 @@ export async function fetchPublishedDatasetFromFirestore(): Promise<{
     if (docSnap.exists()) {
       const data = docSnap.data();
       if (data && Array.isArray(data.entities) && data.entities.length > 0) {
-        entities = data.entities as EcosystemEntity[];
+        entities = ensureUniqueEntityIds(data.entities as EcosystemEntity[]);
       }
       if (data && data.columnComments && typeof data.columnComments === 'object') {
         columnComments = data.columnComments as Record<string, string>;
         registerColumnComments(columnComments);
+      }
+      if (data && Array.isArray(data.parsingRules) && data.parsingRules.length > 0) {
+        saveStoredParsingRules(data.parsingRules);
       }
     }
 
@@ -333,8 +325,11 @@ export function subscribeToPublishedDataset(
           if (data && data.columnComments && typeof data.columnComments === 'object') {
             registerColumnComments(data.columnComments as Record<string, string>);
           }
+          if (data && Array.isArray(data.parsingRules) && data.parsingRules.length > 0) {
+            saveStoredParsingRules(data.parsingRules);
+          }
           if (data && Array.isArray(data.entities) && data.entities.length > 0) {
-            latestEntities = data.entities as EcosystemEntity[];
+            latestEntities = ensureUniqueEntityIds(data.entities as EcosystemEntity[]);
             onUpdate({
               entities: latestEntities,
               continentShapes: latestShapes,

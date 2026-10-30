@@ -4,7 +4,7 @@ import {
   ArrowUpRight, Navigation, Download, Filter, RotateCcw, Check, Sparkles, ExternalLink
 } from 'lucide-react';
 import { EcosystemEntity, CategoryQuadrant, EntityType, DataQualityStatus, DataCompletenessLevel, DATA_COMPLETENESS_LEVELS, DATA_COMPLETENESS_CONFIG, getEntityCompleteness, getCompletenessConfig, ContinentInfo } from '../types';
-import { exportEntities } from '../utils/excelParser';
+import { exportEntities, ensureUniqueEntityIds } from '../utils/excelParser';
 
 interface DirectoryModalProps {
   isOpen: boolean;
@@ -157,7 +157,7 @@ export const DirectoryModal: React.FC<DirectoryModalProps> = ({
       }
     });
 
-    return result;
+    return ensureUniqueEntityIds(result);
   }, [entities, searchQuery, selectedType, selectedQuadrant, selectedContinent, selectedQuality, sortBy]);
 
   // Counts for tabs
@@ -496,14 +496,14 @@ export const DirectoryModal: React.FC<DirectoryModalProps> = ({
             /* CARD / GRID VIEW                                             */
             /* ============================================================ */
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-              {filteredEntities.map(ent => {
+              {filteredEntities.map((ent, entIdx) => {
                 const qColor = quadrantColors[ent.category] || quadrantColors.Social;
                 const dq = ent.dataQuality || 'No data';
                 const logoUrl = getEntityLogoUrl(ent);
 
                 return (
                   <div
-                    key={ent.id}
+                    key={ent.id || `modal-card-${entIdx}`}
                     onClick={() => handleEntityClick(ent)}
                     className="bg-white border border-[#E5E7EB] hover:border-[#111827] hover:shadow-md rounded-[6px] p-3.5 flex flex-col justify-between transition-all cursor-pointer group relative"
                   >
@@ -676,13 +676,13 @@ export const DirectoryModal: React.FC<DirectoryModalProps> = ({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#F3F4F6]">
-                    {filteredEntities.map(ent => {
+                    {filteredEntities.map((ent, entIdx) => {
                       const qColor = quadrantColors[ent.category] || quadrantColors.Social;
                       const dq = ent.dataQuality || 'No data';
 
                       return (
                         <tr
-                          key={ent.id}
+                          key={ent.id || `modal-row-${entIdx}`}
                           onClick={() => handleEntityClick(ent)}
                           className="hover:bg-[#FAF8F5] cursor-pointer transition-colors group"
                         >

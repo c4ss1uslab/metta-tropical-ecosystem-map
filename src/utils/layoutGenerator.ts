@@ -333,172 +333,300 @@ export const calculateDomainElevationPosition = calculateEcotonePosition;
 /**
  * Canonical cluster name -> standard numbered cluster map.
  * Guaranteed to format any island/cluster with its cluster number (e.g. "22. Regenerative Education").
+ * Sourced strictly from the real active archipelagos in the ecosystem dataset.
  */
 export const CANONICAL_CLUSTER_MAP: Record<string, string> = {
-  // Inner (1 - 5)
-  'sanctuary of somatics & healing': '1. Sanctuary of Somatics & Healing',
-  'somatics & healing': '1. Sanctuary of Somatics & Healing',
-  'isles of contemplative wisdom': '2. Isles of Contemplative Wisdom',
-  'contemplative wisdom': '2. Isles of Contemplative Wisdom',
-  'territory of inner capacities': '3. Territory of Inner Capacities',
-  'inner capacities': '3. Territory of Inner Capacities',
-  'deep ecology heartland': '4. Deep Ecology Heartland',
-  'deep ecology': '4. Deep Ecology Heartland',
-  'archipelago of inner transformation': '5. Archipelago of Inner Transformation',
-  'inner transformation': '5. Archipelago of Inner Transformation',
+  // Inner Change
+  'wisdom traditions': '1. Wisdom Traditions',
+  '1. wisdom traditions': '1. Wisdom Traditions',
+  'spiritual lineage': '2. Spiritual Lineage',
+  '2. spiritual lineage': '2. Spiritual Lineage',
+  'spiritual tradition': '2. Spiritual Tradition',
+  '2. spiritual tradition': '2. Spiritual Tradition',
+  'buddhism': '3. Buddhism',
+  '3. buddhism': '3. Buddhism',
+  'contemplative education': '4. Contemplative Education',
+  '4. contemplative education': '4. Contemplative Education',
+  'contemplative research': '5. Contemplative Research',
+  '5. contemplative research': '5. Contemplative Research',
+  'developmental practice': '6. Developmental Practice',
+  '6. developmental practice': '6. Developmental Practice',
+  'developmental education': '7. Developmental Education',
+  '7. developmental education': '7. Developmental Education',
+  'integral education': '8. Integral Education',
+  '8. integral education': '8. Integral Education',
+  'depth psychological education': '9. Depth Psychological Education',
+  '7. depth psychological education': '9. Depth Psychological Education',
+  '9. depth psychological education': '9. Depth Psychological Education',
+  'nature-based education': '10. Nature-based Education',
+  '8. nature-based education': '10. Nature-based Education',
+  '10. nature-based education': '10. Nature-based Education',
+  'human development': '13. Human Development',
+  '13. human development': '13. Human Development',
+  'psychotherapeutic modality': '15. Psychoterapeutic Modality',
+  'psychoterapeutic modality': '15. Psychoterapeutic Modality',
+  '15. psychoterapeutic modality': '15. Psychoterapeutic Modality',
+  'psychedelic research': '25. Psychedelic Research',
+  '25. psychedelic research': '25. Psychedelic Research',
+  'neuroscience research': '36. Neuroscience Research',
+  '36. neuroscience research': '36. Neuroscience Research',
+  'indigenous-led spiritual communities & networks': '54. Indigenous-led Spiritual Communities & Networks',
+  '54. indigenous-led spiritual communities & networks': '54. Indigenous-led Spiritual Communities & Networks',
+  'in-person communities': '55. In-Person Communities',
+  '55. in-person communities': '55. In-Person Communities',
+  'retreat center': '59. Retreat Center',
+  '59. retreat center': '59. Retreat Center',
+  'plant medicine conservation': '60. Plant Medicine Conservation',
+  '60. plant medicine conservation': '60. Plant Medicine Conservation',
+  'formal education': '61. Formal Education',
+  '61. formal education': '61. Formal Education',
 
-  // Social (6 - 10)
-  'commonwealth of the commons': '6. Commonwealth of the Commons',
-  'commons': '6. Commonwealth of the Commons',
-  'federation of civic action': '7. Federation of Civic Action',
-  'civic action': '7. Federation of Civic Action',
-  'territories of mutual solidarity': '8. Territories of Mutual Solidarity',
-  'mutual solidarity': '8. Territories of Mutual Solidarity',
-  'transition & local resilience biome': '9. Transition & Local Resilience Biome',
-  'transition & local resilience': '9. Transition & Local Resilience Biome',
-  'archipelago of social weaving': '10. Archipelago of Social Weaving',
-  'social weaving': '10. Archipelago of Social Weaving',
-
-  // Cultural (11 - 15)
-  'ancestral & indigenous lorelands': '11. Ancestral & Indigenous Lorelands',
-  'ancestral & indigenous wisdom': '11. Ancestral & Indigenous Lorelands',
-  'indigenous lorelands': '11. Ancestral & Indigenous Lorelands',
-  'archipelago of transcontextual mind': '12. Archipelago of Transcontextual Mind',
-  'transcontextual mind': '12. Archipelago of Transcontextual Mind',
-  'warm data': '12. Archipelago of Transcontextual Mind',
-  'archipelago of living mythos & narrative': '13. Archipelago of Living Mythos & Narrative',
-  'living mythos & narrative': '13. Archipelago of Living Mythos & Narrative',
-  'decolonial imaginal archipelago': '14. Decolonial Imaginal Archipelago',
-  'decolonial imaginal': '14. Decolonial Imaginal Archipelago',
-  'archipelago of cultural regeneration': '15. Archipelago of Cultural Regeneration',
-  'cultural regeneration': '15. Archipelago of Cultural Regeneration',
-
-  // Systems (16 - 21)
-  'expanse of doughnut & post-growth economics': '16. Expanse of Doughnut & Post-Growth Economics',
-  'doughnut & post-growth economics': '16. Expanse of Doughnut & Post-Growth Economics',
-  'post-growth economics': '16. Expanse of Doughnut & Post-Growth Economics',
-  'planetary boundaries biosphere': '17. Planetary Boundaries Biosphere',
-  'planetary boundaries': '17. Planetary Boundaries Biosphere',
-  'nexus of complexity & systems dynamics': '18. Nexus of Complexity & Systems Dynamics',
-  'complexity & systems dynamics': '18. Nexus of Complexity & Systems Dynamics',
-  'biomimicry & circular horizons': '19. Biomimicry & Circular Horizons',
-  'biomimicry': '19. Biomimicry & Circular Horizons',
-  'archipelago of systems transition': '20. Archipelago of Systems Transition',
-  'systems transition': '20. Archipelago of Systems Transition',
-  'the metta nexus lands': '21. The Metta Nexus Lands',
-  'metta nexus': '21. The Metta Nexus Lands',
-
-  // Spreadsheet Ecosystem Islands / Clusters (22+)
-  'regenerative education': '22. Regenerative Education',
-  'place-based learning': '23. Place-Based Learning',
-  'somatic & embodied wisdom': '24. Somatic & Embodied Wisdom',
-  'post-capitalist transitions': '25. Post-Capitalist Transitions',
-  'decentralized governance': '26. Decentralized Governance',
-  'regenerative agriculture & food systems': '27. Regenerative Agriculture & Food Systems',
-  'intergenerational healing': '28. Intergenerational Healing',
-  'sacred activism': '29. Sacred Activism',
-  'community resilience': '30. Community Resilience',
+  // Social Change
+  'leadership education': '20. Leadership Education',
+  '20. leadership education': '20. Leadership Education',
+  'ethical technology education': '23. Ethical Technology Education',
+  '23. ethical technology education': '23. Ethical Technology Education',
+  'indigenous allyship': '26. Indigenous Allyship',
+  '26. indigenous allyship': '26. Indigenous Allyship',
+  'grassroots communities': '30. Grassroots Communities',
+  '30. grassroots communities': '30. Grassroots Communities',
+  'consultancies': '32. Consultancies',
+  '32. consultancies': '32. Consultancies',
+  'alternative education': '37. Alternative Education',
+  '37. alternative education': '37. Alternative Education',
   'education': '38. Education',
-  '38. education': '38. Education'
+  '38. education': '38. Education',
+  'quilombo': '41. Quilombo',
+  '41. quilombo': '41. Quilombo',
+  'indigenous community': '42. Indigenous Community',
+  '42. indigenous community': '42. Indigenous Community',
+  'public policy advising': '51. Public Policy Advising',
+  '51. public policy advising': '51. Public Policy Advising',
+
+  // Cultural Change
+  'living systems education': '9. Living Systems Education',
+  '9. living systems education': '9. Living Systems Education',
+  '11. living systems education': '9. Living Systems Education',
+  'deep ecology education': '12. Deep Ecology Education',
+  '12. deep ecology education': '12. Deep Ecology Education',
+  'relational education': '14. Relational Education',
+  '14. relational education': '14. Relational Education',
+  'community of practice': '16. Community of Practice',
+  '16. community of practice': '16. Community of Practice',
+  'tropical education': '17. Tropical Education',
+  '17. tropical education': '17. Tropical Education',
+  'artistic & cultural interventions': '18. Artistic & Cultural Interventions',
+  '18. artistic & cultural interventions': '18. Artistic & Cultural Interventions',
+  'metacrisis research & education': '19. Metacrisis Research & Education',
+  '19. metacrisis research & education': '19. Metacrisis Research & Education',
+  'sociocultural education': '21. Sociocultural Education',
+  '21. sociocultural education': '21. Sociocultural Education',
+  'regenerative education': '22. Regenerative Education',
+  '22. regenerative education': '22. Regenerative Education',
+  'climate education': '23. Climate Education',
+  '19. climate education': '23. Climate Education',
+  '23. climate education': '23. Climate Education',
+  'indigenous education': '27. Indigenous Education',
+  '27. indigenous education': '27. Indigenous Education',
+  'decolonial education': '28. Decolonial Education',
+  '28. decolonial education': '28. Decolonial Education',
+  'youth education': '33. Youth Education',
+  '33. youth education': '33. Youth Education',
+  'activism': '34. Activism',
+  '34. activism': '34. Activism',
+  'regenerative practice': '39. Regenerative Practice',
+  '39. regenerative practice': '39. Regenerative Practice',
+  'academic research': '40. Academic Research',
+  '40. academic research': '40. Academic Research',
+  'narrative change': '47. Narrative Change',
+  '47. narrative change': '47. Narrative Change',
+  'scientific communication': '52. Scientific Communication',
+  '52. scientific communication': '52. Scientific Communication',
+  'events organizing': '56. Events Organizing',
+  '56. events organizing': '56. Events Organizing',
+  'psychological research': '59. Psychological Research',
+  '59. psychological research': '59. Psychological Research',
+  'metamodern education': '60. Metamodern Education',
+  '60. metamodern education': '60. Metamodern Education',
+  'public sensemaking': '62. Public Sensemaking',
+  '62. public sensemaking': '62. Public Sensemaking',
+
+  // Systems Change
+  'alternative economics': '24. Alternative Economics',
+  '24. alternative economics': '24. Alternative Economics',
+  'quilombola allyship': '29. Quilombola Allyship',
+  '29. quilombola allyship': '29. Quilombola Allyship',
+  'philanthropy': '31. Philanthropy',
+  '31. philanthropy': '31. Philanthropy',
+  'civic organization': '35. Civic Organization',
+  '35. civic organization': '35. Civic Organization',
+  'ecosystem weaving': '43. Ecosystem Weaving',
+  '43. ecosystem weaving': '43. Ecosystem Weaving',
+  'complex systems education': '44. Complex Systems Education',
+  '44. complex systems education': '44. Complex Systems Education',
+  'para-academic research': '45. Para-Academic Research',
+  '45. para-academic research': '45. Para-Academic Research',
+  'civic infrastructure': '46. Civic Infrastructure',
+  '46. civic infrastructure': '46. Civic Infrastructure',
+  'systemic investing': '48. Systemic Investing',
+  '48. systemic investing': '48. Systemic Investing',
+  'facilitation training': '49. Facilitation Training',
+  '49. facilitation training': '49. Facilitation Training',
+  'metadesign': '50. Metadesign',
+  '50. metadesign': '50. Metadesign',
+  'regenerative technology design & development': '52. Regenerative Technology Design & Development',
+  '52. regenerative technology design & development': '52. Regenerative Technology Design & Development',
+  'regenerative coordination': '53. Regenerative Coordination',
+  '53. regenerative coordination': '53. Regenerative Coordination'
 };
 
 /**
  * Canonical mapping from archipelago names to their correct transformation quadrant.
+ * Sourced strictly from the real active archipelagos in the ecosystem dataset.
  */
 export const CANONICAL_ARCHIPELAGO_QUADRANTS: Record<string, CategoryQuadrant> = {
-  // Inner Change (1 - 5, 24, 29)
-  'sanctuary of somatics & healing': 'Inner',
-  '1. sanctuary of somatics & healing': 'Inner',
-  'somatics & healing': 'Inner',
-  'isles of contemplative wisdom': 'Inner',
-  '2. isles of contemplative wisdom': 'Inner',
-  'contemplative wisdom': 'Inner',
-  'territory of inner capacities': 'Inner',
-  '3. territory of inner capacities': 'Inner',
-  'inner capacities': 'Inner',
-  'deep ecology heartland': 'Inner',
-  '4. deep ecology heartland': 'Inner',
-  'deep ecology': 'Inner',
-  'archipelago of inner transformation': 'Inner',
-  '5. archipelago of inner transformation': 'Inner',
-  'inner transformation': 'Inner',
-  'somatic & embodied wisdom': 'Inner',
-  '24. somatic & embodied wisdom': 'Inner',
-  'sacred activism': 'Inner',
-  '29. sacred activism': 'Inner',
+  // Inner Change
+  'wisdom traditions': 'Inner',
+  '1. wisdom traditions': 'Inner',
+  'spiritual lineage': 'Inner',
+  '2. spiritual lineage': 'Inner',
+  'spiritual tradition': 'Inner',
+  '2. spiritual tradition': 'Inner',
+  'buddhism': 'Inner',
+  '3. buddhism': 'Inner',
+  'contemplative education': 'Inner',
+  '4. contemplative education': 'Inner',
+  'contemplative research': 'Inner',
+  '5. contemplative research': 'Inner',
+  'developmental practice': 'Inner',
+  '6. developmental practice': 'Inner',
+  'developmental education': 'Inner',
+  '7. developmental education': 'Inner',
+  'integral education': 'Inner',
+  '8. integral education': 'Inner',
+  'depth psychological education': 'Inner',
+  '7. depth psychological education': 'Inner',
+  '9. depth psychological education': 'Inner',
+  'nature-based education': 'Inner',
+  '8. nature-based education': 'Inner',
+  '10. nature-based education': 'Inner',
+  'human development': 'Inner',
+  '13. human development': 'Inner',
+  'psychotherapeutic modality': 'Inner',
+  'psychoterapeutic modality': 'Inner',
+  '15. psychoterapeutic modality': 'Inner',
+  'psychedelic research': 'Inner',
+  '25. psychedelic research': 'Inner',
+  'neuroscience research': 'Inner',
+  '36. neuroscience research': 'Inner',
+  'indigenous-led spiritual communities & networks': 'Inner',
+  '54. indigenous-led spiritual communities & networks': 'Inner',
+  'in-person communities': 'Inner',
+  '55. in-person communities': 'Inner',
+  'retreat center': 'Inner',
+  '59. retreat center': 'Inner',
+  'plant medicine conservation': 'Inner',
+  '60. plant medicine conservation': 'Inner',
+  'formal education': 'Inner',
+  '61. formal education': 'Inner',
 
-  // Social Change (6 - 10, 26, 30)
-  'commonwealth of the commons': 'Social',
-  '6. commonwealth of the commons': 'Social',
-  'commons': 'Social',
-  'federation of civic action': 'Social',
-  '7. federation of civic action': 'Social',
-  'civic action': 'Social',
-  'territories of mutual solidarity': 'Social',
-  '8. territories of mutual solidarity': 'Social',
-  'mutual solidarity': 'Social',
-  'transition & local resilience biome': 'Social',
-  '9. transition & local resilience biome': 'Social',
-  'transition & local resilience': 'Social',
-  'archipelago of social weaving': 'Social',
-  '10. archipelago of social weaving': 'Social',
-  'social weaving': 'Social',
-  'decentralized governance': 'Social',
-  '26. decentralized governance': 'Social',
-  'community resilience': 'Social',
-  '30. community resilience': 'Social',
+  // Social Change
+  'leadership education': 'Social',
+  '20. leadership education': 'Social',
+  'ethical technology education': 'Social',
+  '23. ethical technology education': 'Social',
+  'indigenous allyship': 'Social',
+  '26. indigenous allyship': 'Social',
+  'grassroots communities': 'Social',
+  '30. grassroots communities': 'Social',
+  'consultancies': 'Social',
+  '32. consultancies': 'Social',
+  'alternative education': 'Social',
+  '37. alternative education': 'Social',
+  'education': 'Social',
+  '38. education': 'Social',
+  'quilombo': 'Social',
+  '41. quilombo': 'Social',
+  'indigenous community': 'Social',
+  '42. indigenous community': 'Social',
+  'public policy advising': 'Social',
+  '51. public policy advising': 'Social',
 
-  // Cultural Change (11 - 15, 22, 23, 28)
-  'ancestral & indigenous lorelands': 'Cultural',
-  '11. ancestral & indigenous lorelands': 'Cultural',
-  'ancestral & indigenous wisdom': 'Cultural',
-  'indigenous lorelands': 'Cultural',
-  'archipelago of transcontextual mind': 'Cultural',
-  '12. archipelago of transcontextual mind': 'Cultural',
-  'transcontextual mind': 'Cultural',
-  'warm data': 'Cultural',
-  'archipelago of living mythos & narrative': 'Cultural',
-  '13. archipelago of living mythos & narrative': 'Cultural',
-  'living mythos & narrative': 'Cultural',
-  'decolonial imaginal archipelago': 'Cultural',
-  '14. decolonial imaginal archipelago': 'Cultural',
-  'decolonial imaginal': 'Cultural',
-  'archipelago of cultural regeneration': 'Cultural',
-  '15. archipelago of cultural regeneration': 'Cultural',
-  'cultural regeneration': 'Cultural',
+  // Cultural Change
+  'living systems education': 'Cultural',
+  '9. living systems education': 'Cultural',
+  '11. living systems education': 'Cultural',
+  'deep ecology education': 'Cultural',
+  '12. deep ecology education': 'Cultural',
+  'relational education': 'Cultural',
+  '14. relational education': 'Cultural',
+  'community of practice': 'Cultural',
+  '16. community of practice': 'Cultural',
+  'tropical education': 'Cultural',
+  '17. tropical education': 'Cultural',
+  'artistic & cultural interventions': 'Cultural',
+  '18. artistic & cultural interventions': 'Cultural',
+  'metacrisis research & education': 'Cultural',
+  '19. metacrisis research & education': 'Cultural',
+  'sociocultural education': 'Cultural',
+  '21. sociocultural education': 'Cultural',
   'regenerative education': 'Cultural',
   '22. regenerative education': 'Cultural',
-  'place-based learning': 'Cultural',
-  '23. place-based learning': 'Cultural',
-  'intergenerational healing': 'Cultural',
-  '28. intergenerational healing': 'Cultural',
-  'education': 'Cultural',
-  '38. education': 'Cultural',
+  'climate education': 'Cultural',
+  '19. climate education': 'Cultural',
+  '23. climate education': 'Cultural',
+  'indigenous education': 'Cultural',
+  '27. indigenous education': 'Cultural',
+  'decolonial education': 'Cultural',
+  '28. decolonial education': 'Cultural',
+  'youth education': 'Cultural',
+  '33. youth education': 'Cultural',
+  'activism': 'Cultural',
+  '34. activism': 'Cultural',
+  'regenerative practice': 'Cultural',
+  '39. regenerative practice': 'Cultural',
+  'academic research': 'Cultural',
+  '40. academic research': 'Cultural',
+  'narrative change': 'Cultural',
+  '47. narrative change': 'Cultural',
+  'scientific communication': 'Cultural',
+  '52. scientific communication': 'Cultural',
+  'events organizing': 'Cultural',
+  '56. events organizing': 'Cultural',
+  'psychological research': 'Cultural',
+  '59. psychological research': 'Cultural',
+  'metamodern education': 'Cultural',
+  '60. metamodern education': 'Cultural',
+  'public sensemaking': 'Cultural',
+  '62. public sensemaking': 'Cultural',
 
-  // Systems Change (16 - 21, 25, 27)
-  'expanse of doughnut & post-growth economics': 'Systems',
-  '16. expanse of doughnut & post-growth economics': 'Systems',
-  'doughnut & post-growth economics': 'Systems',
-  'post-growth economics': 'Systems',
-  'planetary boundaries biosphere': 'Systems',
-  '17. planetary boundaries biosphere': 'Systems',
-  'planetary boundaries': 'Systems',
-  'nexus of complexity & systems dynamics': 'Systems',
-  '18. nexus of complexity & systems dynamics': 'Systems',
-  'complexity & systems dynamics': 'Systems',
-  'biomimicry & circular horizons': 'Systems',
-  '19. biomimicry & circular horizons': 'Systems',
-  'biomimicry': 'Systems',
-  'archipelago of systems transition': 'Systems',
-  '20. archipelago of systems transition': 'Systems',
-  'systems transition': 'Systems',
-  'the metta nexus lands': 'Systems',
-  '21. the metta nexus lands': 'Systems',
-  'metta nexus': 'Systems',
-  'post-capitalist transitions': 'Systems',
-  '25. post-capitalist transitions': 'Systems',
-  'regenerative agriculture & food systems': 'Systems',
-  '27. regenerative agriculture & food systems': 'Systems'
+  // Systems Change
+  'alternative economics': 'Systems',
+  '24. alternative economics': 'Systems',
+  'quilombola allyship': 'Systems',
+  '29. quilombola allyship': 'Systems',
+  'philanthropy': 'Systems',
+  '31. philanthropy': 'Systems',
+  'civic organization': 'Systems',
+  '35. civic organization': 'Systems',
+  'ecosystem weaving': 'Systems',
+  '43. ecosystem weaving': 'Systems',
+  'complex systems education': 'Systems',
+  '44. complex systems education': 'Systems',
+  'para-academic research': 'Systems',
+  '45. para-academic research': 'Systems',
+  'civic infrastructure': 'Systems',
+  '46. civic infrastructure': 'Systems',
+  'systemic investing': 'Systems',
+  '48. systemic investing': 'Systems',
+  'facilitation training': 'Systems',
+  '49. facilitation training': 'Systems',
+  'metadesign': 'Systems',
+  '50. metadesign': 'Systems',
+  'regenerative technology design & development': 'Systems',
+  '52. regenerative technology design & development': 'Systems',
+  'regenerative coordination': 'Systems',
+  '53. regenerative coordination': 'Systems'
 };
 
 /**
@@ -644,42 +772,77 @@ export function getArchipelagoQuadrant(
  */
 export const CANONICAL_ARCHIPELAGO_CENTERS: Record<string, { x: number; y: number }> = {
   // INNER QUADRANT (x < 0, y < 0)
-  '1. Sanctuary of Somatics & Healing': { x: -450, y: -800 },
-  '2. Isles of Contemplative Wisdom': { x: -840, y: -840 },
-  '3. Territory of Inner Capacities': { x: -380, y: -380 },
-  '4. Deep Ecology Heartland': { x: -800, y: -420 },
-  '5. Archipelago of Inner Transformation': { x: -1200, y: -1200 },
-  '24. Somatic & Embodied Wisdom': { x: -520, y: -1200 },
-  '29. Sacred Activism': { x: -1200, y: -520 },
+  '1. Wisdom Traditions': { x: -1312, y: -174 },
+  '2. Spiritual Lineage': { x: -840, y: -720 },
+  '3. Buddhism': { x: -1100, y: -350 },
+  '4. Contemplative Education': { x: -750, y: -450 },
+  '5. Contemplative Research': { x: -650, y: -520 },
+  '6. Developmental Practice': { x: -820, y: -260 },
+  '7. Depth Psychological Education': { x: -500, y: -650 },
+  '8. Integral Education': { x: -480, y: -780 },
+  '9. Depth Psychological Education': { x: -520, y: -620 },
+  '10. Nature-based Education': { x: -350, y: -850 },
+  '13. Human Development': { x: -620, y: -300 },
+  '15. Psychoterapeutic Modality': { x: -950, y: -550 },
+  '25. Psychedelic Research': { x: -1050, y: -800 },
+  '36. Neuroscience Research': { x: -580, y: -480 },
+  '54. Indigenous-led Spiritual Communities & Networks': { x: -1250, y: -600 },
+  '55. In-Person Communities': { x: -780, y: -150 },
+  '59. Retreat Center': { x: -1150, y: -450 },
+  '60. Plant Medicine Conservation': { x: -1350, y: -500 },
+  '61. Formal Education': { x: -400, y: -600 },
 
   // SOCIAL QUADRANT (x > 0, y < 0)
-  '6. Commonwealth of the Commons': { x: 380, y: -380 },
-  '7. Federation of Civic Action': { x: 800, y: -420 },
-  '8. Territories of Mutual Solidarity': { x: 420, y: -800 },
-  '9. Transition & Local Resilience Biome': { x: 840, y: -840 },
-  '10. Archipelago of Social Weaving': { x: 1200, y: -1200 },
-  '26. Decentralized Governance': { x: 1200, y: -520 },
-  '30. Community Resilience': { x: 520, y: -1200 },
+  '20. Leadership Education': { x: 500, y: -750 },
+  '23. Ethical Technology Education': { x: 620, y: -400 },
+  '26. Indigenous Allyship': { x: 780, y: -600 },
+  '30. Grassroots Communities': { x: 420, y: -850 },
+  '32. Consultancies': { x: 880, y: -350 },
+  '37. Alternative Education': { x: 580, y: -550 },
+  '38. Education': { x: 700, y: -500 },
+  '41. Quilombo': { x: 920, y: -700 },
+  '42. Indigenous Community': { x: 1050, y: -650 },
+  '51. Public Policy Advising': { x: 650, y: -720 },
 
   // CULTURAL QUADRANT (x < 0, y > 0)
-  '11. Ancestral & Indigenous Lorelands': { x: -380, y: 380 },
-  '12. Archipelago of Transcontextual Mind': { x: -800, y: 420 },
-  '13. Archipelago of Living Mythos & Narrative': { x: -420, y: 800 },
-  '14. Decolonial Imaginal Archipelago': { x: -840, y: 840 },
-  '15. Archipelago of Cultural Regeneration': { x: -1200, y: 1200 },
-  '22. Regenerative Education': { x: -1200, y: 520 },
-  '23. Place-Based Learning': { x: -520, y: 1200 },
-  '28. Intergenerational Healing': { x: -1350, y: 950 },
+  '9. Living Systems Education': { x: -400, y: 750 },
+  '11. Living Systems Education': { x: -450, y: 700 },
+  '12. Deep Ecology Education': { x: -750, y: 450 },
+  '14. Relational Education': { x: -550, y: 600 },
+  '16. Community of Practice': { x: -680, y: 550 },
+  '17. Tropical Education': { x: -850, y: 700 },
+  '18. Artistic & Cultural Interventions': { x: -920, y: 580 },
+  '19. Climate Education': { x: -600, y: 850 },
+  '19. Metacrisis Research & Education': { x: -1100, y: 480 },
+  '21. Sociocultural Education': { x: -800, y: 920 },
+  '22. Regenerative Education': { x: -500, y: 1050 },
+  '27. Indigenous Education': { x: -1000, y: 820 },
+  '28. Decolonial Education': { x: -1200, y: 750 },
+  '33. Youth Education': { x: -650, y: 1100 },
+  '34. Activism': { x: -880, y: 1050 },
+  '39. Regenerative Practice': { x: -420, y: 950 },
+  '40. Academic Research': { x: -750, y: 980 },
+  '47. Narrative Change': { x: -950, y: 420 },
+  '52. Scientific Communication': { x: -1050, y: 620 },
+  '56. Events Organizing': { x: -600, y: 720 },
+  '59. Psychological Research': { x: -700, y: 650 },
+  '60. Metamodern Education': { x: -1150, y: 550 },
+  '62. Public Sensemaking': { x: -1020, y: 400 },
 
   // SYSTEMS QUADRANT (x > 0, y > 0)
-  '16. Expanse of Doughnut & Post-Growth Economics': { x: 380, y: 380 },
-  '17. Planetary Boundaries Biosphere': { x: 800, y: 420 },
-  '18. Nexus of Complexity & Systems Dynamics': { x: 420, y: 800 },
-  '19. Biomimicry & Circular Horizons': { x: 840, y: 840 },
-  '20. Archipelago of Systems Transition': { x: 1200, y: 1200 },
-  '21. The Metta Nexus Lands': { x: 520, y: 1200 },
-  '25. Post-Capitalist Transitions': { x: 1200, y: 520 },
-  '27. Regenerative Agriculture & Food Systems': { x: 950, y: 1350 }
+  '24. Alternative Economics': { x: 550, y: 450 },
+  '29. Quilombola Allyship': { x: 800, y: 400 },
+  '31. Philanthropy': { x: 420, y: 650 },
+  '35. Civic Organization': { x: 700, y: 580 },
+  '43. Ecosystem Weaving': { x: 600, y: 750 },
+  '44. Complex Systems Education': { x: 850, y: 500 },
+  '45. Para-Academic Research': { x: 920, y: 620 },
+  '46. Civic Infrastructure': { x: 500, y: 850 },
+  '48. Systemic Investing': { x: 750, y: 720 },
+  '49. Facilitation Training': { x: 620, y: 900 },
+  '50. Metadesign': { x: 820, y: 820 },
+  '52. Regenerative Technology Design & Development': { x: 950, y: 450 },
+  '53. Regenerative Coordination': { x: 1050, y: 600 }
 };
 
 /**
@@ -846,31 +1009,32 @@ export function calculateArchipelagoCenterPositions(
  * Normalizes any cluster/archipelago name ensuring it is prefixed with its cluster number.
  * E.g. "22. Regenerative Education" -> "22. Regenerative Education"
  * E.g. "Regenerative Education" -> "22. Regenerative Education"
- * E.g. "Sanctuary of Somatics & Healing" -> "1. Sanctuary of Somatics & Healing"
+ * E.g. "Wisdom Traditions" -> "1. Wisdom Traditions"
  */
 export function formatClusterWithNumber(rawCluster: string): string {
   if (!rawCluster) return '';
   const trimmed = String(rawCluster).trim();
   if (!trimmed) return '';
 
-  // 1. If it already starts with a number like "22. Regenerative Education" or "1. ..." or "22) ..."
-  if (/^\d+[\.\)]\s*.+/.test(trimmed)) {
-    return trimmed.replace(/^(\d+)[\.\)]\s*/, '$1. ');
-  }
-
-  // 2. Exact match in canonical lookup
   const cleanLower = trimmed.toLowerCase();
+
+  // 1. Exact match in canonical lookup
   if (CANONICAL_CLUSTER_MAP[cleanLower]) {
     return CANONICAL_CLUSTER_MAP[cleanLower];
   }
 
-  // 3. Exact base name match in canonical lookup (e.g. "regenerative education" without number prefix)
+  // 2. Exact base name match in canonical lookup (e.g. "depth psychological education" or "7. depth psychological education" -> "9. Depth Psychological Education")
   const cleanBase = normalizeArchipelagoBaseName(trimmed);
   for (const [key, val] of Object.entries(CANONICAL_CLUSTER_MAP)) {
     const keyBase = normalizeArchipelagoBaseName(key);
     if (keyBase === cleanBase && cleanBase.length > 3) {
       return val;
     }
+  }
+
+  // 3. If it already starts with a number like "22. Regenerative Education" or "1. ..." or "22) ..."
+  if (/^\d+[\.\)]\s*.+/.test(trimmed)) {
+    return trimmed.replace(/^(\d+)[\.\)]\s*/, '$1. ');
   }
 
   // 4. Stable deterministic number for custom/unregistered clusters
@@ -1271,8 +1435,12 @@ export function calculateExpandedContinentHull(
   focusEntities: EcosystemEntity[]
 ): ContinentInfo {
   if (!focusEntities || focusEntities.length === 0) return continent;
-  // If the user has manually adjusted or customized the continent shape, respect it strictly!
-  if (continent.isCustomShape) return continent;
+  if (continent.isCustomShape) {
+    return {
+      ...continent,
+      count: focusEntities.length
+    };
+  }
 
   const cx = continent.centerX;
   const cy = continent.centerY;
@@ -1384,7 +1552,9 @@ export function calculateExpandedContinentHull(
     minY - 30,
     maxY + 30,
     scaledControlPoints,
-    0
+    0,
+    continent.titleCurvature,
+    continent.name
   );
 
   const subLabelPath = generateContinentLabelPath(
@@ -1395,7 +1565,9 @@ export function calculateExpandedContinentHull(
     minY - 30,
     maxY + 30,
     scaledControlPoints,
-    -22
+    -22,
+    continent.subTitleCurvature,
+    `${focusEntities.length} ${focusEntities.length === 1 ? 'entity' : 'entities'}`
   );
 
   return {
@@ -1442,16 +1614,7 @@ export function isArchipelagoName(val?: string): boolean {
   if (
     clean.includes('archipelago of') ||
     clean.endsWith(' archipelago') ||
-    clean === 'archipelago' ||
-    clean.includes('isles of') ||
-    clean.includes('territory of') ||
-    clean.includes('territories of') ||
-    clean.includes('sanctuary of') ||
-    clean.includes('commonwealth of') ||
-    clean.includes('federation of') ||
-    clean.includes('nexus lands') ||
-    clean.includes('lorelands') ||
-    clean.includes('biome')
+    clean === 'archipelago'
   ) {
     return true;
   }
@@ -1524,6 +1687,7 @@ export function filterProfileTags(tags: string[] | string, entity?: EcosystemEnt
 /**
  * Suggests an evocative thematic Archipelago name for an entity
  * based on its category, fields, keywords, and description, always prefixed with its cluster number.
+ * Sourced strictly from the active archipelagos on the map.
  */
 export function suggestContinent(entity: Partial<EcosystemEntity>): string {
   const cat = entity.category || 'Inner';
@@ -1531,75 +1695,91 @@ export function suggestContinent(entity: Partial<EcosystemEntity>): string {
   const combinedText = `${entity.name || ''} ${fields.join(' ')} ${entity.description || ''}`.toLowerCase();
 
   // Explicit Regenerative Education check
-  if (combinedText.includes('regenerative education') || combinedText.includes('holistic education') || combinedText.includes('pedagogy') || combinedText.includes('place-based learning') || combinedText.includes('learning community') || combinedText.includes('schumacher')) {
+  if (
+    combinedText.includes('regenerative education') ||
+    combinedText.includes('holistic education') ||
+    combinedText.includes('pedagogy') ||
+    combinedText.includes('place-based learning') ||
+    combinedText.includes('learning community') ||
+    combinedText.includes('schumacher')
+  ) {
     return '22. Regenerative Education';
   }
 
   if (cat === 'Inner') {
-    if (combinedText.includes('somatic') || combinedText.includes('body') || combinedText.includes('trauma') || combinedText.includes('nervous system')) {
-      return '1. Sanctuary of Somatics & Healing';
+    if (combinedText.includes('somatic') || combinedText.includes('body') || combinedText.includes('trauma') || combinedText.includes('nervous system') || combinedText.includes('therapy')) {
+      return '15. Psychoterapeutic Modality';
     }
-    if (combinedText.includes('contemplat') || combinedText.includes('mindful') || combinedText.includes('meditat') || combinedText.includes('zen') || combinedText.includes('buddhism') || combinedText.includes('compassion')) {
-      return '2. Isles of Contemplative Wisdom';
+    if (combinedText.includes('contemplat') || combinedText.includes('mindful') || combinedText.includes('meditat') || combinedText.includes('zen') || combinedText.includes('compassion')) {
+      return '4. Contemplative Education';
     }
-    if (combinedText.includes('leadership') || combinedText.includes('capacity') || combinedText.includes('idg') || combinedText.includes('inner development') || combinedText.includes('skill')) {
-      return '3. Territory of Inner Capacities';
+    if (combinedText.includes('buddhism') || combinedText.includes('dharma')) {
+      return '3. Buddhism';
     }
-    if (combinedText.includes('deep ecology') || combinedText.includes('reconnect') || combinedText.includes('grief') || combinedText.includes('active hope') || combinedText.includes('macy')) {
-      return '4. Deep Ecology Heartland';
+    if (combinedText.includes('spiritual') || combinedText.includes('lineage') || combinedText.includes('wisdom')) {
+      return '1. Wisdom Traditions';
     }
-    return '5. Archipelago of Inner Transformation';
+    if (combinedText.includes('psychedelic') || combinedText.includes('plant medicine')) {
+      return '25. Psychedelic Research';
+    }
+    return '6. Developmental Practice';
   }
 
   if (cat === 'Social') {
-    if (combinedText.includes('commons') || combinedText.includes('cooperative') || combinedText.includes('housing') || combinedText.includes('land trust') || combinedText.includes('solidarity economy')) {
-      return '6. Commonwealth of the Commons';
+    if (combinedText.includes('indigenous ally') || combinedText.includes('allyship') || combinedText.includes('quilombola')) {
+      return '26. Indigenous Allyship';
     }
-    if (combinedText.includes('democracy') || combinedText.includes('deliberative') || combinedText.includes('citizens assembly') || combinedText.includes('civic') || combinedText.includes('governance')) {
-      return '7. Federation of Civic Action';
+    if (combinedText.includes('leadership') || combinedText.includes('capacity')) {
+      return '20. Leadership Education';
     }
-    if (combinedText.includes('mutual aid') || combinedText.includes('disaster') || combinedText.includes('solidarity') || combinedText.includes('grassroots')) {
-      return '8. Territories of Mutual Solidarity';
+    if (combinedText.includes('ethical tech') || combinedText.includes('ai') || combinedText.includes('technology')) {
+      return '23. Ethical Technology Education';
     }
-    if (combinedText.includes('transition') || combinedText.includes('localization') || combinedText.includes('resilience') || combinedText.includes('neighborhood')) {
-      return '9. Transition & Local Resilience Biome';
+    if (combinedText.includes('consultan')) {
+      return '32. Consultancies';
     }
-    return '10. Archipelago of Social Weaving';
+    return '30. Grassroots Communities';
   }
 
   if (cat === 'Cultural') {
-    if (combinedText.includes('indigenous') || combinedText.includes('ancestral') || combinedText.includes('plant') || combinedText.includes('kinship') || combinedText.includes('kimmerer') || combinedText.includes('animism')) {
-      return '11. Ancestral & Indigenous Lorelands';
+    if (combinedText.includes('decolonial') || combinedText.includes('pluriverse') || combinedText.includes('post-human')) {
+      return '28. Decolonial Education';
     }
-    if (combinedText.includes('warm data') || combinedText.includes('bateson') || combinedText.includes('transcontextual') || combinedText.includes('aphanipoiesis')) {
-      return '12. Archipelago of Transcontextual Mind';
+    if (combinedText.includes('metacrisis') || combinedText.includes('sensemaking') || combinedText.includes('applied metatheory')) {
+      return '19. Metacrisis Research & Education';
     }
-    if (combinedText.includes('story') || combinedText.includes('myth') || combinedText.includes('writing') || combinedText.includes('dark mountain') || combinedText.includes('emergence') || combinedText.includes('narrative')) {
-      return '13. Archipelago of Living Mythos & Narrative';
+    if (combinedText.includes('deep ecology') || combinedText.includes('reconnect') || combinedText.includes('active hope')) {
+      return '12. Deep Ecology Education';
     }
-    if (combinedText.includes('decolonial') || combinedText.includes('post-human') || combinedText.includes('akomolafe') || combinedText.includes('imagination')) {
-      return '14. Decolonial Imaginal Archipelago';
+    if (combinedText.includes('living systems') || combinedText.includes('ecology')) {
+      return '9. Living Systems Education';
     }
-    return '15. Archipelago of Cultural Regeneration';
+    if (combinedText.includes('relational') || combinedText.includes('dialogue') || combinedText.includes('warm data')) {
+      return '14. Relational Education';
+    }
+    if (combinedText.includes('indigenous') || combinedText.includes('ancestral')) {
+      return '27. Indigenous Education';
+    }
+    return '21. Sociocultural Education';
   }
 
   if (cat === 'Systems') {
-    if (combinedText.includes('doughnut') || combinedText.includes('raworth') || combinedText.includes('post-growth') || combinedText.includes('post-capital') || combinedText.includes('regenerative economy') || combinedText.includes('finance')) {
-      return '16. Expanse of Doughnut & Post-Growth Economics';
+    if (combinedText.includes('alternative economics') || combinedText.includes('doughnut') || combinedText.includes('post-growth') || combinedText.includes('post-capital') || combinedText.includes('solidarity economy')) {
+      return '24. Alternative Economics';
     }
-    if (combinedText.includes('planetary') || combinedText.includes('boundaries') || combinedText.includes('stockholm') || combinedText.includes('earth systems') || combinedText.includes('biosphere')) {
-      return '17. Planetary Boundaries Biosphere';
+    if (combinedText.includes('philanthropy') || combinedText.includes('investing') || combinedText.includes('fund')) {
+      return '31. Philanthropy';
     }
-    if (combinedText.includes('complexity') || combinedText.includes('systems thinking') || combinedText.includes('leverage') || combinedText.includes('dynamics') || combinedText.includes('meadows') || combinedText.includes('santa fe')) {
-      return '18. Nexus of Complexity & Systems Dynamics';
+    if (combinedText.includes('complexity') || combinedText.includes('complex systems') || combinedText.includes('systems thinking') || combinedText.includes('dynamics')) {
+      return '44. Complex Systems Education';
     }
-    if (combinedText.includes('biomimicry') || combinedText.includes('nature-inspired') || combinedText.includes('circular') || combinedText.includes('benyus')) {
-      return '19. Biomimicry & Circular Horizons';
+    if (combinedText.includes('technology') || combinedText.includes('software') || combinedText.includes('regenerative technology') || combinedText.includes('design & development')) {
+      return '52. Regenerative Technology Design & Development';
     }
-    return '20. Archipelago of Systems Transition';
+    return '53. Regenerative Coordination';
   }
 
-  return '21. The Metta Nexus Lands';
+  return '1. Wisdom Traditions';
 }
 
 /**
@@ -1678,6 +1858,25 @@ export function createPathFromControlPoints(controlPoints: [number, number][]): 
  * Generates a smooth sweeping curved SVG path that circles around the continent's outer rim.
  * The path is constructed from West (left) through North (apex) to East (right), offset outward,
  * so text mapped with <textPath> will read left-to-right, upright, curving around the continent!
+ *
+ * Guaranteed properties:
+ * 1. Strictly convex (no inflections or dips into the archipelago).
+ * 2. C1 & C2 smooth continuous elliptical curvature.
+ * 3. Apex is exactly at 50% arc length for perfect text centering.
+ * 4. Adaptively clears all upper control vertices of the archipelago regardless of manual reshaping.
+ */
+/**
+ * Generates a smooth sweeping curved SVG path that circles around the continent's outer rim.
+ * The path is constructed from West (left) through North (apex) to East (right), offset outward,
+ * so text mapped with <textPath> will read left-to-right, upright, curving around the continent.
+ *
+ * Guaranteed properties:
+ * 1. Strictly convex (no inflections or dips into the archipelago).
+ * 2. C1 & C2 smooth continuous curvature with horizontal tangent at the apex.
+ * 3. Apex is exactly at 50% arc length for perfect text centering.
+ * 4. Adaptively clears upper vertices of the archipelago.
+ * 5. Supports configurable curvature: 0 = straight line, 0.35 = gentle arc, 0.7 = natural arch, 1.0+ = classic curve.
+ * 6. Guarantees generous horizontal span & arc length based on label length so titles NEVER crop.
  */
 export function generateContinentLabelPath(
   centerX: number,
@@ -1687,61 +1886,160 @@ export function generateContinentLabelPath(
   minY: number,
   maxY: number,
   controlPoints: [number, number][] = [],
-  offsetExtra = 0
+  offsetExtra = 0,
+  curvatureFactor = 0.7,
+  labelText = ''
 ): string {
-  const width = Math.max(120, maxX - minX + 50);
-  const height = Math.max(70, maxY - minY + 50);
-  const radiusX = width / 2;
-  const radiusY = height / 2;
+  // Determine if this is the sub-label (entity count) or the main title
+  const isSubLabel = offsetExtra < -5;
 
-  // If control points exist, find the upper perimeter contour
-  if (controlPoints.length >= 4) {
-    const upperPoints = controlPoints
-      .filter(([x, y]) => y <= centerY + radiusY * 0.35)
-      .sort((a, b) => a[0] - b[0]);
+  // 1. Calculate true geometric bounding box from control points if available
+  let bMinX = minX;
+  let bMaxX = maxX;
+  let bMinY = minY;
+  let bMaxY = maxY;
 
-    if (upperPoints.length >= 3) {
-      // Offset points outward along vector from center
-      const offsetPoints = upperPoints.map(([px, py]) => {
-        const dx = px - centerX;
-        const dy = py - centerY;
-        const dist = Math.hypot(dx, dy) || 1;
-        const offset = 38 + offsetExtra;
-        return [
-          Math.round(px + (dx / dist) * offset),
-          Math.round(py + (dy / dist) * offset)
-        ] as [number, number];
-      });
-
-      // Extend west and east endpoints to give text enough runway
-      const first = offsetPoints[0];
-      const last = offsetPoints[offsetPoints.length - 1];
-      const startP: [number, number] = [first[0] - 25, first[1] + 12];
-      const endP: [number, number] = [last[0] + 25, last[1] + 12];
-      
-      const allCurvePoints = [startP, ...offsetPoints, endP];
-      let path = `M ${allCurvePoints[0][0]},${allCurvePoints[0][1]} `;
-      for (let i = 1; i < allCurvePoints.length - 1; i++) {
-        const xc = (allCurvePoints[i][0] + allCurvePoints[i + 1][0]) / 2;
-        const yc = (allCurvePoints[i][1] + allCurvePoints[i + 1][1]) / 2;
-        path += `Q ${allCurvePoints[i][0]},${allCurvePoints[i][1]} ${xc},${yc} `;
-      }
-      path += `L ${allCurvePoints[allCurvePoints.length - 1][0]},${allCurvePoints[allCurvePoints.length - 1][1]}`;
-      return path;
+  if (controlPoints && controlPoints.length >= 3) {
+    let cMinX = Infinity;
+    let cMaxX = -Infinity;
+    let cMinY = Infinity;
+    let cMaxY = -Infinity;
+    for (const [px, py] of controlPoints) {
+      if (px < cMinX) cMinX = px;
+      if (px > cMaxX) cMaxX = px;
+      if (py < cMinY) cMinY = py;
+      if (py > cMaxY) cMaxY = py;
+    }
+    if (cMinX !== Infinity && cMaxX > cMinX) {
+      bMinX = cMinX;
+      bMaxX = cMaxX;
+      bMinY = cMinY;
+      bMaxY = cMaxY;
     }
   }
 
-  // Majestic smooth sweeping cubic bezier arch circling around top of continent
-  const startX = Math.round(centerX - radiusX - 20);
-  const startY = Math.round(centerY - radiusY * 0.15 + offsetExtra * 0.3);
-  const cp1X = Math.round(centerX - radiusX * 0.65);
-  const cp1Y = Math.round(minY - 38 + offsetExtra);
-  const cp2X = Math.round(centerX + radiusX * 0.65);
-  const cp2Y = Math.round(minY - 38 + offsetExtra);
-  const endX = Math.round(centerX + radiusX + 20);
-  const endY = Math.round(centerY - radiusY * 0.15 + offsetExtra * 0.3);
+  // True horizontal center of the archipelago shape ensures a perfectly symmetric arch
+  const midX = (bMinX + bMaxX) / 2;
+  const midY = (bMinY + bMaxY) / 2;
 
-  return `M ${startX},${startY} C ${cp1X},${cp1Y} ${cp2X},${cp2Y} ${endX},${endY}`;
+  const spanX = Math.max(120, bMaxX - bMinX);
+  const spanY = Math.max(70, bMaxY - bMinY);
+
+  // Estimate required text rendered width to guarantee the path NEVER clips the text
+  const cleanText = labelText ? String(labelText).trim() : '';
+  const charCount = cleanText ? cleanText.length : (isSubLabel ? 14 : 36);
+  const estCharWidth = isSubLabel ? 8.5 : 14.5;
+  const estTextWidth = Math.max(isSubLabel ? 130 : 250, charCount * estCharWidth);
+
+  // Symmetrical half-span along X: must comfortably encompass both the island width AND the text length
+  // plus generous safety margin on both ends (>= 90px breathing room on each side)
+  const halfSpan = Math.max(
+    spanX * 0.55 + 50,
+    (estTextWidth / 2) + 90,
+    isSubLabel ? 120 : 220
+  );
+
+  // Top Apex Positioning:
+  // Main title: sits crisply ~28px above the topmost point of the shoreline (bMinY)
+  // Sub-label ("X ENTITIES"): sits crisply ~10px above the shoreline, strictly underneath the main title
+  let apexY = bMinY - (isSubLabel ? 10 : 28);
+
+  // Normalized curvature: 0 = straight line, 0.35 = gentle, 0.7 = natural, 1.0 = standard
+  const curv = Math.max(0, curvatureFactor !== undefined ? curvatureFactor : (isSubLabel ? 0.7 : 0.7));
+
+  // If curvature is essentially 0, generate a pristine straight horizontal line
+  if (curv <= 0.04) {
+    const leftX = Math.round(midX - halfSpan);
+    const rightX = Math.round(midX + halfSpan);
+    const y = Math.round(apexY);
+    return `M ${leftX},${y} L ${rightX},${y}`;
+  }
+
+  // Vertical drop / sagitta of the curved arch
+  // Bounded so even large archipelagos don't bend down excessively
+  const baseSagitta = Math.min(65, Math.max(18, spanY * 0.16 + 18));
+  const sagitta = Math.round(baseSagitta * Math.min(curv, 1.4));
+
+  // Shoulder clearance: Ensure the arch stays comfortably above any high shoulder vertices of the island
+  if (controlPoints && controlPoints.length >= 3) {
+    for (const [px, py] of controlPoints) {
+      if (py <= midY) {
+        const dx = Math.abs(px - midX);
+        if (dx < halfSpan * 0.85) {
+          // Approximate curve height at dx
+          const t = dx / halfSpan;
+          const currentArcY = apexY + sagitta * (t * t);
+          const minRequiredY = py - (isSubLabel ? 8 : 22);
+          if (currentArcY > minRequiredY) {
+            apexY -= (currentArcY - minRequiredY);
+          }
+        }
+      }
+    }
+  }
+
+  // Construct a pristine, 100% symmetric 2-segment cubic Bézier curve
+  // Segment 1 (West -> Apex): from (midX - halfSpan, apexY + sagitta) to (midX, apexY)
+  // Segment 2 (Apex -> East): from (midX, apexY) to (midX + halfSpan, apexY + sagitta)
+  const x0 = Math.round(midX - halfSpan);
+  const y0 = Math.round(apexY + sagitta);
+
+  const cp1x = Math.round(midX - halfSpan * 0.55);
+  const cp1y = Math.round(apexY + sagitta * 0.22);
+
+  const cp2x = Math.round(midX - halfSpan * 0.25);
+  const cp2y = Math.round(apexY); // strictly horizontal tangent at apex
+
+  const apexX = Math.round(midX);
+  const roundApexY = Math.round(apexY);
+
+  const cp3x = Math.round(midX + halfSpan * 0.25);
+  const cp3y = Math.round(apexY); // strictly horizontal tangent at apex
+
+  const cp4x = Math.round(midX + halfSpan * 0.55);
+  const cp4y = Math.round(apexY + sagitta * 0.22);
+
+  const x2 = Math.round(midX + halfSpan);
+  const y2 = Math.round(apexY + sagitta);
+
+  return `M ${x0},${y0} C ${cp1x},${cp1y} ${cp2x},${cp2y} ${apexX},${roundApexY} C ${cp3x},${cp3y} ${cp4x},${cp4y} ${x2},${y2}`;
+}
+
+/**
+ * Calculates the exact geometric center apex of an archipelago's curved or straight label path.
+ * Used for placing labels, rotation pivots, and interactive rotation handles.
+ */
+export function getContinentLabelCenter(
+  cont: ContinentInfo,
+  isSubLabel = false
+): { x: number; y: number } {
+  let bMinX = cont.minX;
+  let bMaxX = cont.maxX;
+  let bMinY = cont.minY;
+  let bMaxY = cont.maxY;
+
+  if (cont.controlPoints && cont.controlPoints.length >= 3) {
+    let cMinX = Infinity;
+    let cMaxX = -Infinity;
+    let cMinY = Infinity;
+    let cMaxY = -Infinity;
+    for (const [px, py] of cont.controlPoints) {
+      if (px < cMinX) cMinX = px;
+      if (px > cMaxX) cMaxX = px;
+      if (py < cMinY) cMinY = py;
+      if (py > cMaxY) cMaxY = py;
+    }
+    if (cMinX !== Infinity && cMaxX > cMinX) {
+      bMinX = cMinX;
+      bMaxX = cMaxX;
+      bMinY = cMinY;
+      bMaxY = cMaxY;
+    }
+  }
+
+  const midX = Math.round((bMinX + bMaxX) / 2);
+  const apexY = Math.round(bMinY - (isSubLabel ? 10 : 28));
+  return { x: midX, y: apexY };
 }
 
 /**
@@ -1855,19 +2153,22 @@ export function resolveEntityOverlaps(
   const minClearanceX = 48; // Very compact clearance between entity centers (allows tight small archipelagos)
   const minClearanceY = 28;  // Very compact vertical clearance
 
-  // 1. Initial Dispersal: Jitter identical or near-identical coordinates if not manually placed
+  // 1. Initial Dispersal: Jitter identical or near-identical coordinates ONLY if neither entity has established coordinates
   for (let i = 0; i < resolved.length; i++) {
     for (let j = i + 1; j < resolved.length; j++) {
-      if (resolved[i].isCustomPosition && resolved[j].isCustomPosition) continue;
+      const hasCoordsI = resolved[i].isCustomPosition || (resolved[i].x !== 0 || resolved[i].y !== 0);
+      const hasCoordsJ = resolved[j].isCustomPosition || (resolved[j].x !== 0 || resolved[j].y !== 0);
+      if (hasCoordsI && hasCoordsJ) continue;
+
       const dx = resolved[j].x - resolved[i].x;
       const dy = resolved[j].y - resolved[i].y;
       if (Math.abs(dx) < 14 && Math.abs(dy) < 14) {
         const angle = ((j + 1) * 1.61803398875) * Math.PI * 2;
         const pushDist = minClearanceX * 0.5;
-        if (!resolved[j].isCustomPosition) {
+        if (!hasCoordsJ) {
           resolved[j].x = Math.round(resolved[j].x + Math.cos(angle) * pushDist);
           resolved[j].y = Math.round(resolved[j].y + Math.sin(angle) * (minClearanceY * 0.5));
-        } else if (!resolved[i].isCustomPosition) {
+        } else if (!hasCoordsI) {
           resolved[i].x = Math.round(resolved[i].x - Math.cos(angle) * pushDist);
           resolved[i].y = Math.round(resolved[i].y - Math.sin(angle) * (minClearanceY * 0.5));
         }
@@ -1878,9 +2179,10 @@ export function resolveEntityOverlaps(
   // 2. Alignment Solver for unpositioned non-custom entities (centering and quadrant boundary preservation without card collision detection)
   const iterations = 30;
   for (let iter = 0; iter < iterations; iter++) {
-    // Repel from center Nexus and Domain Elevation zones
+    // Repel from center Nexus and Domain Elevation zones (only for unpositioned entities)
     for (let i = 0; i < resolved.length; i++) {
       const ent = resolved[i];
+      if (ent.isCustomPosition) continue;
       const distFromOrigin = Math.hypot(ent.x, ent.y);
       const isElevated = isEntityDomainElevation(ent);
 
@@ -1889,13 +2191,13 @@ export function resolveEntityOverlaps(
           const angle = Math.atan2(ent.y, ent.x) || (i * 0.5);
           ent.x = Math.round(Math.cos(angle) * 85);
           ent.y = Math.round(Math.sin(angle) * 85);
-        } else if (distFromOrigin > 240 && !ent.isCustomPosition) {
+        } else if (distFromOrigin > 240) {
           const angle = Math.atan2(ent.y, ent.x);
           ent.x = Math.round(Math.cos(angle) * 210);
           ent.y = Math.round(Math.sin(angle) * 210);
         }
       } else {
-        if (distFromOrigin < 265 && !ent.isCustomPosition) {
+        if (distFromOrigin < 265) {
           const angle = Math.atan2(ent.y, ent.x) || (i * 0.5);
           ent.x = Math.round(Math.cos(angle) * 285);
           ent.y = Math.round(Math.sin(angle) * 285);
@@ -2128,17 +2430,18 @@ export function calculateEntityLayout(
       (signY > 0 && y < 0)
     );
 
-    // If entity already has a custom position from user dragging/editing, preserve it strictly!
-    const hasValidCustomPosition = Boolean(
-      ent.isCustomPosition &&
-      (x !== 0 || y !== 0) &&
-      !options?.forceRecalculate
+    // If entity already has an established position from user dragging, snapshot, or previous layout, preserve it strictly!
+    const hasValidCoordinates = typeof x === 'number' && typeof y === 'number' && (x !== 0 || y !== 0) && Number.isFinite(x) && Number.isFinite(y);
+    const hasValidPosition = Boolean(
+      !options?.forceRecalculate && (
+        (ent.isCustomPosition && hasValidCoordinates) ||
+        hasValidCoordinates
+      )
     );
 
-    const needsPositioning = !hasValidCustomPosition && (
+    const needsPositioning = !hasValidPosition && (
       options?.forceRecalculate ||
-      !ent.isCustomPosition ||
-      (x === 0 && y === 0)
+      !hasValidCoordinates
     );
 
     if (needsPositioning) {
@@ -2159,8 +2462,8 @@ export function calculateEntityLayout(
       }
     }
 
-    // If entity has a custom position and is not elevated, align effective category/quadrant with its actual position on map
-    if (hasValidCustomPosition && !isElevated) {
+    // If entity has a custom/established position and is not elevated, align effective category/quadrant with its actual position on map
+    if (hasValidPosition && !isElevated) {
       effectiveCategory = (x < 0 && y < 0) ? 'Inner'
         : (x > 0 && y < 0) ? 'Social'
         : (x < 0 && y > 0) ? 'Cultural'
@@ -2175,7 +2478,7 @@ export function calculateEntityLayout(
       continent: arch,
       x,
       y,
-      isCustomPosition: options?.forceRecalculate ? false : (hasValidCustomPosition || Boolean(ent.isCustomPosition))
+      isCustomPosition: options?.forceRecalculate ? false : (hasValidPosition || Boolean(ent.isCustomPosition))
     };
   });
 
@@ -2260,7 +2563,9 @@ export function calculateEntityLayout(
       safeMinY,
       safeMaxY,
       controlPoints,
-      0
+      0,
+      0.7,
+      name
     );
 
     const subLabelPath = generateContinentLabelPath(
@@ -2271,7 +2576,9 @@ export function calculateEntityLayout(
       safeMinY,
       safeMaxY,
       controlPoints,
-      -22
+      -22,
+      0.7,
+      `${data.count} ${data.count === 1 ? 'entity' : 'entities'}`
     );
 
     continents.push({

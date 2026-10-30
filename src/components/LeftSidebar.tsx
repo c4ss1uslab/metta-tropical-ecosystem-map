@@ -6,7 +6,7 @@ import {
   Check, Ban, ArrowRight, ExternalLink, Mail, Calendar, AlertCircle
 } from 'lucide-react';
 import { CategoryQuadrant, EntityType, FilterState, FieldCluster, ContinentInfo, SidebarListScope, EcosystemEntity, DataQualityStatus, DataCompletenessLevel, DATA_COMPLETENESS_LEVELS, DATA_COMPLETENESS_CONFIG, getEntityCompleteness, getCompletenessConfig, ContributionSubmission } from '../types';
-import { INTERSECTION_ZONES, isEntityEcotone, entityMatchesArchipelago, normalizeArchipelagoBaseName, formatClusterWithNumber } from '../utils/layoutGenerator';
+import { entityMatchesArchipelago, normalizeArchipelagoBaseName, formatClusterWithNumber } from '../utils/layoutGenerator';
 import { getEntitySpreadsheetField, splitLanguageValues, splitRelationshipValues } from '../utils/excelParser';
 import { 
   getStoredContributions, 
@@ -17,6 +17,7 @@ import {
 import { EditModePasswordModal } from './EditModePasswordModal';
 import { FilterCommentHelpPopup } from './FilterCommentHelpPopup';
 import { MultiSelectFilterDropdown } from './MultiSelectFilterDropdown';
+import { MapLayersModal } from './MapLayersModal';
 import { calculateLayerCounts, formatLayerEntitiesBreakdown } from '../utils/layerClassifier';
 
 interface LeftSidebarProps {
@@ -422,6 +423,13 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   // Map Layers (Layer 1, Layer 2, Layer 3)
   const activeLayer = filterState.activeLayer ?? 1;
   const [isLayerSectionOpen, setIsLayerSectionOpen] = useState(false);
+  const [isLayerModalOpen, setIsLayerModalOpen] = useState(false);
+  const [layerModalInitialTab, setLayerModalInitialTab] = useState<1 | 2 | 3 | 'all'>('all');
+
+  const handleOpenLayerModal = (tab: 1 | 2 | 3 | 'all' = 'all') => {
+    setLayerModalInitialTab(tab);
+    setIsLayerModalOpen(true);
+  };
 
   const layer1Counts = useMemo(() => calculateLayerCounts(entities, 1), [entities]);
   const layer2Counts = useMemo(() => calculateLayerCounts(entities, 2), [entities]);
@@ -1840,7 +1848,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                           <div className="flex items-start justify-between gap-1.5">
                             <div className="flex items-center space-x-2">
                               <span className="w-3 h-3 rounded-full bg-[#059669] shrink-0 shadow-xs" />
-                              <span className="font-editorial text-xs font-bold text-[#111827]">
+                              <span className="font-editorial text-[15px] font-bold text-[#111827]">
                                 Layer 1: [{formatLayerEntitiesBreakdown(layer1Counts)}]
                               </span>
                             </div>
@@ -1856,17 +1864,28 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                             )}
                           </div>
 
-                          <div className="font-editorial text-xs font-semibold text-[#065F46] leading-snug">
+                          <div className="font-editorial text-[14px] font-semibold text-[#065F46] leading-snug">
                             A Fragmented Ecosystem of Initiatives Contributing to Wisdom-Centered Educational Responses to the Metacrisis
                           </div>
 
-                          <div className="font-sans text-[11px] text-[#374151] leading-relaxed space-y-2 pt-1 border-t border-[#E5E7EB]/80">
+                          <div className="font-sans text-[11px] text-[#374151] leading-relaxed pt-1 border-t border-[#E5E7EB]/80 space-y-1.5">
                             <p>
                               The Layer 1 of the Map includes {formatLayerEntitiesBreakdown(layer1Counts)} whose our relationship with ranges from: 1. Core References to 6. Following Closely.
                             </p>
-                            <p className="text-[#4B5563]">
-                              These initiatives are the closest to the spirit of our work, influencing it greatly. They often recognize our civilizational predicament as a metacrisis and have developed wisdom-centered, systems-informed approaches to respond to it. They often operate in some intersection between inner, social, cultural and systems change, and/or stem from regenerative, decolonial, complexity-informed, grassroots background. We believe they're driving important, transformative change and our hope is that, with this map and with our work, they can be, in some way, in closer relationship with each other.
-                            </p>
+                            <div>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenLayerModal(1);
+                                }}
+                                className="inline-flex items-center space-x-1 text-[11px] font-technical font-semibold text-[#059669] hover:text-[#047857] hover:underline cursor-pointer group/rm"
+                                title="Read full description for Layer 1"
+                              >
+                                <span>Read More</span>
+                                <ArrowRight className="w-3 h-3 transition-transform group-hover/rm:translate-x-0.5" />
+                              </button>
+                            </div>
                           </div>
 
                           {/* Attached Our Relationship Field (showing within Layer 1) */}
@@ -1889,7 +1908,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                           <div className="flex items-start justify-between gap-1.5">
                             <div className="flex items-center space-x-2">
                               <span className="w-3 h-3 rounded-full bg-[#2563EB] shrink-0 shadow-xs" />
-                              <span className="font-editorial text-xs font-bold text-[#111827]">
+                              <span className="font-editorial text-[15px] font-bold text-[#111827]">
                                 Layer 2: [{formatLayerEntitiesBreakdown(layer2Counts)}]
                               </span>
                             </div>
@@ -1905,29 +1924,40 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                             )}
                           </div>
 
-                          <div className="font-editorial text-xs font-semibold text-[#1D4ED8] leading-snug">
+                          <div className="font-editorial text-[14px] font-semibold text-[#1D4ED8] leading-snug">
                             A Curated Ecosystem of Initiatives Working Towards Inner, Social, Cultural and Systems Transformation In Service of Planetary Flourishing
                           </div>
 
-                          <div className="font-sans text-[11px] text-[#374151] leading-relaxed space-y-2 pt-1 border-t border-[#E5E7EB]/80">
+                          <div className="font-sans text-[11px] text-[#374151] leading-relaxed pt-1 border-t border-[#E5E7EB]/80 space-y-1.5">
                             <p>
                               The Layer 2 of the Map includes the {formatLayerEntitiesBreakdown(layer2Counts)} whose our relationship with ranges from: 7: Following -&gt; 9: Aware of.
                             </p>
-                            <p className="text-[#4B5563]">
-                              These are initiatives we follow and are interested in, that seem to be doing important work, but we're still not close enough to have a strong opinion about or to vouch for them as a whole. We might already know and enjoy their work and recommend part of it, in which case we're often attaching recommended resources and comments on their profiles. Our intention is, as we keep learning about them, and as this map is collaboratively tended, gather more data on them, references, opinions and experiences from other people in our network as well.
-                            </p>
+                            <div>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenLayerModal(2);
+                                }}
+                                className="inline-flex items-center space-x-1 text-[11px] font-technical font-semibold text-[#2563EB] hover:text-[#1D4ED8] hover:underline cursor-pointer group/rm"
+                                title="Read full description for Layer 2"
+                              >
+                                <span>Read More</span>
+                                <ArrowRight className="w-3 h-3 transition-transform group-hover/rm:translate-x-0.5" />
+                              </button>
+                            </div>
                           </div>
                         </div>
 
                         {/* Layer 3 */}
                         <div
-                          className="p-3 rounded-[4px] border border-[#E5E7EB] bg-[#F9FAFB] text-left space-y-2 opacity-80 cursor-not-allowed select-none"
+                          className="p-3 rounded-[4px] border border-[#E5E7EB] bg-[#F9FAFB] text-left space-y-2 opacity-85 select-none"
                           title="Layer 3 is coming soon and unclickable for now"
                         >
                           <div className="flex items-start justify-between gap-1.5">
                             <div className="flex items-center space-x-2">
                               <span className="w-3 h-3 rounded-full bg-[#7C3AED] shrink-0 opacity-70" />
-                              <span className="font-editorial text-xs font-bold text-[#374151]">
+                              <span className="font-editorial text-[15px] font-bold text-[#374151]">
                                 Layer 3 (soon): [{formatLayerEntitiesBreakdown(layer3Counts)}]
                               </span>
                             </div>
@@ -1936,17 +1966,28 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                             </span>
                           </div>
 
-                          <div className="font-editorial text-xs font-semibold text-[#6D28D9] leading-snug">
+                          <div className="font-editorial text-[14px] font-semibold text-[#6D28D9] leading-snug">
                             A Wide Range of Initiatives Possibly Working Towards Life-Affirming Futures
                           </div>
 
-                          <div className="font-sans text-[11px] text-[#4B5563] leading-relaxed space-y-2 pt-1 border-t border-[#E5E7EB]">
+                          <div className="font-sans text-[11px] text-[#4B5563] leading-relaxed pt-1 border-t border-[#E5E7EB] space-y-1.5">
                             <p>
                               The Layer 3 of the Map includes {formatLayerEntitiesBreakdown(layer3Counts)}, whose our relationship with are either: 10: Unaware of or 11. Crowdsourced.
                             </p>
-                            <p className="text-[#6B7280]">
-                              All the initiatives we've gathered on, who are possibly working towards life-affirming futures. These are entities sourced from other open-source maps or from our initial research, but that we still have very little or no information about. Entities added to this map by non-members of the collective automatically land here upon approval. We intend to review these and learn from these initiatives gradually and then, as we do, move them to the 2nd or 1st layers of the map.
-                            </p>
+                            <div>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenLayerModal(3);
+                                }}
+                                className="inline-flex items-center space-x-1 text-[11px] font-technical font-semibold text-[#7C3AED] hover:text-[#6D28D9] hover:underline cursor-pointer group/rm pointer-events-auto"
+                                title="Read full description for Layer 3"
+                              >
+                                <span>Read More</span>
+                                <ArrowRight className="w-3 h-3 transition-transform group-hover/rm:translate-x-0.5" />
+                              </button>
+                            </div>
                           </div>
                         </div>
 
@@ -2124,224 +2165,6 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                   </div>
                 </div>
 
-                {/* 4. Ecotones (Intersections) Filter (Moved below Data Quality) */}
-                <div className="pt-2 border-t border-[#E5E7EB]">
-                {!showEcotones ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowEcotones(true);
-                    }}
-                    className="w-full flex items-center justify-between p-2 rounded-[4px] border transition-all text-left group cursor-pointer bg-[#ECFDF5] text-[#064E3B] border-[#A7F3D0] hover:bg-[#D1FAE5] hover:border-[#059669] shadow-xs"
-                    title="Click to display Ecotones (Intersections) on map"
-                  >
-                    <span className="font-technical text-[11px] uppercase tracking-wider font-bold flex items-center space-x-1.5 truncate">
-                      <span className="text-sm">🌿</span>
-                      <span className="truncate">Ecotones (Intersections)</span>
-                    </span>
-                    <span className="text-[9px] font-technical px-1.5 py-0.5 rounded-[2px] font-bold shrink-0 ml-1 flex items-center space-x-1 bg-white text-[#047857] border border-[#A7F3D0] group-hover:border-[#059669] group-hover:text-[#064E3B]">
-                      <EyeOff className="w-3 h-3" />
-                      <span>OFF</span>
-                    </span>
-                  </button>
-                ) : (
-                  <div className="bg-[#FAF8F5] border border-[#111827]/25 rounded-[4px] shadow-xs overflow-hidden">
-                    {/* Header Button spanning full box width and merging with its borders */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowEcotones(false);
-                        setFilterState(f => ({
-                          ...f,
-                          onlyEcotones: false,
-                          onlyDomainElevation: false,
-                          selectedIntersectionZone: 'All',
-                          selectedIntersectionZones: []
-                        }));
-                        setShowContinents?.(true);
-                      }}
-                      className="w-full flex items-center justify-between p-2 transition-all text-left group cursor-pointer bg-[#111827] text-white border-b border-[#111827]/30 hover:bg-[#1F2937]"
-                      title="Click to hide Ecotones (Intersections) from map"
-                    >
-                      <span className="font-technical text-[11px] uppercase tracking-wider font-bold flex items-center space-x-1.5 truncate">
-                        <span className="text-sm">🌿</span>
-                        <span className="truncate">Ecotones (Intersections)</span>
-                      </span>
-                      <span className="text-[9px] font-technical px-1.5 py-0.5 rounded-[2px] font-bold shrink-0 ml-1 flex items-center space-x-1 bg-[#34D399] text-[#111827]">
-                        <Eye className="w-3 h-3" />
-                        <span>ON</span>
-                      </span>
-                    </button>
-
-                    <div className="p-3 space-y-2.5">
-                      <p className="font-sans text-[11px] text-[#4B5563] leading-relaxed">
-                        Intersections highlight the people and organizations doing the most cross-ecosystem work, engaging two or more quadrants of transformation.
-                      </p>
-
-                      {/* Button: Show Ecotones Only (placed above Transition Corridors & Spines) */}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const next = !(filterState.onlyEcotones || filterState.onlyDomainElevation);
-                          if (next) {
-                            // 1. Hide and unselect all continents
-                            setShowContinents?.(false);
-                            onSelectContinent?.(null);
-                            if (activeListScope?.type === 'continent') {
-                              setActiveListScope?.(null);
-                            }
-                            // 2. Hide relationships if on
-                            setShowRelationships?.(false);
-                            // 3. Unselect selected entity if not in an ecotone
-                            if (selectedEntity && !isEntityEcotone(selectedEntity)) {
-                              setSelectedEntity?.(null);
-                            }
-                            // 4. Update filter state
-                            setFilterState(prev => ({
-                              ...prev,
-                              onlyEcotones: true,
-                              onlyDomainElevation: true,
-                              selectedIntersectionZone: prev.selectedIntersectionZone || 'All'
-                            }));
-                          } else {
-                            // Turn off Ecotones Only
-                            setFilterState(prev => ({
-                              ...prev,
-                              onlyEcotones: false,
-                              onlyDomainElevation: false,
-                              selectedIntersectionZone: 'All',
-                              selectedIntersectionZones: []
-                            }));
-                            setShowContinents?.(true);
-                          }
-                        }}
-                        className={`w-full flex items-center justify-between px-2.5 py-2 border rounded-[4px] text-xs font-sans transition-all cursor-pointer ${
-                          (filterState.onlyEcotones || filterState.onlyDomainElevation)
-                            ? 'bg-[#064E3B] text-white border-[#064E3B] shadow-xs font-medium'
-                            : 'bg-white text-[#111827] border-[#E5E7EB] hover:border-[#111827]'
-                        }`}
-                      >
-                        <div className="flex items-center space-x-1.5 truncate">
-                          <span className="text-xs">🌿</span>
-                          <span className="truncate font-medium">Show Ecotones (Intersections) Only</span>
-                        </div>
-                        {(filterState.onlyEcotones || filterState.onlyDomainElevation) ? (
-                          <CheckSquare className="w-4 h-4 text-[#34D399] shrink-0" />
-                        ) : (
-                          <Square className="w-4 h-4 text-[#8C877F] shrink-0" />
-                        )}
-                      </button>
-
-                      {/* Specific Intersection Zone Selector */}
-                      <div className="pt-2 border-t border-[#E5E7EB] space-y-1.5">
-                        <div className="flex items-center justify-between font-technical text-[10px] text-[#8C877F] uppercase tracking-wider">
-                          <span>Intersection Corridors & Spines</span>
-                          <span>
-                            {(() => {
-                              const activeZones = (filterState.selectedIntersectionZones && filterState.selectedIntersectionZones.length > 0)
-                                ? filterState.selectedIntersectionZones.filter(z => z !== 'All')
-                                : (filterState.selectedIntersectionZone && filterState.selectedIntersectionZone !== 'All' ? [filterState.selectedIntersectionZone] : []);
-                              return activeZones.length > 0
-                                ? `${activeZones.length} Selected`
-                                : `${Object.keys(INTERSECTION_ZONES).length} Zones`;
-                            })()}
-                          </span>
-                        </div>
-
-                        <div className="space-y-1">
-                          {/* All Zones button */}
-                          {(() => {
-                            const activeZones = (filterState.selectedIntersectionZones && filterState.selectedIntersectionZones.length > 0)
-                              ? filterState.selectedIntersectionZones.filter(z => z !== 'All')
-                              : (filterState.selectedIntersectionZone && filterState.selectedIntersectionZone !== 'All' ? [filterState.selectedIntersectionZone] : []);
-                            const isAllActive = activeZones.length === 0;
-
-                            return (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setFilterState(prev => ({
-                                    ...prev,
-                                    selectedIntersectionZone: 'All',
-                                    selectedIntersectionZones: []
-                                  }));
-                                }}
-                                className={`w-full flex items-center justify-between px-2 py-1.5 rounded-[3px] text-[11px] font-sans transition-all cursor-pointer ${
-                                  isAllActive
-                                    ? 'bg-[#111827] text-white font-medium shadow-2xs'
-                                    : 'bg-white text-[#4B5563] border border-[#E5E7EB] hover:border-[#111827]'
-                                }`}
-                              >
-                                <span className="truncate">All Ecotones (Intersections)</span>
-                                <span className="text-[10px] font-technical">All</span>
-                              </button>
-                            );
-                          })()}
-
-                          {/* Individual intersection zones */}
-                          {Object.values(INTERSECTION_ZONES).map(zone => {
-                            const activeZones = (filterState.selectedIntersectionZones && filterState.selectedIntersectionZones.length > 0)
-                              ? filterState.selectedIntersectionZones.filter(z => z !== 'All')
-                              : (filterState.selectedIntersectionZone && filterState.selectedIntersectionZone !== 'All' ? [filterState.selectedIntersectionZone] : []);
-                            const isSelected = activeZones.includes(zone.id);
-
-                            return (
-                              <button
-                                key={zone.id}
-                                type="button"
-                                onClick={() => {
-                                  const updatedZones = isSelected
-                                    ? activeZones.filter(id => id !== zone.id)
-                                    : [...activeZones, zone.id];
-
-                                  if (!isSelected) {
-                                    // Hide and unselect continents, hide relationships
-                                    setShowContinents?.(false);
-                                    onSelectContinent?.(null);
-                                    if (activeListScope?.type === 'continent') {
-                                      setActiveListScope?.(null);
-                                    }
-                                    setShowRelationships?.(false);
-                                    if (selectedEntity && !isEntityEcotone(selectedEntity)) {
-                                      setSelectedEntity?.(null);
-                                    }
-                                  }
-
-                                  setFilterState(prev => ({
-                                    ...prev,
-                                    selectedIntersectionZones: updatedZones,
-                                    selectedIntersectionZone: updatedZones.length === 1 ? updatedZones[0] : (updatedZones.length === 0 ? 'All' : updatedZones.join(','))
-                                  }));
-                                }}
-                                className={`w-full flex items-center justify-between px-2 py-1.5 rounded-[3px] text-[11px] font-sans text-left transition-all cursor-pointer ${
-                                  isSelected
-                                    ? 'bg-[#111827] text-white font-medium shadow-2xs'
-                                    : 'bg-white text-[#374151] border border-[#E5E7EB] hover:border-[#111827]'
-                                }`}
-                              >
-                                <div className="flex items-center space-x-1.5 truncate">
-                                  <span className="font-technical text-xs shrink-0">{zone.glyph}</span>
-                                  <span className="truncate text-[11px]">{zone.name}</span>
-                                </div>
-                                <div className="flex items-center space-x-1 shrink-0 ml-1">
-                                  {isSelected && (
-                                    <CheckSquare className="w-3 h-3 text-[#34D399]" />
-                                  )}
-                                  <span className={`text-[9px] font-technical uppercase px-1 py-0.2 rounded-[2px] ${
-                                    isSelected ? 'bg-white/20 text-[#34D399]' : 'bg-[#FAF8F5] text-[#8C877F]'
-                                  }`}>
-                                    {zone.axisType === 'diagonal' ? 'Spine' : zone.axisType === 'omni' ? 'Nexus' : 'Corridor'}
-                                  </span>
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                </div>
 
                 {/* Basic Filters Section */}
                 <div className="pt-3 border-t border-[#E5E7EB] space-y-3">
@@ -3669,6 +3492,20 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
         </div>,
         document.body
       )}
+
+      {/* Map Layers Full Description Modal */}
+      <MapLayersModal
+        isOpen={isLayerModalOpen}
+        onClose={() => setIsLayerModalOpen(false)}
+        initialTab={layerModalInitialTab}
+        activeLayer={activeLayer}
+        onSelectLayer={(layer) => {
+          setFilterState(prev => ({ ...prev, activeLayer: layer }));
+        }}
+        layer1Counts={layer1Counts}
+        layer2Counts={layer2Counts}
+        layer3Counts={layer3Counts}
+      />
     </aside>
   );
 };

@@ -24,10 +24,19 @@ export const AboutModal: React.FC<AboutModalProps> = ({
               <Info className="w-4 h-4 text-[#111827]" />
             </div>
             <div>
-              <h2 className="font-editorial text-xl font-semibold text-[#111827] leading-tight">
+              <h2 
+                className="font-cormorant-title text-xl sm:text-2xl text-[#111827]"
+                style={{
+                  fontFamily: '"Cormorant Garamond", Georgia, serif',
+                  fontWeight: 500,
+                  lineHeight: 1.02,
+                  letterSpacing: '-0.015em',
+                  textWrap: 'balance',
+                }}
+              >
                 About Metta Tropical Ecosystem Map
               </h2>
-              <p className="font-technical text-[10px] text-[#716C64] uppercase tracking-wider">
+              <p className="font-technical text-[10px] text-[#716C64] uppercase tracking-wider mt-0.5">
                 A Living Cartography of Inner, Social, Cultural & Systems Transformation
               </p>
             </div>

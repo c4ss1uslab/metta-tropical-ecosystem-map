@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { Info, X, FileSpreadsheet } from 'lucide-react';
-import { getColumnComment } from '../utils/columnComments';
+import { Info, X } from 'lucide-react';
+import { getColumnComment, useColumnComment, cleanSpreadsheetComment } from '../utils/columnComments';
 
 interface FieldCommentInfoProps {
   fieldName: string;
@@ -16,7 +16,9 @@ export const FieldCommentInfo: React.FC<FieldCommentInfoProps> = ({
   size = 'sm',
   className = ''
 }) => {
-  const comment = directComment || getColumnComment(fieldName);
+  const dynamicComment = useColumnComment(fieldName);
+  const rawComment = directComment || dynamicComment || getColumnComment(fieldName);
+  const comment = cleanSpreadsheetComment(rawComment);
   const [isOpen, setIsOpen] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const [coords, setCoords] = useState<{ top: number; left: number; placement: 'top' | 'bottom' }>({
@@ -29,16 +31,11 @@ export const FieldCommentInfo: React.FC<FieldCommentInfoProps> = ({
   const tooltipRef = useRef<HTMLDivElement>(null);
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // If no comment is defined for this field, do not render anything
-  if (!comment) {
-    return null;
-  }
-
   const updatePosition = useCallback(() => {
     if (!buttonRef.current) return;
     const rect = buttonRef.current.getBoundingClientRect();
     const tooltipWidth = Math.min(380, window.innerWidth - 24);
-    const estimatedHeight = 160;
+    const estimatedHeight = 180;
 
     // Prefer displaying above the button unless close to top of viewport
     let placement: 'top' | 'bottom' = 'top';
@@ -47,6 +44,11 @@ export const FieldCommentInfo: React.FC<FieldCommentInfoProps> = ({
     if (rect.top < estimatedHeight + 20) {
       placement = 'bottom';
       top = rect.bottom + 8;
+    }
+
+    // Ensure it doesn't overflow bottom of screen
+    if (placement === 'bottom' && top + estimatedHeight > window.innerHeight - 12) {
+      top = Math.max(12, window.innerHeight - (estimatedHeight + 20));
     }
 
     // Center horizontally on button, then clamp to viewport
@@ -58,6 +60,11 @@ export const FieldCommentInfo: React.FC<FieldCommentInfoProps> = ({
 
     setCoords({ top, left, placement });
   }, []);
+
+  // If no comment is defined for this field, do not render anything
+  if (!comment) {
+    return null;
+  }
 
   const handleMouseEnter = () => {
     if (closeTimeoutRef.current) {
@@ -164,8 +171,8 @@ export const FieldCommentInfo: React.FC<FieldCommentInfoProps> = ({
             ? 'text-[#5B21B6] bg-[#EDE9FE] ring-2 ring-[#C4B5FD]'
             : 'text-[#9CA3AF] hover:text-[#5B21B6] hover:bg-[#F3E8FF]'
         } ${className}`}
-        title={`Spreadsheet note: ${fieldName}`}
-        aria-label={`Spreadsheet note: ${fieldName}`}
+        title={`Note: ${fieldName}`}
+        aria-label={`Note: ${fieldName}`}
       >
         <Info className={iconDim} />
       </button>
@@ -189,20 +196,10 @@ export const FieldCommentInfo: React.FC<FieldCommentInfoProps> = ({
             className="bg-white border border-[#D1D5DB] rounded-lg shadow-xl p-3.5 text-left animate-in fade-in zoom-in-95 duration-150 select-text"
           >
             {/* Header */}
-            <div className="flex items-start justify-between gap-2 pb-2 mb-2 border-b border-[#E5E7EB]">
-              <div className="flex items-center space-x-1.5 min-w-0">
-                <span className="p-1 rounded bg-[#F3E8FF] text-[#5B21B6] shrink-0">
-                  <FileSpreadsheet className="w-3.5 h-3.5" />
-                </span>
-                <div className="min-w-0">
-                  <span className="font-technical text-[9px] font-bold text-[#5B21B6] uppercase tracking-wider block">
-                    Spreadsheet Column Note
-                  </span>
-                  <h4 className="font-editorial text-xs font-bold text-[#111827] truncate">
-                    {fieldName}
-                  </h4>
-                </div>
-              </div>
+            <div className="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-[#E5E7EB]">
+              <h4 className="font-technical text-xs font-bold text-[#111827] uppercase tracking-wider truncate">
+                {fieldName}
+              </h4>
               <button
                 type="button"
                 onClick={(e) => {
@@ -210,7 +207,7 @@ export const FieldCommentInfo: React.FC<FieldCommentInfoProps> = ({
                   setIsOpen(false);
                   setIsPinned(false);
                 }}
-                className="text-[#9CA3AF] hover:text-[#111827] p-0.5 rounded transition-colors cursor-pointer"
+                className="text-[#9CA3AF] hover:text-[#111827] p-0.5 rounded transition-colors cursor-pointer shrink-0"
                 title="Close note"
               >
                 <X className="w-3.5 h-3.5" />
@@ -237,8 +234,7 @@ export const FieldCommentInfo: React.FC<FieldCommentInfoProps> = ({
             </div>
 
             {/* Footer */}
-            <div className="mt-2.5 pt-2 border-t border-[#F3F4F6] flex items-center justify-between text-[10px] font-technical text-[#8C877F]">
-              <span>Original Metta Ecosystem Schema</span>
+            <div className="mt-2.5 pt-2 border-t border-[#F3F4F6] flex items-center justify-end text-[10px] font-technical text-[#8C877F]">
               <span>{isPinned ? 'Pinned (click to close)' : 'Hover or click to pin'}</span>
             </div>
           </div>,

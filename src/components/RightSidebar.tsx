@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   X, ExternalLink, MapPin, Globe, Tag, 
-  Map, Edit3, Compass, RotateCcw, MessageSquare, Plus,
+  Map, Edit3, Compass, RotateCcw, RotateCw, MessageSquare, Plus,
   Wand2, Search, ArrowLeft, Building2, User, Sparkles, Navigation, Mountain, Layers, CheckSquare, Square,
   Maximize2, Minimize2, Bookmark, Move,
   Twitter, Linkedin, Instagram, Youtube, Facebook, Github, Network, EyeOff,
@@ -13,7 +13,7 @@ import { EcosystemEntity, CategoryQuadrant, EntityType, ContinentInfo, SidebarLi
 import { suggestContinent, getEntityIntersectionZone, isEntityEcotone, formatClusterWithNumber, getEntityOtherArchipelagos, entityMatchesArchipelago, filterProfileTags, isEntityPrimaryToArchipelago, normalizeArchipelagoBaseName } from '../utils/layoutGenerator';
 import { CommunityNotesSection } from './CommunityNotesSection';
 import { formatDisplayUrl, cleanWebsiteUrl, extractSocialLinks, parseSocialProfilesField, getSocialPlatformLabel, isTransformationFocusValue, SocialLink } from '../utils/socialMedia';
-import { getEntityCategorizedData, getEntityConnectedNodes, parseInstitutionList, OBSOLETE_FABRICATED_FIELDS, parseResourceLinks, ResourceLinkItem, cleanImageUrl, getFaviconFromWebsite, splitRelationshipValues, entityMatchesRelationship } from '../utils/excelParser';
+import { getEntityCategorizedData, getEntityConnectedNodes, parseInstitutionList, OBSOLETE_FABRICATED_FIELDS, parseResourceLinks, ResourceLinkItem, cleanImageUrl, getFaviconFromWebsite, splitRelationshipValues, entityMatchesRelationship, ensureUniqueEntityIds } from '../utils/excelParser';
 import { saveContributionSubmission } from '../utils/contributionPipeline';
 import { FieldCommentInfo } from './FieldCommentInfo';
 
@@ -1021,14 +1021,12 @@ const CategorizedFieldsSection: React.FC<CategorizedFieldsSectionProps> = ({
                         }`}
                       >
                         {/* Label */}
-                        <div className="flex items-start justify-between gap-1.5">
-                          <div className="flex items-start space-x-1.5 min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-1.5">
+                          <div className="flex items-center space-x-1.5 min-w-0 flex-1">
                             <span className="font-technical text-[10px] font-semibold text-[#4B5563] uppercase tracking-wider break-words leading-snug">
                               {renderFieldLabel(fieldKey)}
                             </span>
-                            <div className="shrink-0 mt-0.5">
-                              <FieldCommentInfo fieldName={fieldKey} />
-                            </div>
+                            <FieldCommentInfo fieldName={fieldKey} />
                           </div>
                           {isRelationshipField && (() => {
                             const items = parseInstitutionList(strVal);
@@ -1107,7 +1105,7 @@ const CategorizedFieldsSection: React.FC<CategorizedFieldsSectionProps> = ({
                               value={strVal}
                               onChange={(e) => handleUpdateFieldValue(catName, fieldKey, e.target.value)}
                               className="w-full text-xs font-sans p-1.5 border border-[#E5E7EB] rounded-[3px] bg-white outline-none focus:border-[#5B21B6]"
-                              placeholder="Comma-separated other archipelagos (e.g. 4. Sanctuary of Somatics)..."
+                              placeholder="Comma-separated other archipelagos (e.g. 4. Contemplative Education, 22. Regenerative Education)..."
                             />
                           ) : isKeywordsTopicsField ? (
                             <textarea
@@ -1432,6 +1430,11 @@ interface RightSidebarProps {
   onResetContinentLabel?: (continentName: string) => void;
   onMoveContinentSubLabel?: (continentName: string, deltaX: number, deltaY: number) => void;
   onResetContinentSubLabel?: (continentName: string) => void;
+  onUpdateContinentCurvature?: (continentName: string, titleCurvature?: number, subTitleCurvature?: number) => void;
+  onUpdateAllContinentsCurvature?: (titleCurvature: number, subTitleCurvature?: number) => void;
+  onResetContinentCurvature?: (continentName: string) => void;
+  onRotateContinentLabel?: (continentName: string, rotation: number, isSubLabel?: boolean, linkBoth?: boolean) => void;
+  onResetContinentRotation?: (continentName: string) => void;
   onScaleContinent?: (continentName: string, factor: number) => void;
   onFitContinentTightly?: (continentName: string) => void;
   setEditMode?: (val: boolean | ((prev: boolean) => boolean)) => void;
@@ -1476,6 +1479,11 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   onResetContinentLabel,
   onMoveContinentSubLabel,
   onResetContinentSubLabel,
+  onUpdateContinentCurvature,
+  onUpdateAllContinentsCurvature,
+  onResetContinentCurvature,
+  onRotateContinentLabel,
+  onResetContinentRotation,
   onScaleContinent,
   onFitContinentTightly,
   setEditMode,
@@ -1495,6 +1503,9 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   const [archipelagoAddSearch, setArchipelagoAddSearch] = useState('');
   const [showAddEntityDropdown, setShowAddEntityDropdown] = useState(false);
   const addEntityContainerRef = useRef<HTMLDivElement>(null);
+  const [isCurvatureLinked, setIsCurvatureLinked] = useState(true);
+  const [isRotationLinked, setIsRotationLinked] = useState(true);
+  const [curvatureFeedback, setCurvatureFeedback] = useState<string | null>(null);
 
   // Community "Help us improve this data" contribution pipeline states
   const [isContributing, setIsContributing] = useState(false);
@@ -1739,37 +1750,40 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
         c.name === currentScope.name || 
         formatClusterWithNumber(c.name).toLowerCase() === formatClusterWithNumber(currentScope.name).toLowerCase()
       );
-      const listEntities = allEntities.filter(e => entityMatchesArchipelago(e, currentScope.name));
+      const listEntities = ensureUniqueEntityIds(allEntities.filter(e => entityMatchesArchipelago(e, currentScope.name)));
       const currentQuadrant = (activeContinent?.category || listEntities[0]?.category || 'Inner') as CategoryQuadrant;
       const badgeBg = categoryColors[currentQuadrant] || '#111827';
       const isArchipelagoEditable = editMode || isEditingArchipelagoDetails;
 
       // Candidate entities not yet belonging to this archipelago
-      const candidatesToAdd = allEntities.filter(e => !entityMatchesArchipelago(e, currentScope.name))
-        .filter(e => {
-          if (!archipelagoAddSearch.trim()) return true;
-          const q = archipelagoAddSearch.toLowerCase();
+      const candidatesToAdd = ensureUniqueEntityIds(
+        allEntities.filter(e => !entityMatchesArchipelago(e, currentScope.name))
+          .filter(e => {
+            if (!archipelagoAddSearch.trim()) return true;
+            const q = archipelagoAddSearch.toLowerCase();
+            return (
+              e.name.toLowerCase().includes(q) ||
+              e.category.toLowerCase().includes(q) ||
+              (e.type && e.type.toLowerCase().includes(q)) ||
+              (e.fields && e.fields.some(f => f.toLowerCase().includes(q)))
+            );
+          })
+      ).slice(0, 15);
+
+      const filteredEntities = ensureUniqueEntityIds(
+        listEntities.filter(e => {
+          if (!snapshotSearch.trim()) return true;
+          const q = snapshotSearch.toLowerCase();
           return (
             e.name.toLowerCase().includes(q) ||
-            e.category.toLowerCase().includes(q) ||
+            (e.description && e.description.toLowerCase().includes(q)) ||
+            e.fields.some(f => f.toLowerCase().includes(q)) ||
+            (e.location && e.location.toLowerCase().includes(q)) ||
             (e.type && e.type.toLowerCase().includes(q)) ||
-            (e.fields && e.fields.some(f => f.toLowerCase().includes(q)))
+            (e.stage && e.stage.toLowerCase().includes(q))
           );
         })
-        .slice(0, 15);
-
-      const filteredEntities = listEntities.filter(e => {
-        if (!snapshotSearch.trim()) return true;
-        const q = snapshotSearch.toLowerCase();
-        return (
-          e.name.toLowerCase().includes(q) ||
-          (e.description && e.description.toLowerCase().includes(q)) ||
-          e.fields.some(f => f.toLowerCase().includes(q)) ||
-          (e.location && e.location.toLowerCase().includes(q)) ||
-          (e.type && e.type.toLowerCase().includes(q)) ||
-          (e.stage && e.stage.toLowerCase().includes(q))
-        );
-      });
+      );
 
       const handleFlyCamera = () => {
         if (onFlyToContinent) {
@@ -2313,6 +2327,358 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
               </div>
             )}
 
+            {/* Archipelago Title & Sub-title Rotation (Edit Mode) */}
+            {editMode && (
+              <div className="p-3 bg-[#FAF8F5] border border-[#E5E7EB] rounded-[4px] space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-technical text-[11px] uppercase font-bold text-[#111827] tracking-wider flex items-center gap-1.5">
+                    <RotateCw className="w-3.5 h-3.5 text-[#5B21B6]" />
+                    Archipelago Title Rotation
+                  </span>
+                  <span className="text-[10px] font-technical px-1.5 py-0.5 rounded-[2px] bg-white border border-[#E5E7EB] text-[#111827] font-semibold">
+                    {(activeContinent?.labelRotation || 0)}°
+                  </span>
+                </div>
+
+                <p className="font-sans text-[11px] text-[#4B5563] leading-normal">
+                  Rotate the archipelago title and sub-title freely to any angle (-180° to +180°), or drag the rotate handle directly on the map.
+                </p>
+
+                {/* Main Title Angle */}
+                <div className="space-y-2 bg-white p-2.5 border border-[#E5E7EB] rounded-[3px]">
+                  <div className="flex items-center justify-between text-[11px] font-technical">
+                    <span className="font-bold text-[#111827]">Main Title Angle</span>
+                    <div className="flex items-center space-x-1">
+                      <input
+                        type="number"
+                        min="-180"
+                        max="180"
+                        value={activeContinent?.labelRotation || 0}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          onRotateContinentLabel?.(currentScope.name, val, false, isRotationLinked);
+                        }}
+                        className="w-14 text-right px-1.5 py-0.5 border border-[#E5E7EB] text-xs font-mono rounded-[2px]"
+                      />
+                      <span className="text-[#8C877F] font-mono">°</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <span className="text-[10px] font-mono text-[#8C877F]">-180°</span>
+                    <input
+                      type="range"
+                      min="-180"
+                      max="180"
+                      step="1"
+                      value={activeContinent?.labelRotation || 0}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        onRotateContinentLabel?.(currentScope.name, val, false, isRotationLinked);
+                      }}
+                      className="flex-1 accent-[#5B21B6] cursor-pointer"
+                    />
+                    <span className="text-[10px] font-mono text-[#8C877F]">+180°</span>
+                  </div>
+
+                  {/* Preset Buttons */}
+                  <div className="grid grid-cols-5 gap-1 pt-0.5">
+                    {[
+                      { label: '-90°', val: -90 },
+                      { label: '-45°', val: -45 },
+                      { label: '0°', val: 0 },
+                      { label: '+45°', val: 45 },
+                      { label: '+90°', val: 90 },
+                    ].map(p => (
+                      <button
+                        key={p.label}
+                        type="button"
+                        onClick={() => onRotateContinentLabel?.(currentScope.name, p.val, false, isRotationLinked)}
+                        className={`py-1 text-[10px] font-technical rounded-[2px] transition-all cursor-pointer border ${
+                          (activeContinent?.labelRotation || 0) === p.val
+                            ? 'bg-[#111827] text-white border-[#111827] font-bold shadow-2xs'
+                            : 'bg-[#FAF8F5] hover:bg-[#F3F4F6] text-[#374151] border-[#E5E7EB]'
+                        }`}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Sub-title Angle */}
+                <div className="space-y-2 bg-white p-2.5 border border-[#E5E7EB] rounded-[3px]">
+                  <div className="flex items-center justify-between text-[11px] font-technical">
+                    <span className="font-bold text-[#111827]">Sub-title Angle (Entity Count)</span>
+                    <div className="flex items-center space-x-1">
+                      <input
+                        type="number"
+                        min="-180"
+                        max="180"
+                        value={activeContinent?.subLabelRotation !== undefined ? activeContinent.subLabelRotation : (activeContinent?.labelRotation || 0)}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          onRotateContinentLabel?.(currentScope.name, val, true, isRotationLinked);
+                        }}
+                        className="w-14 text-right px-1.5 py-0.5 border border-[#E5E7EB] text-xs font-mono rounded-[2px]"
+                      />
+                      <span className="text-[#8C877F] font-mono">°</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <span className="text-[10px] font-mono text-[#8C877F]">-180°</span>
+                    <input
+                      type="range"
+                      min="-180"
+                      max="180"
+                      step="1"
+                      value={activeContinent?.subLabelRotation !== undefined ? activeContinent.subLabelRotation : (activeContinent?.labelRotation || 0)}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        onRotateContinentLabel?.(currentScope.name, val, true, isRotationLinked);
+                      }}
+                      className="flex-1 accent-[#0284C7] cursor-pointer"
+                    />
+                    <span className="text-[10px] font-mono text-[#8C877F]">+180°</span>
+                  </div>
+
+                  <div className="grid grid-cols-5 gap-1 pt-0.5">
+                    {[
+                      { label: '-90°', val: -90 },
+                      { label: '-45°', val: -45 },
+                      { label: '0°', val: 0 },
+                      { label: '+45°', val: 45 },
+                      { label: '+90°', val: 90 },
+                    ].map(p => {
+                      const currentSub = activeContinent?.subLabelRotation !== undefined ? activeContinent.subLabelRotation : (activeContinent?.labelRotation || 0);
+                      return (
+                        <button
+                          key={p.label}
+                          type="button"
+                          onClick={() => onRotateContinentLabel?.(currentScope.name, p.val, true, isRotationLinked)}
+                          className={`py-1 text-[10px] font-technical rounded-[2px] transition-all cursor-pointer border ${
+                            currentSub === p.val
+                              ? 'bg-[#111827] text-white border-[#111827] font-bold shadow-2xs'
+                              : 'bg-[#FAF8F5] hover:bg-[#F3F4F6] text-[#374151] border-[#E5E7EB]'
+                          }`}
+                        >
+                          {p.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Link Toggle & Reset */}
+                <div className="space-y-2 pt-0.5">
+                  <label className="flex items-center space-x-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={isRotationLinked}
+                      onChange={(e) => setIsRotationLinked(e.target.checked)}
+                      className="rounded text-[#5B21B6] focus:ring-[#5B21B6] cursor-pointer"
+                    />
+                    <span className="text-[11px] font-sans text-[#4B5563]">
+                      Keep title & sub-title rotation synchronized
+                    </span>
+                  </label>
+
+                  {onResetContinentRotation && (
+                    <button
+                      type="button"
+                      onClick={() => onResetContinentRotation(currentScope.name)}
+                      className="w-full flex items-center justify-center space-x-1 py-1 px-2 bg-white border border-[#E5E7EB] hover:border-[#111827] text-[#4B5563] hover:text-[#111827] rounded-[3px] text-[11px] font-technical transition-colors cursor-pointer"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span>Reset Rotation to 0°</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Archipelago Title & Sub-title Curvature (Edit Mode) */}
+            {editMode && (
+              <div className="p-3 bg-[#FAF8F5] border border-[#E5E7EB] rounded-[4px] space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-technical text-[11px] uppercase font-bold text-[#111827] tracking-wider flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-[#D97706]" />
+                    Archipelago Title Curvature
+                  </span>
+                  <span className="text-[10px] font-technical px-1.5 py-0.5 rounded-[2px] bg-white border border-[#E5E7EB] text-[#111827] font-semibold">
+                    {(activeContinent?.titleCurvature ?? 0.7) <= 0.04 ? 'Straight' : `${Math.round(((activeContinent?.titleCurvature ?? 0.7)) * 100)}% Arc`}
+                  </span>
+                </div>
+
+                <p className="font-sans text-[11px] text-[#4B5563] leading-normal">
+                  Change how curved or straight the title and sub-title bend over the archipelago. Titles are guaranteed to display in full without cropping, even on long names.
+                </p>
+
+                {/* Title Curvature Control */}
+                <div className="space-y-2 bg-white p-2.5 border border-[#E5E7EB] rounded-[3px]">
+                  <div className="flex items-center justify-between text-[11px] font-technical">
+                    <span className="font-bold text-[#111827]">Main Title Arc</span>
+                    <span className="text-[#8C877F] font-mono">
+                      {(activeContinent?.titleCurvature ?? 0.7) <= 0.04 ? 'Straight (0%)' : `${Math.round(((activeContinent?.titleCurvature ?? 0.7)) * 100)}%`}
+                    </span>
+                  </div>
+
+                  {/* Curvature Slider */}
+                  <div className="flex items-center space-x-2">
+                    <span className="text-[10px] font-technical text-[#8C877F]">Straight</span>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1.2"
+                      step="0.05"
+                      value={activeContinent?.titleCurvature ?? 0.7}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        onUpdateContinentCurvature?.(currentScope.name, val, isCurvatureLinked ? val : undefined);
+                      }}
+                      className="flex-1 accent-[#5B21B6] cursor-pointer"
+                    />
+                    <span className="text-[10px] font-technical text-[#8C877F]">Curved</span>
+                  </div>
+
+                  {/* Preset Buttons */}
+                  <div className="grid grid-cols-4 gap-1 pt-1">
+                    {[
+                      { label: 'Straight', val: 0 },
+                      { label: 'Gentle', val: 0.35 },
+                      { label: 'Natural', val: 0.7 },
+                      { label: 'Curved', val: 1.0 },
+                    ].map(p => {
+                      const isActive = Math.abs((activeContinent?.titleCurvature ?? 0.7) - p.val) < 0.08;
+                      return (
+                        <button
+                          key={p.label}
+                          type="button"
+                          onClick={() => {
+                            onUpdateContinentCurvature?.(currentScope.name, p.val, isCurvatureLinked ? p.val : undefined);
+                          }}
+                          className={`py-1 px-1.5 text-[10px] font-technical rounded-[2px] transition-all cursor-pointer border ${
+                            isActive
+                              ? 'bg-[#111827] text-white border-[#111827] font-bold shadow-2xs'
+                              : 'bg-[#FAF8F5] hover:bg-[#F3F4F6] text-[#374151] border-[#E5E7EB]'
+                          }`}
+                        >
+                          {p.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Sub-title Curvature Control */}
+                <div className="space-y-2 bg-white p-2.5 border border-[#E5E7EB] rounded-[3px]">
+                  <div className="flex items-center justify-between text-[11px] font-technical">
+                    <span className="font-bold text-[#111827]">Sub-title Arc (Entities Count)</span>
+                    <span className="text-[#8C877F] font-mono">
+                      {(activeContinent?.subTitleCurvature ?? 0.7) <= 0.04 ? 'Straight (0%)' : `${Math.round(((activeContinent?.subTitleCurvature ?? 0.7)) * 100)}%`}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <span className="text-[10px] font-technical text-[#8C877F]">Straight</span>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1.2"
+                      step="0.05"
+                      value={activeContinent?.subTitleCurvature ?? 0.7}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        onUpdateContinentCurvature?.(currentScope.name, isCurvatureLinked ? val : undefined, val);
+                      }}
+                      className="flex-1 accent-[#0284C7] cursor-pointer"
+                    />
+                    <span className="text-[10px] font-technical text-[#8C877F]">Curved</span>
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-1 pt-1">
+                    {[
+                      { label: 'Straight', val: 0 },
+                      { label: 'Gentle', val: 0.35 },
+                      { label: 'Concentric', val: 0.7 },
+                      { label: 'Curved', val: 1.0 },
+                    ].map(p => {
+                      const isActive = Math.abs((activeContinent?.subTitleCurvature ?? 0.7) - p.val) < 0.08;
+                      return (
+                        <button
+                          key={p.label}
+                          type="button"
+                          onClick={() => {
+                            onUpdateContinentCurvature?.(currentScope.name, isCurvatureLinked ? p.val : undefined, p.val);
+                          }}
+                          className={`py-1 px-1.5 text-[10px] font-technical rounded-[2px] transition-all cursor-pointer border ${
+                            isActive
+                              ? 'bg-[#111827] text-white border-[#111827] font-bold shadow-2xs'
+                              : 'bg-[#FAF8F5] hover:bg-[#F3F4F6] text-[#374151] border-[#E5E7EB]'
+                          }`}
+                        >
+                          {p.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Link Toggle & Global Actions */}
+                <div className="space-y-2 pt-0.5">
+                  <label className="flex items-center space-x-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={isCurvatureLinked}
+                      onChange={(e) => setIsCurvatureLinked(e.target.checked)}
+                      className="rounded text-[#5B21B6] focus:ring-[#5B21B6] cursor-pointer"
+                    />
+                    <span className="text-[11px] font-sans text-[#4B5563]">
+                      Keep title & sub-title curvature synchronized
+                    </span>
+                  </label>
+
+                  <div className="flex items-center gap-1.5 pt-1">
+                    {onUpdateAllContinentsCurvature && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const currentTitle = activeContinent?.titleCurvature ?? 0.7;
+                          const currentSub = activeContinent?.subTitleCurvature ?? 0.7;
+                          onUpdateAllContinentsCurvature(currentTitle, currentSub);
+                          setCurvatureFeedback('Applied curvature to all archipelagos!');
+                          setTimeout(() => setCurvatureFeedback(null), 3000);
+                        }}
+                        className="flex-1 py-1.5 px-2 bg-white border border-[#E5E7EB] hover:border-[#111827] text-[#111827] rounded-[3px] text-xs font-technical transition-colors cursor-pointer shadow-2xs flex items-center justify-center space-x-1"
+                        title="Apply this archipelago's curvature to every archipelago across the whole map"
+                      >
+                        <Globe className="w-3 h-3 text-[#5B21B6]" />
+                        <span>Apply to All Archipelagos</span>
+                      </button>
+                    )}
+
+                    {onResetContinentCurvature && (
+                      <button
+                        type="button"
+                        onClick={() => onResetContinentCurvature(currentScope.name)}
+                        className="py-1.5 px-2 bg-white border border-[#E5E7EB] hover:border-[#111827] text-[#4B5563] hover:text-[#111827] rounded-[3px] text-xs font-technical transition-colors cursor-pointer"
+                        title="Reset curvature for this archipelago back to default"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+
+                  {curvatureFeedback && (
+                    <div className="p-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-[3px] text-[10.5px] font-technical text-center animate-in fade-in">
+                      {curvatureFeedback}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* 3. Entities Belonging to this Archipelago */}
             <div className="space-y-3 pt-1">
               <div className="flex items-center justify-between font-technical text-[11px] text-[#8C877F] uppercase tracking-wider px-0.5">
@@ -2370,11 +2736,11 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                             : 'All entities are already assigned to this archipelago.'}
                         </div>
                       ) : (
-                        candidatesToAdd.map(cand => {
+                        candidatesToAdd.map((cand, candIdx) => {
                           const candIcon = cand.type === 'Person' ? '🧙' : cand.type === 'Idea' ? '🔮' : cand.type === 'Media' ? '🎙️' : '🕸️';
                           return (
                             <div
-                              key={cand.id}
+                              key={cand.id || `cand-${candIdx}`}
                               className="p-2 hover:bg-[#FAF8F5] flex items-center justify-between gap-2 text-xs"
                             >
                               <div className="min-w-0 flex-1">
@@ -2435,7 +2801,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 </div>
               ) : (
                 <div className="space-y-2.5">
-                  {filteredEntities.map(ent => {
+                  {filteredEntities.map((ent, entIdx) => {
                     const typeIcon = ent.type === 'Person' ? '🧙' : ent.type === 'Idea' ? '🔮' : ent.type === 'Media' ? '🎙️' : '🕸️';
                     const entCatColor = categoryColors[ent.category] || '#111827';
                     const dc = getEntityCompleteness(ent);
@@ -2443,7 +2809,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
 
                     return (
                       <div
-                        key={ent.id}
+                        key={ent.id || `ent-${entIdx}`}
                         onClick={() => {
                           const selection = window.getSelection();
                           if (selection && selection.toString().trim().length > 0) return;
@@ -2703,21 +3069,23 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
       subtitle = 'Ecosystem Relationship Filter';
     }
 
-    const filteredEntities = listEntities.filter(e => {
-      if (!snapshotSearch.trim()) return true;
-      const q = snapshotSearch.toLowerCase();
-      return (
-        e.name.toLowerCase().includes(q) ||
-        (e.description && e.description.toLowerCase().includes(q)) ||
-        e.fields.some(f => f.toLowerCase().includes(q)) ||
-        (e.approach && e.approach.some(a => a.toLowerCase().includes(q))) ||
-        (e.issues && e.issues.some(i => i.toLowerCase().includes(q))) ||
-        (e.activities && e.activities.some(a => a.toLowerCase().includes(q))) ||
-        (e.location && e.location.toLowerCase().includes(q)) ||
-        (e.type && e.type.toLowerCase().includes(q)) ||
-        (e.stage && e.stage.toLowerCase().includes(q))
-      );
-    });
+    const filteredEntities = ensureUniqueEntityIds(
+      listEntities.filter(e => {
+        if (!snapshotSearch.trim()) return true;
+        const q = snapshotSearch.toLowerCase();
+        return (
+          e.name.toLowerCase().includes(q) ||
+          (e.description && e.description.toLowerCase().includes(q)) ||
+          e.fields.some(f => f.toLowerCase().includes(q)) ||
+          (e.approach && e.approach.some(a => a.toLowerCase().includes(q))) ||
+          (e.issues && e.issues.some(i => i.toLowerCase().includes(q))) ||
+          (e.activities && e.activities.some(a => a.toLowerCase().includes(q))) ||
+          (e.location && e.location.toLowerCase().includes(q)) ||
+          (e.type && e.type.toLowerCase().includes(q)) ||
+          (e.stage && e.stage.toLowerCase().includes(q))
+        );
+      })
+    );
 
     return (
       <aside className="w-96 bg-white border-l border-[#E5E7EB] flex flex-col h-full z-30 shadow-lg relative select-text">
@@ -2864,7 +3232,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
               </p>
             </div>
           ) : (
-            filteredEntities.map(ent => {
+            filteredEntities.map((ent, entIdx) => {
               const typeIcon = ent.type === 'Person' ? '🧙' : ent.type === 'Idea' ? '🔮' : ent.type === 'Media' ? '🎙️' : '🕸️';
               const entCatColor = categoryColors[ent.category] || '#111827';
               const dc = getEntityCompleteness(ent);
@@ -2874,7 +3242,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
 
               return (
                 <div
-                  key={ent.id}
+                  key={ent.id || `scope-ent-${entIdx}`}
                   onClick={() => {
                     const selection = window.getSelection();
                     if (selection && selection.toString().trim().length > 0) return;
@@ -3961,7 +4329,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                       : (entity.extraFields?.['Other Archipelagos'] as string) || (entity.categorizedFields?.['Overview']?.['Other Archipelagos'] as string) || ''
                   }
                   onChange={(e) => handleOtherArchipelagosChange(e.target.value)}
-                  placeholder="Comma-separated other archipelagos (e.g. 4. Sanctuary of Somatics)..."
+                  placeholder="Comma-separated other archipelagos (e.g. 4. Contemplative Education, 22. Regenerative Education)..."
                   className="w-full bg-white border border-[#E5E7EB] text-xs font-sans px-2 py-1.5 rounded-[4px] outline-none"
                 />
                 <span className="font-technical text-[10px] text-[#8C877F] mt-1 block">
@@ -5647,7 +6015,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                                   : (modalEntity.extraFields?.['Other Archipelagos'] as string) || (modalEntity.categorizedFields?.['Overview']?.['Other Archipelagos'] as string) || ''
                               }
                               onChange={(e) => handleModalOtherArchipelagosChange(e.target.value)}
-                              placeholder="Comma-separated other archipelagos (e.g. 4. Sanctuary of Somatics)..."
+                              placeholder="Comma-separated other archipelagos (e.g. 4. Contemplative Education, 22. Regenerative Education)..."
                               className="w-full bg-white border border-[#E5E7EB] text-xs font-sans px-2.5 py-1.5 rounded-[4px] outline-none"
                             />
                             <span className="font-technical text-[10px] text-[#8C877F] mt-1 block">

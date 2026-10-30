@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { X, FileSpreadsheet } from 'lucide-react';
-import { getColumnComment, useColumnComment } from '../utils/columnComments';
+import { getColumnComment, useColumnComment, cleanSpreadsheetComment } from '../utils/columnComments';
 
 export interface FilterCommentHelpPopupProps {
   cellRef: string; // e.g. "BA2", "BH2", "BO2", "BP2", "BQ2", "CB2"
@@ -19,7 +19,8 @@ export const FilterCommentHelpPopup: React.FC<FilterCommentHelpPopupProps> = ({
   className = ''
 }) => {
   const dynamicComment = useColumnComment(fieldName, cellRef);
-  const comment = customComment || dynamicComment || (cellRef ? getColumnComment(cellRef) : undefined) || getColumnComment(fieldName);
+  const rawComment = customComment || dynamicComment || (cellRef ? getColumnComment(cellRef) : undefined) || getColumnComment(fieldName);
+  const comment = cleanSpreadsheetComment(rawComment);
   const [isOpen, setIsOpen] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const [coords, setCoords] = useState<{ top: number; left: number }>({ top: 0, left: 0 });

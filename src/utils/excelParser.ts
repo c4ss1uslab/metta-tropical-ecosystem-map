@@ -3,15 +3,29 @@ import Papa from 'papaparse';
 import { CategoryQuadrant, EcosystemEntity, EntityType, DataQualityStatus, DataCompletenessLevel, ConnectedInstitutionNode } from '../types';
 import { suggestContinent, formatClusterWithNumber, getEntityOtherArchipelagos, entityMatchesArchipelago, getArchipelagoQuadrant, filterProfileTags } from './layoutGenerator';
 import { parseSocialProfilesField, isTransformationFocusValue, isTransformationFocusField, cleanWebsiteUrl, formatDisplayUrl } from './socialMedia';
-import { registerColumnComments } from './columnComments';
+import { registerColumnComments, cleanSpreadsheetComment } from './columnComments';
+import { HeaderParsingRule, HeaderAnalysisResult, analyzeSpreadsheetHeaders, loadStoredParsingRules } from './parsingRules';
+import type { ColumnDef } from './spreadsheetSchema';
+import {
+  SPREADSHEET_COLUMNS,
+  OBSOLETE_FABRICATED_FIELDS,
+  SPREADSHEET_CATEGORY_NAMES,
+  ANALYST_COMMENTARY_ALIASES,
+  cleanHeaderString,
+  stripColLetter,
+  findColumnDef
+} from './spreadsheetSchema';
 
-export interface ColumnDef {
-  letter: string;
-  index: number; // 1-based (A = 1)
-  field: string;
-  category: string;
-  aliases: string[];
-}
+export type { ColumnDef };
+export {
+  SPREADSHEET_COLUMNS,
+  OBSOLETE_FABRICATED_FIELDS,
+  SPREADSHEET_CATEGORY_NAMES,
+  ANALYST_COMMENTARY_ALIASES,
+  cleanHeaderString,
+  stripColLetter,
+  findColumnDef
+};
 
 /**
  * Parses partner / funder institution lists from spreadsheet fields (AM2 & AN2).
@@ -362,160 +376,8 @@ export function getDirectlyLinkedEntities(
   return allEntities.filter(target => areEntitiesDirectlyLinked(sourceEntity, target));
 }
 
-export const SPREADSHEET_COLUMNS: ColumnDef[] = [
-  // ==========================================
-  // Category: Overview (A - X, cols 1 - 24)
-  // ==========================================
-  { letter: 'A', index: 1, field: 'Org ID', category: 'Overview', aliases: ['org id', 'orgid', 'organization id', 'entity id', 'record id'] },
-  { letter: 'B', index: 2, field: 'Name/Label', category: 'Overview', aliases: ['name/label', 'entity name', 'organization name'] },
-  { letter: 'C', index: 3, field: 'Entity Type', category: 'Overview', aliases: ['entity type', 'organization type'] },
-  { letter: 'D', index: 4, field: 'Organization Structure', category: 'Overview', aliases: ['organization structure', 'org structure', 'legal structure', 'governance model'] },
-  { letter: 'E', index: 5, field: 'Quadrant', category: 'Overview', aliases: ['quadrant', 'quadrants', 'quadrant / domain', 'map placement'] },
-  { letter: 'F', index: 6, field: 'Category', category: 'Overview', aliases: ['category', 'categories', 'experimental category'] },
-  { letter: 'G', index: 7, field: 'Stream', category: 'Overview', aliases: ['stream', 'streams', 'workstream', 'workstreams', 'thematic stream', 'focus stream', 'stream(s)', 'stream / streams'] },
-  { letter: 'H', index: 8, field: 'Archipelago', category: 'Overview', aliases: ['archipelago', 'archipelagos', 'island/cluster', 'island / cluster', 'cluster', 'continent', 'continents', 'biome', 'archipelagos / islands', 'islands'] },
-  { letter: 'I', index: 9, field: 'Layer of Response (Holistic Cultural Materialism)', category: 'Overview', aliases: ['layer of response (holistic cultural materialism)', 'holistic cultural materialism', 'cultural materialism', 'hcm layer'] },
-  { letter: 'J', index: 10, field: 'Layer of Response (Gaia Education)', category: 'Overview', aliases: ['layer of response (gaia education)', 'gaia education', 'gaia layer'] },
-  { letter: 'K', index: 11, field: 'Area of Response (Life Itself)', category: 'Overview', aliases: ['area of response (life itself)', 'life itself area of response', 'life itself area'] },
-  { letter: 'L', index: 12, field: 'Societal Sector', category: 'Overview', aliases: ['societal sector'] },
-  { letter: 'M', index: 13, field: 'Societal Sector (Catalist)', category: 'Overview', aliases: ['societal sector (catalist)', 'catalist sector'] },
-  { letter: 'N', index: 14, field: 'Societal Category (Catalist)', category: 'Overview', aliases: ['societal category (catalist)', 'catalist category'] },
-  { letter: 'O', index: 15, field: 'Approach', category: 'Overview', aliases: ['approach', 'methodology', 'approaches'] },
-  { letter: 'P', index: 16, field: 'Issues', category: 'Overview', aliases: ['issues', 'challenges', 'focus issues'] },
-  { letter: 'Q', index: 17, field: 'Activities', category: 'Overview', aliases: ['activities', 'programs', 'initiatives'] },
-  { letter: 'R', index: 18, field: 'Keywords/Topics', category: 'Overview', aliases: ['keywords/topics', 'keywords', 'topics', 'subfields'] },
-  { letter: 'S', index: 19, field: 'Who They Serve', category: 'Overview', aliases: ['who they serve', 'target audience', 'beneficiaries', 'served', 'constituents'] },
-  { letter: 'T', index: 20, field: 'Community Served (Conscious Change Collective)', category: 'Overview', aliases: ['community served (conscious change collective)', 'community served (ccc)', 'community served', 'conscious change collective', 'ccc community'] },
-  { letter: 'U', index: 21, field: 'Our Relationship', category: 'Overview', aliases: ['our relationship', 'partnership status'] },
-  { letter: 'V', index: 22, field: 'Featured?', category: 'Overview', aliases: ['featured?', 'is featured', 'highlighted'] },
-  { letter: 'W', index: 23, field: 'Filled Fields', category: 'Overview', aliases: ['filled fields', 'filledfields', 'fields filled', 'count of filled fields'] },
-  { letter: 'X', index: 24, field: 'Data Completeness', category: 'Overview', aliases: ['data completeness', 'datacompleteness', 'completeness percentile', 'percentile'] },
-
-  // ==========================================
-  // Category: Logistic Info (Y - AR, cols 25 - 44)
-  // ==========================================
-  { letter: 'Y', index: 25, field: 'Description', category: 'Logistic Info', aliases: ['description', 'summary', 'about', 'bio', 'mission'] },
-  { letter: 'Z', index: 26, field: 'Website URL', category: 'Logistic Info', aliases: ['website url', 'website', 'homepage'] },
-  { letter: 'AA', index: 27, field: 'Social Profiles', category: 'Logistic Info', aliases: ['social profiles', 'social media', 'socials', 'social links'] },
-  { letter: 'AB', index: 28, field: 'Favicon', category: 'Logistic Info', aliases: ['favicon', 'favicon url', 'site icon'] },
-  { letter: 'AC', index: 29, field: 'Logo', category: 'Logistic Info', aliases: ['logo', 'logo url', 'icon url', 'avatar', 'avatar url', 'brand logo'] },
-  { letter: 'AD', index: 30, field: 'Language(s)', category: 'Logistic Info', aliases: ['language(s)', 'languages'] },
-  { letter: 'AE', index: 31, field: 'Biome', category: 'Logistic Info', aliases: ['biome', 'biomes', 'bioregion', 'ecoregion', 'watershed'] },
-  { letter: 'AF', index: 32, field: 'Neighborhood or Demarcated Zone', category: 'Logistic Info', aliases: ['neighborhood or demarcated zone', 'neighborhood', 'demarcated zone'] },
-  { letter: 'AG', index: 33, field: 'City/State', category: 'Logistic Info', aliases: ['city/state', 'city, state', 'city state'] },
-  { letter: 'AH', index: 34, field: 'City', category: 'Logistic Info', aliases: ['city', 'municipality', 'town'] },
-  { letter: 'AI', index: 35, field: 'State', category: 'Logistic Info', aliases: ['state', 'province', 'canton', 'department'] },
-  { letter: 'AJ', index: 36, field: 'Country', category: 'Logistic Info', aliases: ['country', 'nation'] },
-  { letter: 'AK', index: 37, field: 'Operating Region', category: 'Logistic Info', aliases: ['operating region', 'geographic scope'] },
-  { letter: 'AL', index: 38, field: 'Operation Focus', category: 'Logistic Info', aliases: ['operation focus', 'operational focus', 'scale of operation'] },
-  { letter: 'AM', index: 39, field: 'Year Founded', category: 'Logistic Info', aliases: ['year founded', 'founded year', 'year of foundation'] },
-  { letter: 'AN', index: 40, field: 'Maturity Level', category: 'Logistic Info', aliases: ['maturity level', 'maturity'] },
-  { letter: 'AO', index: 41, field: 'Size', category: 'Logistic Info', aliases: ['size', 'team size', 'headcount', 'organization size'] },
-  { letter: 'AP', index: 42, field: 'Social Media Reach', category: 'Logistic Info', aliases: ['social media reach', 'social reach'] },
-  { letter: 'AQ', index: 43, field: 'Impact Reach', category: 'Logistic Info', aliases: ['impact reach', 'reach scale', 'audience size'] },
-  { letter: 'AR', index: 44, field: 'Influence', category: 'Logistic Info', aliases: ['influence', 'influence level'] },
-
-  // ==========================================
-  // Category: Relationships (AS - AY, cols 45 - 51)
-  // ==========================================
-  { letter: 'AS', index: 45, field: 'Founder(s)/Main Source(s)', category: 'Relationships', aliases: ['founder(s)/main source(s)', 'founders/main sources', 'founder/main source', 'founder(s)', 'founders', 'founder(s) / main source(s)'] },
-  { letter: 'AT', index: 46, field: 'Partners (Institutions)', category: 'Relationships', aliases: ['partners (institutions)', 'partner institutions', 'partner (institutions)', 'partners institutions'] },
-  { letter: 'AU', index: 47, field: 'Funders/Supporters (Institutions)', category: 'Relationships', aliases: ['funders/supporters (institutions)', 'funder/supporter (institutions)', 'funders/supporters', 'funders (institutions)', 'supporters (institutions)', 'funders / supporters (institutions)'] },
-  { letter: 'AV', index: 48, field: 'Teachers/Influences (People)', category: 'Relationships', aliases: ['teachers/influences (people)', 'teachers/influences', 'teacher/influence (people)', 'teachers (people)', 'influences (people)', 'teachers / influences (people)', 'teachers / influences'] },
-  { letter: 'AW', index: 49, field: 'Ethnic/Spiritual Lineage(s)', category: 'Relationships', aliases: ['ethnic/spiritual lineage(s)', 'ethnic/spiritual lineages', 'ethnic / spiritual lineage(s)', 'ethnic lineage', 'spiritual lineage'] },
-  { letter: 'AX', index: 50, field: 'Intellectual Lineage (IAM)', category: 'Relationships', aliases: ['intellectual lineage (iam)', 'intellectual lineage iam', 'intellectual lineage', 'iam lineage'] },
-  { letter: 'AY', index: 51, field: 'Partners/Collaborators (People)', category: 'Relationships', aliases: ['partners/collaborators (people)', 'partner/collaborator (people)', 'partners/collaborators', 'partners / collaborators (people)', 'partners / collaborators', 'partners (people)', 'collaborators (people)'] },
-
-  // ==========================================
-  // Category: Worldview & Change Orientation (AZ - BX, cols 52 - 76)
-  // ==========================================
-  { letter: 'AZ', index: 52, field: 'Transformation Focus (I-V) - Inner, Social, Cultural, Systems', category: 'Worldview & Change Orientation', aliases: ['transformation focus (i-v) - inner, social, cultural, systems', 'transformation focus (i-v)', 'transformation focus'] },
-  { letter: 'BA', index: 53, field: 'Situational Assessment', category: 'Worldview & Change Orientation', aliases: ['situational assessment'] },
-  { letter: 'BB', index: 54, field: 'Situational Assessment Comments/Description', category: 'Worldview & Change Orientation', aliases: ['situational assessment comments/description', 'situational assessment comments', 'situational assessment description', 'comments/description', 'comments / description'] },
-  { letter: 'BC', index: 55, field: 'Response Orientation', category: 'Worldview & Change Orientation', aliases: ['response orientation'] },
-  { letter: 'BD', index: 56, field: 'Alternative(s) Proposed (GTA)', category: 'Worldview & Change Orientation', aliases: ['alternative(s) proposed (gta)', 'alternatives proposed (gta)', 'alternatives (gta)', 'gta alternative(s)', 'gta alternatives'] },
-  { letter: 'BE', index: 57, field: 'Alternative(s) Proposed (Pluriverse dictionary)', category: 'Worldview & Change Orientation', aliases: ['alternative(s) proposed (pluriverse dictionary)', 'alternatives proposed (pluriverse dictionary)', 'alternative(s) proposed (pluriverse)', 'alternatives proposed (pluriverse)', 'pluriverse alternative(s)', 'pluriverse dictionary alternatives', 'pluriverse alternatives', 'pluriverse dictionary'] },
-  { letter: 'BF', index: 58, field: 'Alternative(s) Proposed (Mútua)', category: 'Worldview & Change Orientation', aliases: ['alternative(s) proposed (mútua)', 'alternative(s) proposed (mutua)', 'alternatives proposed (mútua)', 'alternatives proposed (mutua)', 'mútua alternative(s)', 'mutua alternatives'] },
-  { letter: 'BG', index: 59, field: 'Alternative(s) Proposed', category: 'Worldview & Change Orientation', aliases: ['alternative(s) proposed', 'alternatives proposed', 'proposed alternatives'] },
-  { letter: 'BH', index: 60, field: 'Value Meme / Ethical Orientation', category: 'Worldview & Change Orientation', aliases: ['value meme / ethical orientation', 'value meme/ethical orientation', 'value meme', 'ethical orientation'] },
-  { letter: 'BI', index: 61, field: 'Theory of Change (GTDF)', category: 'Worldview & Change Orientation', aliases: ['theory of change (gtdf)', 'theories of change (gtdf)', 'theory of change gtdf', 'theories of change gtdf', 'toc (gtdf)', 'gtdf theory of change', 'gtdf toc'] },
-  { letter: 'BJ', index: 62, field: 'Theory of Change (IAM)', category: 'Worldview & Change Orientation', aliases: ['theory of change (iam)', 'theories of change (iam)', 'theory of change iam', 'theories of change iam', 'toc (iam)', 'iam theory of change', 'iam toc'] },
-  { letter: 'BK', index: 63, field: 'Crisis of Response', category: 'Worldview & Change Orientation', aliases: ['crisis of response'] },
-  { letter: 'BL', index: 64, field: 'Paradigmatic? (Life Itself)', category: 'Worldview & Change Orientation', aliases: ['paradigmatic? (life itself)', 'paradigmatic (life itself)', 'life itself paradigmatic'] },
-  { letter: 'BM', index: 65, field: 'Integrative? (Life Itself)', category: 'Worldview & Change Orientation', aliases: ['integrative? (life itself)', 'integrative (life itself)', 'life itself integrative'] },
-  { letter: 'BN', index: 66, field: 'Pragmatic? (Life Itself)', category: 'Worldview & Change Orientation', aliases: ['pragmatic? (life itself)', 'pragmatic (life itself)', 'life itself pragmatic'] },
-  { letter: 'BO', index: 67, field: 'Orientation to Change (Three Horizons)', category: 'Worldview & Change Orientation', aliases: ['orientation to change (three horizons)', 'orientation to change three horizons', 'three horizons orientation', 'three horizons'] },
-  { letter: 'BP', index: 68, field: 'Orientation to Change (GTDF)', category: 'Worldview & Change Orientation', aliases: ['orientation to change (gtdf)', 'orientation to change gtdf', 'gtdf orientation to change', 'gtdf orientation'] },
-  { letter: 'BQ', index: 69, field: 'Orientation to Change (CRI)', category: 'Worldview & Change Orientation', aliases: ['orientation to change (cri)', 'orientation to change cri', 'cri orientation to change', 'cri orientation'] },
-  { letter: 'BR', index: 70, field: 'SDGs/Social Issues (Conscious Change Collective)', category: 'Worldview & Change Orientation', aliases: ['sdgs/social issues (conscious change collective)', 'sdgs / social issues (conscious change collective)', 'sdgs/social issues (ccc)', 'sdgs/social issues', 'sdgs / social issues', 'ccc sdgs/social issues', 'sdgs'] },
-  { letter: 'BS', index: 71, field: 'Relevant Resources', category: 'Worldview & Change Orientation', aliases: ['relevant resources', 'relevant resource'] },
-  { letter: 'BT', index: 72, field: 'Featured Resources', category: 'Worldview & Change Orientation', aliases: ['featured resources', 'featured resource'] },
-  { letter: 'BU', index: 73, field: 'IDGs/Inner Capacities', category: 'Worldview & Change Orientation', aliases: ['idgs/inner capacities', 'idgs / inner capacities', 'idg inner capacities', 'inner capacities', 'idg capacities'] },
-  { letter: 'BV', index: 74, field: 'Inner Work Modalities (Conscious Change Collective)', category: 'Worldview & Change Orientation', aliases: ['inner work modalities (conscious change collective)', 'inner work modalities (ccc)', 'inner work modalities', 'inner work', 'ccc inner work modalities'] },
-  { letter: 'BW', index: 75, field: 'Practices', category: 'Worldview & Change Orientation', aliases: ['practices'] },
-  { letter: 'BX', index: 76, field: 'Offerings', category: 'Worldview & Change Orientation', aliases: ['offerings'] },
-
-  // ==========================================
-  // Category: Warm Data (BY - CB, cols 77 - 80)
-  // ==========================================
-  { letter: 'BY', index: 77, field: 'Point of Contact(s)', category: 'Warm Data', aliases: ['point of contact(s)', 'point of contacts', 'point of contact', 'contacts'] },
-  { letter: 'BZ', index: 78, field: 'Email', category: 'Warm Data', aliases: ['email', 'contact email', 'email address', 'warm data email'] },
-  { letter: 'CA', index: 79, field: 'Social Profile(s)', category: 'Warm Data', aliases: ['social profile(s)', 'social profiles(s)', 'social profile'] },
-  { letter: 'CB', index: 80, field: 'Matching Database', category: 'Warm Data', aliases: ['matching database', 'corresponding database', 'external database', 'source database'] },
-
-  // ==========================================
-  // Category: Discourse Analysis / Argument Mapping (CC - CI, cols 81 - 87)
-  // ==========================================
-  { letter: 'CC', index: 81, field: 'Concepts', category: 'Discourse Analysis / Argument Mapping', aliases: ['concepts', 'concept', 'key concepts'] },
-  { letter: 'CD', index: 82, field: 'Frameworks', category: 'Discourse Analysis / Argument Mapping', aliases: ['frameworks', 'framework', 'key frameworks'] },
-  { letter: 'CE', index: 83, field: 'Definitions', category: 'Discourse Analysis / Argument Mapping', aliases: ['definitions', 'definition'] },
-  { letter: 'CF', index: 84, field: 'Arguments/Claims', category: 'Discourse Analysis / Argument Mapping', aliases: ['arguments/claims', 'arguments / claims', 'arguments', 'claims', 'argument', 'claim'] },
-  { letter: 'CG', index: 85, field: 'Evidence/Sources', category: 'Discourse Analysis / Argument Mapping', aliases: ['evidence/sources', 'evidence / sources', 'evidence', 'sources', 'empirical evidence'] },
-  { letter: 'CH', index: 86, field: 'Hypotheses', category: 'Discourse Analysis / Argument Mapping', aliases: ['hypotheses', 'hypothesis'] },
-  { letter: 'CI', index: 87, field: 'Analyst Commentary', category: 'Discourse Analysis / Argument Mapping', aliases: ['analyst commentary', 'analyst comments', 'analyst comment', 'analyst notes', 'analyst note', 'map curator notes', 'curator notes', 'curator note'] }
-];
-
 /**
- * List of obsolete/fabricated fields that were previously created and must not exist.
- * These will be stripped from all entities and never displayed.
- */
-export const OBSOLETE_FABRICATED_FIELDS = [
-  'Worldview / Paradigm / Lineage',
-  'Worldview / Paradigm',
-  'Worldview',
-  'Theory of Change',
-  'Approach to Technology',
-  'Post-Capitalist Transitions',
-  'Transcontextual Descriptions',
-  'Relational Processes / Practices',
-  'Paradoxes / Tensions Held',
-  'Unintended Consequences / Shadow',
-  'Living Systems Principles',
-  'Framing / Narrative Position',
-  'Key Claims / Arguments',
-  'Critiques Offered / Received'
-];
 
-export const SPREADSHEET_CATEGORY_NAMES = [
-  'Overview',
-  'Logistic Info',
-  'Relationships',
-  'Worldview & Change Orientation',
-  'Warm Data',
-  'Discourse Analysis / Argument Mapping'
-];
-
-export const ANALYST_COMMENTARY_ALIASES = [
-  'analyst commentary',
-  'analyst comments',
-  'analyst comment',
-  'analyst notes',
-  'analyst note',
-  'map curator notes',
-  'curator notes',
-  'curator note',
-  'curator commentary'
-];
 
 /**
  * Normalizes category string to one of the 4 main quadrants
@@ -622,48 +484,68 @@ export function normalizeType(val?: string): EntityType {
  * Normalizes data completeness percentile string from spreadsheet
  * 5 levels: 'Top 10%', 'Top 25%', 'Top 50%', 'Top 75%', 'Bottom 25%'
  */
-export function normalizeDataCompleteness(val?: any): DataCompletenessLevel {
-  if (!val) return 'Bottom 25%';
-  const clean = String(val).trim().toLowerCase();
+export function normalizeDataCompleteness(val?: any, filledFieldsVal?: any): DataCompletenessLevel {
+  if (val !== undefined && val !== null) {
+    const str = String(val).trim();
+    if (str) {
+      if (str === 'Top 10%' || str === 'Top 25%' || str === 'Top 50%' || str === 'Top 75%' || str === 'Bottom 25%') {
+        return str as DataCompletenessLevel;
+      }
 
-  // Explicit percentile match
-  if (clean.includes('top 10') || clean === '10%' || clean.includes('10%') && clean.includes('top') || clean === 'top10' || clean.includes('top 10%')) {
-    return 'Top 10%';
-  }
-  if (clean.includes('top 25') || clean === '25%' && clean.includes('top') || clean === 'top25' || clean.includes('top 25%')) {
-    return 'Top 25%';
-  }
-  if (clean.includes('top 50') || clean === '50%' || clean === 'top50' || clean.includes('top 50%')) {
-    return 'Top 50%';
-  }
-  if (clean.includes('top 75') || clean === '75%' || clean === 'top75' || clean.includes('top 75%')) {
-    return 'Top 75%';
-  }
-  if (clean.includes('bottom 25') || clean.includes('bottom') || clean.includes('lowest') || clean.includes('bot 25') || (clean.includes('25%') && clean.includes('bottom')) || clean === 'bot25') {
-    return 'Bottom 25%';
+      const clean = str.toLowerCase();
+
+      // Explicit percentile / tier match
+      if (clean.includes('bottom') || clean.includes('lowest') || clean.includes('bot 25') || (clean.includes('25%') && clean.includes('bottom')) || clean === 'bot25') {
+        return 'Bottom 25%';
+      }
+      if (clean.includes('top 10') || clean === '10%' || (clean.includes('10%') && clean.includes('top')) || clean === 'top10') {
+        return 'Top 10%';
+      }
+      if (clean.includes('top 25') || (clean.includes('25%') && clean.includes('top')) || clean === 'top25') {
+        return 'Top 25%';
+      }
+      if (clean.includes('top 50') || clean === '50%' || clean === 'top50' || (clean.includes('50%') && clean.includes('top'))) {
+        return 'Top 50%';
+      }
+      if (clean.includes('top 75') || clean === '75%' || clean === 'top75' || (clean.includes('75%') && clean.includes('top'))) {
+        return 'Top 75%';
+      }
+
+      // Handle direct numbers or percentage strings e.g. "95%", "92", 0.85
+      const numMatch = clean.match(/(\d+(?:\.\d+)?)/);
+      if (numMatch) {
+        let num = parseFloat(numMatch[1]);
+        if (num <= 1 && num > 0) num = num * 100;
+        if (num >= 90) return 'Top 10%';
+        if (num >= 75) return 'Top 25%';
+        if (num >= 50) return 'Top 50%';
+        if (num >= 25) return 'Top 75%';
+        return 'Bottom 25%';
+      }
+
+      // Legacy mappings for backward compatibility
+      if (clean.includes('verified') || clean.includes('green') || clean.includes('high')) {
+        return 'Top 10%';
+      }
+      if (clean.includes('partial') || clean.includes('yellow') || clean.includes('medium')) {
+        return 'Top 50%';
+      }
+      if (clean.includes('unverified') || clean.includes('red') || clean.includes('low')) {
+        return 'Top 75%';
+      }
+    }
   }
 
-  // Handle direct numbers or percentage strings e.g. "95%", "92", 0.85
-  const numMatch = clean.match(/(\d+(?:\.\d+)?)/);
-  if (numMatch) {
-    let num = parseFloat(numMatch[1]);
-    if (num <= 1 && num > 0) num = num * 100;
-    if (num >= 90) return 'Top 10%';
-    if (num >= 75) return 'Top 25%';
-    if (num >= 50) return 'Top 50%';
-    if (num >= 25) return 'Top 75%';
-    return 'Bottom 25%';
-  }
-
-  // Legacy mappings for backward compatibility
-  if (clean.includes('verified') || clean.includes('green') || clean.includes('high')) {
-    return 'Top 10%';
-  }
-  if (clean.includes('partial') || clean.includes('yellow') || clean.includes('medium')) {
-    return 'Top 50%';
-  }
-  if (clean.includes('unverified') || clean.includes('red') || clean.includes('low')) {
-    return 'Top 75%';
+  // Fallback to Column W: Filled Fields percentile ranking if Column X was missing or empty
+  if (filledFieldsVal !== undefined && filledFieldsVal !== null) {
+    const ffNum = parseInt(String(filledFieldsVal).replace(/[^\d]/g, ''), 10);
+    if (!isNaN(ffNum) && ffNum > 0) {
+      if (ffNum >= 32) return 'Top 10%';
+      if (ffNum >= 26) return 'Top 25%';
+      if (ffNum >= 18) return 'Top 50%';
+      if (ffNum >= 13) return 'Top 75%';
+      return 'Bottom 25%';
+    }
   }
 
   return 'Bottom 25%';
@@ -683,103 +565,14 @@ export function parseFields(val?: any): string[] {
   return [String(val).trim()];
 }
 
-/**
- * Strips zero-width characters, BOM, newlines, and normalizes spaces
- */
-export function cleanHeaderString(name: string): string {
-  if (!name) return '';
-  return name
-    .replace(/^[\uFEFF\xA0]+|[\uFEFF\xA0]+$/g, '') // Strip BOM and non-breaking spaces
-    .replace(/[\r\n\t]+/g, ' ')                   // Newlines and tabs to space
-    .replace(/\s+/g, ' ')                         // Multiple spaces to single
-    .trim();
-}
 
-/**
- * Strips column letter prefixes and suffixes from header strings:
- * - "Year Founded (AM)" -> "Year Founded"
- * - "[AM] Year Founded" -> "Year Founded"
- * - "AM - Year Founded" -> "Year Founded"
- * - "Year Founded - AM" -> "Year Founded"
- */
-export function stripColLetter(header: string): string {
-  let h = header.trim();
-  h = h.replace(/^["'\s]+|["'\s]+$/g, '').trim();
-  // Suffix: "Year Founded (AM)" or "Year Founded [AM]" or "Year Founded - AM"
-  h = h.replace(/\s*\([A-Za-z]{1,2}\)$/i, '');
-  h = h.replace(/\s*\[[A-Za-z]{1,2}\]$/i, '');
-  h = h.replace(/\s*-\s*[A-Za-z]{1,2}$/i, '');
-  // Prefix: "AM - Year Founded", "AM. Year Founded", "AM: Year Founded", "[AM] Year Founded", "(AM) Year Founded"
-  h = h.replace(/^[A-Za-z]{1,2}\s*[-.:_)\/]\s*/i, '');
-  h = h.replace(/^\[[A-Za-z]{1,2}\]\s*/i, '');
-  h = h.replace(/^\([A-Za-z]{1,2}\)\s*/i, '');
-  return h.trim();
-}
 
-/**
- * Helper to match any column name to its canonical ColumnDef
- */
-export function findColumnDef(columnName: string): ColumnDef | undefined {
-  if (!columnName) return undefined;
-  const cleaned = cleanHeaderString(columnName);
-  if (!cleaned) return undefined;
-  const clean = cleaned.toLowerCase();
-
-  // 1. Direct match on canonical field name (exact, case-insensitive)
-  const exact = SPREADSHEET_COLUMNS.find(c => c.field.toLowerCase() === clean);
-  if (exact) return exact;
-
-  // 2. Direct match on column letter (e.g. "a", "am", "ci") or positional ("col_39", "__col_39")
-  const letterMatch = SPREADSHEET_COLUMNS.find(c =>
-    c.letter.toLowerCase() === clean ||
-    `${c.letter.toLowerCase()}2` === clean ||
-    `col_${c.index}` === clean ||
-    `__col_${c.index}` === clean
-  );
-  if (letterMatch) return letterMatch;
-
-  // 3. Exact match on explicit semantic aliases
-  const aliasExact = SPREADSHEET_COLUMNS.find(c => c.aliases.some(a => a.toLowerCase() === clean));
-  if (aliasExact) return aliasExact;
-
-  // 4. Try stripped column letter (e.g. "Year Founded (AM)" -> "Year Founded")
-  const stripped = stripColLetter(cleaned);
-  if (stripped && stripped.toLowerCase() !== clean) {
-    const sLower = stripped.toLowerCase();
-    const strippedExact = SPREADSHEET_COLUMNS.find(c => c.field.toLowerCase() === sLower);
-    if (strippedExact) return strippedExact;
-
-    const strippedAlias = SPREADSHEET_COLUMNS.find(c => c.aliases.some(a => a.toLowerCase() === sLower));
-    if (strippedAlias) return strippedAlias;
-  }
-
-  // 5. Fallback for specific compound headers with punctuation/spacing variations
-  if (clean.includes('transformation focus')) {
-    return SPREADSHEET_COLUMNS.find(c => c.letter === 'AZ');
-  }
-  if (clean.includes('situational assessment') && (clean.includes('comment') || clean.includes('description'))) {
-    return SPREADSHEET_COLUMNS.find(c => c.letter === 'BB');
-  }
-  if (clean.includes('situational assessment')) {
-    return SPREADSHEET_COLUMNS.find(c => c.letter === 'BA');
-  }
-  if (clean.includes('analyst commentary') || clean.includes('analyst comments') || clean.includes('analyst comment') || clean.includes('curator notes')) {
-    return SPREADSHEET_COLUMNS.find(c => c.letter === 'CI');
-  }
-  if (clean.includes('sdgs') || clean.includes('social issues')) {
-    return SPREADSHEET_COLUMNS.find(c => c.letter === 'BR');
-  }
-  if (clean.includes('inner work modalities')) {
-    return SPREADSHEET_COLUMNS.find(c => c.letter === 'BV');
-  }
-  if (clean.includes('idgs') || clean.includes('inner capacities')) {
-    return SPREADSHEET_COLUMNS.find(c => c.letter === 'BU');
-  }
-  if (clean.includes('matching database') || clean.includes('corresponding database')) {
-    return SPREADSHEET_COLUMNS.find(c => c.letter === 'CB');
-  }
-
-  return undefined;
+export interface ParsedSpreadsheetResult {
+  entities: EcosystemEntity[];
+  rawHeaders: string[];
+  columnComments?: Record<string, string>;
+  rawRows: Record<string, any>[];
+  analysis: HeaderAnalysisResult;
 }
 
 /**
@@ -787,14 +580,15 @@ export function findColumnDef(columnName: string): ColumnDef | undefined {
  */
 export async function parseFileToEntities(
   file: File,
-  allowedEntityTypes?: EntityType[]
-): Promise<{ entities: EcosystemEntity[]; rawHeaders: string[]; columnComments?: Record<string, string> }> {
+  allowedEntityTypes?: EntityType[],
+  customRules?: HeaderParsingRule[]
+): Promise<ParsedSpreadsheetResult> {
   const fileName = file.name.toLowerCase();
-  let result: { entities: EcosystemEntity[]; rawHeaders: string[]; columnComments?: Record<string, string> };
+  let result: ParsedSpreadsheetResult;
   if (fileName.endsWith('.csv')) {
-    result = await parseCsvFile(file);
+    result = await parseCsvFile(file, customRules);
   } else {
-    result = await parseXlsxFile(file);
+    result = await parseXlsxFile(file, customRules);
   }
 
   if (allowedEntityTypes && allowedEntityTypes.length > 0) {
@@ -803,7 +597,66 @@ export async function parseFileToEntities(
   return result;
 }
 
-async function parseCsvFile(file: File): Promise<{ entities: EcosystemEntity[]; rawHeaders: string[] }> {
+/**
+ * Ensures all entities in a dataset have strictly unique IDs.
+ * If duplicate IDs are encountered (e.g. from repeated Org IDs in spreadsheet rows or duplicate records),
+ * subsequent occurrences are disambiguated (e.g. "275_2", "275_3") while preserving
+ * the entity's underlying field data, coordinates, and notes.
+ */
+export function ensureUniqueEntityIds(entities: EcosystemEntity[]): EcosystemEntity[] {
+  if (!entities || !Array.isArray(entities)) return [];
+  const seenIds = new Set<string>();
+
+  return entities.map((ent, idx) => {
+    let id = ent.id ? String(ent.id).trim() : '';
+    if (!id) {
+      const safeName = (ent.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      id = `ent-${idx + 1}-${safeName || 'node'}`;
+    }
+
+    if (seenIds.has(id)) {
+      let counter = 2;
+      let disambiguatedId = `${id}_${counter}`;
+      while (seenIds.has(disambiguatedId)) {
+        counter++;
+        disambiguatedId = `${id}_${counter}`;
+      }
+      id = disambiguatedId;
+    }
+
+    seenIds.add(id);
+
+    if (ent.id === id) {
+      return ent;
+    }
+
+    return {
+      ...ent,
+      id
+    };
+  });
+}
+
+/**
+ * Re-maps raw row data to EcosystemEntity instances using updated parsing rules.
+ */
+export function remapRowsToEntities(
+  rows: Record<string, any>[],
+  headers: string[],
+  rules: HeaderParsingRule[],
+  allowedEntityTypes?: EntityType[]
+): EcosystemEntity[] {
+  let entities = mapRowsToEntities(rows, headers, rules);
+  if (allowedEntityTypes && allowedEntityTypes.length > 0) {
+    entities = entities.filter(e => allowedEntityTypes.includes(e.type));
+  }
+  return ensureUniqueEntityIds(entities);
+}
+
+async function parseCsvFile(
+  file: File,
+  customRules?: HeaderParsingRule[]
+): Promise<ParsedSpreadsheetResult> {
   const csvText = await file.text();
   return new Promise((resolve, reject) => {
     Papa.parse<string[]>(csvText, {
@@ -815,7 +668,19 @@ async function parseCsvFile(file: File): Promise<{ entities: EcosystemEntity[]; 
       complete: (results) => {
         const rawRows = results.data;
         if (!rawRows || rawRows.length === 0) {
-          resolve({ entities: [], rawHeaders: [] });
+          const emptyAnalysis: HeaderAnalysisResult = {
+            rules: [],
+            totalHeaders: 0,
+            matchedCount: 0,
+            rearrangedCount: 0,
+            newFieldsCount: 0,
+            suggestedMatchCount: 0,
+            ignoredCount: 0,
+            missingCanonicalFields: [],
+            hasChanges: false,
+            needsVerification: false
+          };
+          resolve({ entities: [], rawHeaders: [], rawRows: [], analysis: emptyAnalysis });
           return;
         }
 
@@ -863,8 +728,10 @@ async function parseCsvFile(file: File): Promise<{ entities: EcosystemEntity[]; 
           }
         }
 
-        const entities = mapRowsToEntities(rowObjects, headers);
-        resolve({ entities, rawHeaders: headers });
+        const analysis = analyzeSpreadsheetHeaders(headers, rowObjects.slice(0, 10), customRules);
+        const effectiveRules = customRules && customRules.length > 0 ? customRules : analysis.rules;
+        const entities = mapRowsToEntities(rowObjects, headers, effectiveRules);
+        resolve({ entities, rawHeaders: headers, rawRows: rowObjects, analysis });
       },
       error: (err) => reject(err)
     });
@@ -922,17 +789,33 @@ export function extractCellCommentText(cell: any): string {
   };
 
   const candidate = cell.note ?? cell.comment ?? cell.model?.note ?? cell.model?.comment;
-  return extractFromObject(candidate);
+  const rawText = extractFromObject(candidate);
+  return cleanSpreadsheetComment(rawText);
 }
 
-async function parseXlsxFile(file: File): Promise<{ entities: EcosystemEntity[]; rawHeaders: string[]; columnComments?: Record<string, string> }> {
+async function parseXlsxFile(
+  file: File,
+  customRules?: HeaderParsingRule[]
+): Promise<ParsedSpreadsheetResult> {
   const arrayBuffer = await file.arrayBuffer();
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.load(arrayBuffer);
 
   const worksheet = workbook.worksheets[0];
   if (!worksheet) {
-    return { entities: [], rawHeaders: [] };
+    const emptyAnalysis: HeaderAnalysisResult = {
+      rules: [],
+      totalHeaders: 0,
+      matchedCount: 0,
+      rearrangedCount: 0,
+      newFieldsCount: 0,
+      suggestedMatchCount: 0,
+      ignoredCount: 0,
+      missingCanonicalFields: [],
+      hasChanges: false,
+      needsVerification: false
+    };
+    return { entities: [], rawHeaders: [], rawRows: [], analysis: emptyAnalysis };
   }
 
   // Scan rows 1 through 5 to determine the true header row with the highest match score
@@ -1059,8 +942,10 @@ async function parseXlsxFile(file: File): Promise<{ entities: EcosystemEntity[];
   });
 
   const headerList = Object.values(rawHeaders);
-  const entities = mapRowsToEntities(rows, headerList);
-  return { entities, rawHeaders: headerList, columnComments: extractedComments };
+  const analysis = analyzeSpreadsheetHeaders(headerList, rows.slice(0, 10), customRules);
+  const effectiveRules = customRules && customRules.length > 0 ? customRules : analysis.rules;
+  const entities = mapRowsToEntities(rows, headerList, effectiveRules);
+  return { entities, rawHeaders: headerList, columnComments: extractedComments, rawRows: rows, analysis };
 }
 
 /**
@@ -1311,7 +1196,11 @@ export function parseResourceLinks(val: any): ResourceLinkItem[] {
 /**
  * Maps key-value row objects to EcosystemEntity schema with complete column mapping
  */
-function mapRowsToEntities(rows: Record<string, any>[], headers?: string[]): EcosystemEntity[] {
+function mapRowsToEntities(
+  rows: Record<string, any>[],
+  headers?: string[],
+  customRules?: HeaderParsingRule[]
+): EcosystemEntity[] {
   // Pre-analyze headers to detect whether the dataset has named column headers
   const sampleRow = rows[0] || {};
   const headerKeys = (headers && headers.length > 0)
@@ -1320,6 +1209,26 @@ function mapRowsToEntities(rows: Record<string, any>[], headers?: string[]): Eco
 
   // A dataset has named headers if at least 2 non-"Col_X" headers match a known ColumnDef
   const hasNamedHeaders = headerKeys.some(k => !k.startsWith('Col_') && findColumnDef(k) !== undefined);
+
+  // Dynamic parsing rules indexing
+  const effectiveRules = customRules && customRules.length > 0 ? customRules : loadStoredParsingRules();
+  const ruleByTargetField = new Map<string, HeaderParsingRule>();
+  const ignoredKeys = new Set<string>();
+  const newFieldRules: HeaderParsingRule[] = [];
+
+  if (effectiveRules && effectiveRules.length > 0) {
+    effectiveRules.forEach(rule => {
+      if (rule.action === 'ignore') {
+        ignoredKeys.add(cleanHeaderString(rule.sourceHeader).toLowerCase());
+        ignoredKeys.add(`col_${rule.sourceIndex}`.toLowerCase());
+        ignoredKeys.add(`__col_${rule.sourceIndex}`.toLowerCase());
+      } else if (rule.action === 'map_existing') {
+        ruleByTargetField.set(rule.targetField.toLowerCase(), rule);
+      } else if (rule.action === 'add_new_field' || rule.isCustomField) {
+        newFieldRules.push(rule);
+      }
+    });
+  }
 
   // Build a pre-computed map of canonical field name -> the exact row key in this file
   const canonicalToFoundKeyMap = new Map<string, string>();
@@ -1332,10 +1241,26 @@ function mapRowsToEntities(rows: Record<string, any>[], headers?: string[]): Eco
     }
   });
 
-  return rows.map((row, index) => {
+  const seenRowIds = new Set<string>();
+
+  const mapped = rows.map((row, index) => {
     // Helper to find value from row by canonical aliases or column index
     const getVal = (colDefOrField: string | ColumnDef, ...additionalAliases: string[]): any => {
       let def: ColumnDef | undefined = typeof colDefOrField === 'string' ? findColumnDef(colDefOrField) : colDefOrField;
+      const targetFieldName = def ? def.field : (typeof colDefOrField === 'string' ? colDefOrField : '');
+
+      // 0. Explicit rule mapping for this field (highest priority, handles moved columns & renamed headers)
+      if (targetFieldName && ruleByTargetField.has(targetFieldName.toLowerCase())) {
+        const rule = ruleByTargetField.get(targetFieldName.toLowerCase())!;
+        let val = row[rule.sourceHeader];
+        if (val === undefined || val === null || String(val).trim() === '') {
+          val = row[`__col_${rule.sourceIndex}`] ?? row[`Col_${rule.sourceIndex}`];
+        }
+        if (val !== undefined && val !== null && String(val).trim() !== '') {
+          return String(val).trim();
+        }
+        return undefined;
+      }
 
       // 1. Direct match via pre-computed canonical map
       if (def && canonicalToFoundKeyMap.has(def.field)) {
@@ -1390,7 +1315,18 @@ function mapRowsToEntities(rows: Record<string, any>[], headers?: string[]): Eco
     const rawId = getVal('Org ID');
     const rawName = getVal('Name/Label');
     const name = String(rawName || `Entity #${index + 1}`).trim();
-    const id = String(rawId || `org-${index + 1}-${name.toLowerCase().replace(/[^a-z0-9]/g, '')}`).trim();
+    const baseId = String(rawId || `org-${index + 1}-${name.toLowerCase().replace(/[^a-z0-9]/g, '')}`).trim() || `entity-${index + 1}`;
+    let id = baseId;
+    if (seenRowIds.has(id)) {
+      let counter = 2;
+      let disambiguated = `${baseId}_${counter}`;
+      while (seenRowIds.has(disambiguated)) {
+        counter++;
+        disambiguated = `${baseId}_${counter}`;
+      }
+      id = disambiguated;
+    }
+    seenRowIds.add(id);
 
     const rawType = getVal('Entity Type');
     const type = normalizeType(rawType);
@@ -1480,12 +1416,42 @@ function mapRowsToEntities(rows: Record<string, any>[], headers?: string[]): Eco
     const featured = rawFeatured !== undefined && ['true', 'yes', '1', 'featured', '★', 'y'].includes(String(rawFeatured).trim().toLowerCase());
 
     // Column W: Filled Fields (col 23)
-    const rawFilledFields = getVal('Filled Fields');
+    let rawFilledFields = getVal('Filled Fields', 'filled fields', 'filledfields', 'fields filled', 'count of filled fields');
+    if (rawFilledFields === undefined || rawFilledFields === null || String(rawFilledFields).trim() === '') {
+      rawFilledFields = row['__col_23'] ?? row['Col_23'] ?? row['W'] ?? row['w'];
+    }
     const filledFields = rawFilledFields !== undefined && rawFilledFields !== null && String(rawFilledFields).trim() !== '' ? String(rawFilledFields).trim() : undefined;
 
     // Column X: Data Completeness (col 24)
-    const rawDataCompleteness = getVal('Data Completeness');
-    const dataCompleteness = normalizeDataCompleteness(rawDataCompleteness);
+    // The user specified: "it should work based off of the spreadsheet. it's the X column."
+    let rawDataCompleteness = getVal(
+      'Data Completeness',
+      'Completeness',
+      'Data Completeness Tier',
+      'Percentile',
+      'Completeness (%)',
+      'Completeness Tier',
+      'Data Quality',
+      'Data Completeness (Percentile)',
+      'Percentile Rank',
+      'Completeness Level'
+    );
+    if (rawDataCompleteness === undefined || rawDataCompleteness === null || String(rawDataCompleteness).trim() === '') {
+      rawDataCompleteness = row['__col_24'] ?? row['Col_24'] ?? row['X'] ?? row['x'];
+    }
+    if (rawDataCompleteness === undefined || rawDataCompleteness === null || String(rawDataCompleteness).trim() === '') {
+      for (const [k, v] of Object.entries(row)) {
+        if (k.startsWith('__col_')) continue;
+        const cleanK = cleanHeaderString(k).toLowerCase();
+        if (cleanK.includes('completeness') || cleanK === 'x' || cleanK.startsWith('x -') || cleanK.endsWith('(x)')) {
+          if (v !== undefined && v !== null && String(v).trim() !== '') {
+            rawDataCompleteness = String(v).trim();
+            break;
+          }
+        }
+      }
+    }
+    const dataCompleteness = normalizeDataCompleteness(rawDataCompleteness, filledFields);
 
     // =========================================================================
     // 2. LOGISTIC INFO (Y - AR, cols 25 - 44)
@@ -1664,16 +1630,35 @@ function mapRowsToEntities(rows: Record<string, any>[], headers?: string[]): Eco
       }
     });
 
-    // Extra dynamic fields from custom headers
+    // Extra dynamic fields from custom headers and dynamic parsing rules
     const extraFields: Record<string, string | number | boolean> = {};
+
+    // 1. Explicit dynamic custom fields added via parsing rules
+    newFieldRules.forEach(nfr => {
+      let val = row[nfr.sourceHeader] ?? row[`__col_${nfr.sourceIndex}`] ?? row[`Col_${nfr.sourceIndex}`];
+      if (val !== undefined && val !== null && String(val).trim() !== '') {
+        const strVal = String(val).trim();
+        extraFields[nfr.targetField] = strVal;
+        const targetCategory = nfr.category || 'Additional Data';
+        if (!categorizedFields[targetCategory]) {
+          categorizedFields[targetCategory] = {};
+        }
+        categorizedFields[targetCategory][nfr.targetField] = strVal;
+      }
+    });
+
+    // 2. Unmapped custom headers
     Object.keys(row).forEach(rk => {
       if (rk.startsWith('__col_')) return;
+      const cleanK = cleanHeaderString(rk).toLowerCase();
+      if (ignoredKeys.has(cleanK)) return;
+      if (newFieldRules.some(nfr => cleanHeaderString(nfr.sourceHeader).toLowerCase() === cleanK)) return;
+
       const colDef = findColumnDef(rk);
       const val = row[rk];
       if (val !== undefined && val !== null && String(val).trim() !== '') {
-        // Store in extraFields
         extraFields[rk] = val;
-        // If not already in one of the 6 canonical categories, put in Additional Data
+        // If not already in one of the canonical categories, put in Additional Data
         if (!colDef) {
           if (!categorizedFields['Additional Data']) {
             categorizedFields['Additional Data'] = {};
@@ -1729,6 +1714,19 @@ function mapRowsToEntities(rows: Record<string, any>[], headers?: string[]): Eco
       if (rawKeywords.length > 0) {
         categorizedFields['Overview']['Keywords/Topics'] = rawKeywords.join(', ');
       }
+      if (dataCompleteness) {
+        categorizedFields['Overview']['Data Completeness'] = dataCompleteness;
+      }
+      if (filledFields) {
+        categorizedFields['Overview']['Filled Fields'] = filledFields;
+      }
+    }
+
+    if (dataCompleteness) {
+      extraFields['Data Completeness'] = dataCompleteness;
+    }
+    if (filledFields) {
+      extraFields['Filled Fields'] = filledFields;
     }
 
     // =========================================================================
@@ -1837,6 +1835,8 @@ function mapRowsToEntities(rows: Record<string, any>[], headers?: string[]): Eco
       featured
     };
   });
+
+  return ensureUniqueEntityIds(mapped);
 }
 
 /**

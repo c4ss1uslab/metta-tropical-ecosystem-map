@@ -3,7 +3,7 @@ import {
   X, Check, Trash2, Ban, Search, ExternalLink, Calendar, Mail, 
   ArrowRight, Sparkles, Filter, Download, AlertCircle, RefreshCw, Eye
 } from 'lucide-react';
-import { EcosystemEntity, ContributionSubmission, FieldDiff } from '../types';
+import { EcosystemEntity, ContributionSubmission, FieldDiff, EntityType } from '../types';
 import { 
   getStoredContributions, 
   updateContributionStatus, 
@@ -85,15 +85,26 @@ export const ReviewPipelineModal: React.FC<ReviewPipelineModalProps> = ({
 
   const handleApprove = async (submission: ContributionSubmission) => {
     // 1. Find target entity in live dataset to preserve any coordinates or system attributes
-    const targetLive = entities.find(e => e.id === submission.entityId) || submission.originalEntity;
+    const targetLive = entities.find(e => e.id === submission.entityId);
     
-    // 2. Merge proposed entity updates onto target
-    const updatedEntity: EcosystemEntity = {
-      ...targetLive,
+    // Normalize entity type (e.g. 'Org' -> 'Organization')
+    const cleanProposed = {
       ...submission.proposedEntity,
+      type: ((submission.proposedEntity?.type as any) === 'Org' ? 'Organization' : submission.proposedEntity?.type || 'Organization') as EntityType
+    };
+
+    // 2. Merge proposed entity updates onto target, or create new entity if newly proposed
+    const updatedEntity: EcosystemEntity = targetLive ? {
+      ...targetLive,
+      ...cleanProposed,
       // Keep live coordinates if preserved
-      x: targetLive.x ?? submission.proposedEntity.x,
-      y: targetLive.y ?? submission.proposedEntity.y
+      x: targetLive.x ?? cleanProposed.x,
+      y: targetLive.y ?? cleanProposed.y
+    } : {
+      ...cleanProposed,
+      id: cleanProposed.id || submission.entityId,
+      x: typeof cleanProposed.x === 'number' ? cleanProposed.x : 0,
+      y: typeof cleanProposed.y === 'number' ? cleanProposed.y : 0
     };
 
     // 3. Apply to map
@@ -104,7 +115,11 @@ export const ReviewPipelineModal: React.FC<ReviewPipelineModalProps> = ({
     refreshSubmissions();
 
     // 5. Notify
-    setActionSuccessMsg(`Approved and merged changes for "${submission.entityName}" into the live map!`);
+    setActionSuccessMsg(
+      submission.isNewEntity || !targetLive
+        ? `Approved and added new entity "${submission.entityName}" to the live map!`
+        : `Approved and merged changes for "${submission.entityName}" into the live map!`
+    );
     setTimeout(() => setActionSuccessMsg(null), 4000);
   };
 
@@ -319,11 +334,20 @@ export const ReviewPipelineModal: React.FC<ReviewPipelineModalProps> = ({
                         <span className="font-editorial text-base font-bold text-[#111827]">
                           {sub.entityName}
                         </span>
-                        {liveEntity && (
+                        {sub.isNewEntity && (
+                          <span className="px-2 py-0.5 text-[10px] font-technical uppercase font-bold bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0] rounded">
+                            🌱 New Entity
+                          </span>
+                        )}
+                        {liveEntity ? (
                           <span className="px-2 py-0.5 text-[10px] font-technical uppercase bg-[#F3F4F6] text-[#4B5563] rounded">
                             {liveEntity.type} • {liveEntity.category}
                           </span>
-                        )}
+                        ) : sub.proposedEntity ? (
+                          <span className="px-2 py-0.5 text-[10px] font-technical uppercase bg-[#F3F4F6] text-[#4B5563] rounded">
+                            {sub.proposedEntity.type} • {sub.proposedEntity.category}
+                          </span>
+                        ) : null}
                         <span className={`px-2 py-0.5 text-[10px] font-technical uppercase font-bold rounded ${
                           sub.status === 'pending'
                             ? 'bg-[#FEF08A] text-[#854D0E] border border-[#FDE047]'

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Search, Globe, RefreshCw, Network, ChevronDown, X, MapPin, Building2, User, Lightbulb, BookOpen, Info, Maximize2, Minimize2, RotateCcw, Save } from 'lucide-react';
+import { Search, Globe, RefreshCw, Network, ChevronDown, X, MapPin, Building2, User, Lightbulb, BookOpen, Info, Maximize2, Minimize2, RotateCcw, Save, PlusCircle, Layers } from 'lucide-react';
 import { EcosystemEntity, EntityType, SidebarListScope } from '../types';
 import { ExportFormat } from '../utils/excelParser';
 import { getPendingContributionsCount, subscribeToPipelineUpdates } from '../utils/contributionPipeline';
@@ -24,6 +24,7 @@ interface HeaderProps {
   onOpenDiscoveryModal?: () => void;
   onOpenDirectoryModal: () => void;
   onOpenAbout?: () => void;
+  onOpenContribute?: () => void;
   onResetView?: () => void;
   activeListScope?: SidebarListScope | null;
   onSelectEntityTypeList?: (entityType: EntityType | 'All') => void;
@@ -47,6 +48,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenDiscoveryModal,
   onOpenDirectoryModal,
   onOpenAbout,
+  onOpenContribute,
   activeListScope,
   onSelectEntityTypeList,
   onSelectEntity,
@@ -273,9 +275,9 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="h-16 bg-[#FAF8F5] border-b border-[#E5E7EB] px-4 flex items-center justify-between sticky top-0 z-30 select-none">
+    <header className="min-h-16 sm:min-h-[4.5rem] py-2 sm:py-2.5 bg-[#FAF8F5] border-b border-[#E5E7EB] px-4 flex items-center justify-between sticky top-0 z-30 select-none">
       {/* Brand & Title */}
-      <div className="flex items-center space-x-2.5 shrink-0">
+      <div className="flex items-center space-x-2.5 sm:space-x-3 shrink-0">
         {/* Complete Sunflower Icon with Head & Vertical Stem Body */}
         <svg 
           viewBox="0 0 36 44" 
@@ -353,10 +355,20 @@ export const Header: React.FC<HeaderProps> = ({
         </svg>
 
         <div className="flex flex-col justify-center">
-          <h1 className="font-editorial text-[19px] lg:text-[20px] font-semibold text-[#111827] leading-tight tracking-wide">
-            METTA TROPICAL ECOSYSTEM MAP
+          <h1 
+            className="font-cormorant-title text-[#111827] select-text"
+            style={{
+              fontFamily: '"Cormorant Garamond", Georgia, serif',
+              fontWeight: 500,
+              fontSize: 'clamp(16px, 2.5vw, 24px)',
+              lineHeight: 0.98,
+              letterSpacing: '-0.015em',
+              textWrap: 'balance',
+            }}
+          >
+            Metta Tropical Ecosystem Map
           </h1>
-          <p className="font-technical text-[11px] text-[#716C64] uppercase tracking-wider leading-[1.3] mt-0.5">
+          <p className="font-technical text-[10px] sm:text-[11px] text-[#716C64] uppercase tracking-wider leading-[1.25] mt-1">
             A Living Cartography of Inner, Social,<br />
             Cultural & Systems Transformation
           </p>
@@ -433,7 +445,7 @@ export const Header: React.FC<HeaderProps> = ({
 
                     return (
                       <div
-                        key={ent.id}
+                        key={ent.id || `search-res-${idx}`}
                         onClick={() => handleSelectResult(ent)}
                         onMouseEnter={() => setHighlightedIndex(idx)}
                         className={`p-2.5 flex items-start space-x-2.5 cursor-pointer transition-colors ${
@@ -602,6 +614,18 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <RefreshCw className="w-4 h-4 text-[#111827]" />
             </button>
+
+            {onOpenPositionSnapshotModal && (
+              <button
+                id="header-snapshot-btn"
+                onClick={onOpenPositionSnapshotModal}
+                title="Positions Snapshot (Export / Import coordinates & boundaries)"
+                aria-label="Positions Snapshot"
+                className="p-1.5 text-[#2563EB] hover:bg-[#EFF6FF] border border-[#BFDBFE] hover:border-[#2563EB] rounded-[4px] transition-all cursor-pointer bg-white shadow-xs"
+              >
+                <Layers className="w-4 h-4 text-[#2563EB]" />
+              </button>
+            )}
           </div>
         )}
 
@@ -628,6 +652,20 @@ export const Header: React.FC<HeaderProps> = ({
         >
           <Info className="w-3.5 h-3.5 shrink-0 text-[#111827]" />
           <span>About</span>
+        </button>
+
+        {/* Contribute Button: icon-only on the right of About */}
+        <button
+          id="header-contribute-btn"
+          type="button"
+          onClick={() => {
+            onOpenContribute?.();
+          }}
+          title="Contribute • Submit new entity"
+          aria-label="Contribute • Submit new entity"
+          className="flex items-center justify-center p-1.5 text-xs font-sans bg-white hover:bg-[#FAF8F5] text-[#111827] border border-[#E5E7EB] hover:border-[#111827] rounded-[4px] shadow-xs transition-all font-medium cursor-pointer shrink-0"
+        >
+          <PlusCircle className="w-3.5 h-3.5 shrink-0 text-[#111827]" />
         </button>
 
         {/* Fullscreen Button */}
@@ -666,7 +704,7 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Mobile Search Bar Dropdown */}
       {showMobileSearch && (
-        <div ref={mobileSearchRef} className="md:hidden absolute top-16 left-0 w-full bg-[#FAF8F5] border-b border-[#111827] p-2.5 z-40 shadow-xl">
+        <div ref={mobileSearchRef} className="md:hidden absolute top-full left-0 w-full bg-[#FAF8F5] border-b border-[#111827] p-2.5 z-40 shadow-xl">
           <div className="relative">
             <Search className="w-3.5 h-3.5 text-[#8C877F] absolute left-3 top-2.5 pointer-events-none" />
             <input
@@ -704,9 +742,9 @@ export const Header: React.FC<HeaderProps> = ({
                   No entities found matching "{searchQuery}"
                 </div>
               ) : (
-                searchResults.map(item => (
+                searchResults.map((item, idx) => (
                   <div
-                    key={item.entity.id}
+                    key={item.entity.id || `mobile-search-${idx}`}
                     onClick={() => handleSelectResult(item.entity)}
                     className="p-2.5 flex items-center justify-between cursor-pointer hover:bg-[#FAF8F5]"
                   >

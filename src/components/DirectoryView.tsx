@@ -10,7 +10,7 @@ import {
   DATA_COMPLETENESS_LEVELS, DATA_COMPLETENESS_CONFIG, getEntityCompleteness, getCompletenessConfig,
   ContinentInfo, FilterState, CommunityNote 
 } from '../types';
-import { exportEntities, getEntitySpreadsheetField, splitLanguageValues, entityMatchesRelationship } from '../utils/excelParser';
+import { exportEntities, getEntitySpreadsheetField, splitLanguageValues, entityMatchesRelationship, ensureUniqueEntityIds } from '../utils/excelParser';
 import { formatDisplayUrl } from '../utils/socialMedia';
 import { isEntityDomainElevation, filterProfileTags, entityMatchesArchipelago } from '../utils/layoutGenerator';
 import { RightSidebar } from './RightSidebar';
@@ -962,7 +962,7 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({
       }
     });
 
-    return result;
+    return ensureUniqueEntityIds(result);
   }, [
     entities, 
     filterState, 
@@ -2224,14 +2224,14 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({
             /* CARDS VIEW - LOGO DISPLAYED AT THE TOP OF THE CARDS          */
             /* ============================================================ */
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredEntities.map(ent => {
+              {filteredEntities.map((ent, entIdx) => {
                 const qColor = quadrantColors[ent.category] || quadrantColors.Social;
                 const dq = ent.dataQuality || 'No data';
                 const logoUrl = getEntityLogoUrl(ent);
 
                 return (
                   <div
-                    key={ent.id}
+                    key={ent.id || `card-${entIdx}`}
                     onClick={() => handleEntityCardClick(ent)}
                     className="bg-white border border-[#E5E7EB] hover:border-[#111827] hover:shadow-md rounded-[8px] p-4 flex flex-col justify-between transition-all cursor-pointer group relative"
                   >
@@ -2462,14 +2462,14 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#F3F4F6]">
-                    {filteredEntities.map(ent => {
+                    {filteredEntities.map((ent, entIdx) => {
                       const qColor = quadrantColors[ent.category] || quadrantColors.Social;
                       const dq = ent.dataQuality || 'No data';
                       const logoUrl = getEntityLogoUrl(ent);
 
                       return (
                         <tr
-                          key={ent.id}
+                          key={ent.id || `row-${entIdx}`}
                           onClick={() => handleEntityCardClick(ent)}
                           className="hover:bg-[#FAF8F5] cursor-pointer transition-colors group"
                         >

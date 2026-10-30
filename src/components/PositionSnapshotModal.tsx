@@ -82,7 +82,7 @@ export const PositionSnapshotModal: React.FC<PositionSnapshotModalProps> = ({
         category: ent.category,
         x: ent.x,
         y: ent.y,
-        isCustomPosition: Boolean(ent.isCustomPosition)
+        isCustomPosition: (typeof ent.x === 'number' && typeof ent.y === 'number' && (ent.x !== 0 || ent.y !== 0)) ? true : Boolean(ent.isCustomPosition)
       })),
       customContinentShapes,
       archipelagoMetadata,
@@ -180,23 +180,33 @@ export const PositionSnapshotModal: React.FC<PositionSnapshotModalProps> = ({
       let updatedEntities = [...entities];
 
       if (importOptions.applyEntities && parsedSnapshot.entities.length > 0) {
+        const normalizeKey = (s?: string) => s ? s.toLowerCase().replace(/[\s\-_.,;:'"()]+/g, ' ').trim() : '';
+
         // Build fast lookup by ID and normalized Name
         const idMap = new Map<string, { x: number; y: number; isCustomPosition?: boolean; continent?: string; category?: string }>();
         const nameMap = new Map<string, { x: number; y: number; isCustomPosition?: boolean; continent?: string; category?: string }>();
+        const normNameMap = new Map<string, { x: number; y: number; isCustomPosition?: boolean; continent?: string; category?: string }>();
 
         parsedSnapshot.entities.forEach(item => {
           if (item.id) idMap.set(item.id, item);
-          if (item.name) nameMap.set(item.name.trim().toLowerCase(), item);
+          if (item.name) {
+            const clean = item.name.trim().toLowerCase();
+            nameMap.set(clean, item);
+            const norm = normalizeKey(item.name);
+            if (norm) normNameMap.set(norm, item);
+          }
         });
 
         updatedEntities = entities.map(currentEnt => {
-          const match = idMap.get(currentEnt.id) || nameMap.get(currentEnt.name.trim().toLowerCase());
-          if (match && typeof match.x === 'number' && typeof match.y === 'number') {
+          const cleanName = currentEnt.name.trim().toLowerCase();
+          const normName = normalizeKey(currentEnt.name);
+          const match = idMap.get(currentEnt.id) || nameMap.get(cleanName) || normNameMap.get(normName);
+          if (match && typeof match.x === 'number' && typeof match.y === 'number' && Number.isFinite(match.x) && Number.isFinite(match.y)) {
             return {
               ...currentEnt,
               x: match.x,
               y: match.y,
-              isCustomPosition: match.isCustomPosition !== undefined ? match.isCustomPosition : true,
+              isCustomPosition: true, // Always lock positions strictly when restoring from snapshot
               continent: match.continent || currentEnt.continent
             };
           }
@@ -235,9 +245,16 @@ export const PositionSnapshotModal: React.FC<PositionSnapshotModalProps> = ({
   // Calculate matching stats for preview
   const matchingEntitiesCount = parsedSnapshot
     ? entities.filter(e => {
-        return parsedSnapshot.entities.some(
-          item => item.id === e.id || item.name?.trim().toLowerCase() === e.name?.trim().toLowerCase()
-        );
+        const cleanName = e.name.trim().toLowerCase();
+        const normName = e.name.toLowerCase().replace(/[\s\-_.,;:'"()]+/g, ' ').trim();
+        return parsedSnapshot.entities.some(item => {
+          if (item.id && item.id === e.id) return true;
+          if (!item.name) return false;
+          const iClean = item.name.trim().toLowerCase();
+          if (iClean === cleanName) return true;
+          const iNorm = item.name.toLowerCase().replace(/[\s\-_.,;:'"()]+/g, ' ').trim();
+          return iNorm === normName;
+        });
       }).length
     : 0;
 

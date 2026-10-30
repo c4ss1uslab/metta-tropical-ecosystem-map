@@ -28,6 +28,14 @@
     line-height: 1.2;
   }
 
+  .font-cormorant-title {
+    font-family: var(--font-display);
+    font-weight: 500;
+    line-height: 0.98;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+
   code, pre, .font-technical {
     font-family: var(--font-tech);
   }
