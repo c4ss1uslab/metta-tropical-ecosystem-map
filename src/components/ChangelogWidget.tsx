@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   GitCommit, GitBranch, Github, History, Sparkles, ExternalLink, 
   Plus, Trash2, Edit3, Check, X, RefreshCw, AlertCircle, ArrowUpRight,
   Filter, Tag, Search, Calendar, ChevronDown, ChevronUp, CheckCircle2,
-  SlidersHorizontal, Wrench, User
+  SlidersHorizontal, Wrench, User, CloudUpload, Cloud, CheckCheck
 } from 'lucide-react';
 import { ChangelogConfig, ChangelogItem, ChangelogTag } from '../types';
 import { 
@@ -11,7 +11,13 @@ import {
   saveChangelogConfig, 
   fetchGitHubCommits, 
   normalizeGitHubRepo,
-  DEFAULT_CHANGELOG_CONFIG 
+  DEFAULT_CHANGELOG_CONFIG,
+  persistChangelogConfigToFirestore,
+  fetchChangelogConfigFromFirestore,
+  subscribeToChangelogConfig,
+  getUncommittedChangelogDiff,
+  loadCommittedChangelogBaseline,
+  saveCommittedChangelogBaseline
 } from '../utils/githubSync';
 
 interface ChangelogWidgetProps {
@@ -30,6 +36,7 @@ const TAG_STYLES: Record<ChangelogTag, { bg: string; text: string; border: strin
 export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [config, setConfig] = useState<ChangelogConfig>(() => loadChangelogConfig());
+  const [committedBaseline, setCommittedBaseline] = useState<ChangelogConfig>(() => loadCommittedChangelogBaseline());
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -37,6 +44,11 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [syncSuccessMsg, setSyncSuccessMsg] = useState<string | null>(null);
+
+  // Cloud commit states
+  const [isCommittingToCloud, setIsCommittingToCloud] = useState(false);
+  const [cloudCommitSuccessMsg, setCloudCommitSuccessMsg] = useState<string | null>(null);
+  const [cloudCommitError, setCloudCommitError] = useState<string | null>(null);
 
   // Edit Mode state
   const [isEditingVersion, setIsEditingVersion] = useState(false);
@@ -67,13 +79,45 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
   const panelRef = useRef<HTMLDivElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
+  // Calculate uncommitted differences against the last committed cloud baseline
+  const diff = useMemo(() => {
+    return getUncommittedChangelogDiff(config, committedBaseline);
+  }, [config, committedBaseline]);
+
+  // Load from Cloud Firestore on mount & subscribe to real-time updates
+  useEffect(() => {
+    let isMounted = true;
+
+    fetchChangelogConfigFromFirestore().then((cloudConfig) => {
+      if (!isMounted) return;
+      if (cloudConfig) {
+        setConfig(cloudConfig);
+        setCommittedBaseline(cloudConfig);
+      } else {
+        // If no remote doc exists yet, seed initial default config to Firestore
+        persistChangelogConfigToFirestore(DEFAULT_CHANGELOG_CONFIG);
+        setCommittedBaseline(DEFAULT_CHANGELOG_CONFIG);
+      }
+    });
+
+    const unsubscribe = subscribeToChangelogConfig((remoteConfig) => {
+      if (!isMounted) return;
+      setConfig(remoteConfig);
+      setCommittedBaseline(remoteConfig);
+    });
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
+  }, []);
+
   // Stop native wheel propagation from popover to map canvas so map never zooms/redimensions when scrolling over changelog
   useEffect(() => {
     const popoverEl = popoverRef.current;
     if (!popoverEl || !isOpen) return;
 
     const handleNativeWheel = (e: WheelEvent) => {
-      // Prevent the wheel event from bubbling up to the canvas map zoom handler
       e.stopPropagation();
     };
 
@@ -113,6 +157,45 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isOpen]);
+
+  // Trigger Cloud Commit
+  const handleCommitToCloud = async () => {
+    if (isCommittingToCloud) return;
+    setIsCommittingToCloud(true);
+    setCloudCommitError(null);
+    setCloudCommitSuccessMsg(null);
+
+    const deletedSet = new Set(config.deletedEntryIds || []);
+    const cleanEntries = (config.entries || []).filter(e => !deletedSet.has(e.id));
+    const configToPersist: ChangelogConfig = {
+      ...config,
+      entries: cleanEntries,
+      deletedEntryIds: Array.from(deletedSet)
+    };
+
+    const res = await persistChangelogConfigToFirestore(
+      configToPersist,
+      `User committed changes: ${diff.summary.join(', ') || 'Changelog update'}`
+    );
+    setIsCommittingToCloud(false);
+
+    if (res.success) {
+      const cloned = JSON.parse(JSON.stringify(configToPersist));
+      setConfig(cloned);
+      setCommittedBaseline(cloned);
+      saveCommittedChangelogBaseline(cloned);
+      setCloudCommitSuccessMsg(
+        diff.summary.length > 0
+          ? `Changes committed to Cloud Firestore! (${diff.summary.join(', ')})`
+          : 'Changelog successfully synchronized with Cloud Firestore!'
+      );
+      setTimeout(() => setCloudCommitSuccessMsg(null), 6000);
+    } else if (res.quotaExceeded) {
+      setCloudCommitError('Daily cloud write quota reached. Changes are saved locally on this device.');
+    } else {
+      setCloudCommitError(res.error || 'Failed to commit to cloud. Please try again.');
+    }
+  };
 
   // Trigger GitHub sync
   const handleSyncGitHub = async (customRepo?: string, customBranch?: string) => {
@@ -159,8 +242,8 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
       return newConfig;
     });
 
-    setSyncSuccessMsg(`Successfully synced ${result.items.length} changes from GitHub!`);
-    setTimeout(() => setSyncSuccessMsg(null), 4000);
+    setSyncSuccessMsg(`Retrieved ${result.items.length} commits from GitHub! Click 'Commit to Cloud' to persist.`);
+    setTimeout(() => setSyncSuccessMsg(null), 6000);
   };
 
   // Save edited app version
@@ -263,13 +346,16 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
     setEditingItemId(null);
   };
 
-  // Delete item
+  // Delete item permanently
   const handleDeleteItem = (id: string) => {
     setConfig(prev => {
       const updatedEntries = prev.entries.filter(e => e.id !== id);
+      const prevDeleted = prev.deletedEntryIds || [];
+      const updatedDeleted = prevDeleted.includes(id) ? prevDeleted : [...prevDeleted, id];
       const newConfig: ChangelogConfig = {
         ...prev,
-        entries: updatedEntries
+        entries: updatedEntries,
+        deletedEntryIds: updatedDeleted
       };
       saveChangelogConfig(newConfig);
       return newConfig;
@@ -282,21 +368,23 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
 
   // Reset to default changelog
   const handleResetDefaults = () => {
-    setConfig(DEFAULT_CHANGELOG_CONFIG);
-    saveChangelogConfig(DEFAULT_CHANGELOG_CONFIG);
+    const resetConfig: ChangelogConfig = {
+      ...DEFAULT_CHANGELOG_CONFIG,
+      deletedEntryIds: []
+    };
+    setConfig(resetConfig);
+    saveChangelogConfig(resetConfig);
     setIsConfirmingReset(false);
   };
 
   // Filter entries
   const filteredEntries = config.entries.filter(item => {
-    // Filter by tag/source
     if (activeFilter !== 'all') {
       if (activeFilter === 'github' && item.source !== 'github') return false;
       if (activeFilter === 'manual' && item.source === 'github') return false;
       if (activeFilter !== 'github' && activeFilter !== 'manual' && item.tag !== activeFilter) return false;
     }
 
-    // Search query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       const matchTitle = item.title.toLowerCase().includes(q);
@@ -321,11 +409,11 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
             ? 'bg-[#111827] text-white border-[#111827]'
             : 'bg-white/95 backdrop-blur-xs text-[#111827] border-[#E5E7EB] hover:border-[#111827] hover:bg-white'
         }`}
-        title="View Metta Map Changelog & Latest Changes"
+        title={diff.hasChanges ? 'View Changelog (Uncommitted changes pending)' : 'View Metta Map Changelog & Latest Changes'}
         aria-label="View Changelog"
       >
         <span className="flex items-center space-x-1.5">
-          <GitCommit className={`w-3.5 h-3.5 ${isOpen ? 'text-[#D9C01B]' : 'text-[#059669]'}`} />
+          <GitCommit className={`w-3.5 h-3.5 ${diff.hasChanges ? 'text-amber-500' : isOpen ? 'text-[#D9C01B]' : 'text-[#059669]'}`} />
           <span className="font-technical text-[11px] font-bold tracking-tight">
             v{config.appVersion}
           </span>
@@ -336,6 +424,14 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
         <span className="font-sans text-[11px] font-medium hidden xs:inline-block">
           Changelog
         </span>
+
+        {/* Uncommitted changes pending indicator dot */}
+        {diff.hasChanges && (
+          <span 
+            className="w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white shrink-0 animate-pulse ml-0.5" 
+            title="Uncommitted changes pending sync to cloud" 
+          />
+        )}
 
         {editMode && (
           <span className="bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] text-[9px] font-technical uppercase font-bold px-1 py-0.2 rounded-[2px] ml-1">
@@ -355,7 +451,7 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
           onMouseUp={(e) => e.stopPropagation()}
           onTouchStart={(e) => e.stopPropagation()}
           onTouchMove={(e) => e.stopPropagation()}
-          className="absolute bottom-11 right-0 w-[calc(100vw-32px)] sm:w-[460px] max-h-[78vh] bg-white border border-[#E5E7EB] rounded-[6px] shadow-2xl z-40 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-150 text-[#111827] overscroll-contain select-text"
+          className="absolute bottom-11 right-0 w-[calc(100vw-32px)] sm:w-[500px] max-h-[82vh] bg-white border border-[#E5E7EB] rounded-[6px] shadow-2xl z-40 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-150 text-[#111827] overscroll-contain select-text"
         >
           {/* Header */}
           <div className="p-3.5 bg-[#FAF8F5] border-b border-[#E5E7EB] flex items-center justify-between shrink-0">
@@ -392,7 +488,7 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
                       />
                       <button
                         type="submit"
-                        className="p-0.5 bg-[#111827] text-white rounded-[2px] hover:bg-[#374151]"
+                        className="p-0.5 bg-[#111827] text-white rounded-[2px] hover:bg-[#374151] cursor-pointer"
                         title="Save version"
                       >
                         <Check className="w-3 h-3" />
@@ -400,7 +496,7 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
                       <button
                         type="button"
                         onClick={() => setIsEditingVersion(false)}
-                        className="p-0.5 text-[#8C877F] hover:text-[#111827]"
+                        className="p-0.5 text-[#8C877F] hover:text-[#111827] cursor-pointer"
                         title="Cancel"
                       >
                         <X className="w-3 h-3" />
@@ -409,13 +505,27 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
                   )}
                 </div>
                 <p className="font-technical text-[9px] text-[#716C64] uppercase tracking-wider mt-0.5">
-                  Latest releases & live GitHub commits
+                  Releases, GitHub Commits & Cloud Sync
                 </p>
               </div>
             </div>
 
             {/* Header Right Actions */}
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center space-x-1.5">
+              {/* Quick Commit button in header if uncommitted changes exist */}
+              {diff.hasChanges && (
+                <button
+                  type="button"
+                  onClick={handleCommitToCloud}
+                  disabled={isCommittingToCloud}
+                  className="flex items-center space-x-1 px-2.5 py-1 bg-[#059669] hover:bg-[#047857] text-white rounded-[3px] text-[10px] font-technical font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                  title="Commit changes to Cloud Firestore"
+                >
+                  <CloudUpload className={`w-3 h-3 ${isCommittingToCloud ? 'animate-bounce' : ''}`} />
+                  <span>{isCommittingToCloud ? 'Committing...' : 'Commit'}</span>
+                </button>
+              )}
+
               <button
                 type="button"
                 onClick={() => handleSyncGitHub()}
@@ -436,7 +546,67 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
             </div>
           </div>
 
-          {/* GitHub Connection & Edit Mode Bar */}
+          {/* UNCOMMITTED CHANGES IDENTIFIED BANNER */}
+          {diff.hasChanges && (
+            <div className="px-3.5 py-2.5 bg-[#FFFBEB] border-b border-[#FDE68A] flex flex-col sm:flex-row sm:items-center justify-between gap-2 shrink-0 animate-in fade-in duration-150">
+              <div className="flex items-start space-x-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 mt-0.5 shrink-0 animate-ping" />
+                <div className="text-xs">
+                  <span className="font-technical font-bold text-[#92400E] block leading-tight">
+                    Uncommitted Changes Identified ({diff.summary.length})
+                  </span>
+                  <p className="font-sans text-[11px] text-[#78350F] leading-snug mt-0.5">
+                    {diff.summary.join(' • ')}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleCommitToCloud}
+                disabled={isCommittingToCloud}
+                className="flex items-center justify-center space-x-1.5 px-3 py-1.5 bg-[#059669] hover:bg-[#047857] text-white rounded-[3px] text-xs font-sans font-bold shadow-xs cursor-pointer transition-all shrink-0 disabled:opacity-50"
+                title="Commit these changelog updates directly to Cloud Firestore"
+              >
+                <CloudUpload className={`w-3.5 h-3.5 ${isCommittingToCloud ? 'animate-bounce' : ''}`} />
+                <span>{isCommittingToCloud ? 'Committing...' : 'Commit to Cloud'}</span>
+              </button>
+            </div>
+          )}
+
+          {/* Cloud Commit Success / Error Feedback */}
+          {cloudCommitSuccessMsg && (
+            <div className="px-3.5 py-2 bg-emerald-50 border-b border-emerald-200 text-emerald-800 text-[11px] flex items-center justify-between shrink-0 animate-in fade-in duration-150">
+              <div className="flex items-center space-x-1.5 truncate">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span className="font-medium truncate">{cloudCommitSuccessMsg}</span>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setCloudCommitSuccessMsg(null)}
+                className="text-emerald-600 hover:text-emerald-900 ml-2"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          )}
+
+          {cloudCommitError && (
+            <div className="px-3.5 py-2 bg-red-50 border-b border-red-200 text-red-700 text-[11px] flex items-center justify-between shrink-0 animate-in fade-in duration-150">
+              <div className="flex items-center space-x-1.5 truncate">
+                <AlertCircle className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                <span className="truncate">{cloudCommitError}</span>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setCloudCommitError(null)}
+                className="text-red-600 hover:text-red-900 ml-2"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          )}
+
+          {/* GitHub Connection & Repository Bar */}
           <div className="px-3 py-2 bg-[#FAF8F5]/60 border-b border-[#E5E7EB] flex flex-col space-y-1.5 shrink-0 text-xs">
             <div className="flex items-center justify-between text-[11px]">
               <div className="flex items-center space-x-1.5 truncate max-w-[280px]">
@@ -454,15 +624,25 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
                 </a>
               </div>
 
-              {editMode && (
-                <button
-                  type="button"
-                  onClick={() => setIsEditingRepo(!isEditingRepo)}
-                  className="font-technical text-[10px] text-[#059669] hover:underline font-bold"
-                >
-                  {isEditingRepo ? 'Close' : 'Change Repo'}
-                </button>
-              )}
+              <div className="flex items-center space-x-2">
+                {/* Cloud sync status indicator */}
+                {!diff.hasChanges && (
+                  <span className="font-technical text-[9.5px] text-[#059669] flex items-center gap-1 font-semibold">
+                    <CheckCheck className="w-3 h-3" />
+                    <span className="hidden sm:inline">Cloud Synced</span>
+                  </span>
+                )}
+
+                {editMode && (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingRepo(!isEditingRepo)}
+                    className="font-technical text-[10px] text-[#059669] hover:underline font-bold cursor-pointer"
+                  >
+                    {isEditingRepo ? 'Close' : 'Change Repo'}
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Editable repo form in edit mode */}
@@ -526,9 +706,32 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
             <div className="px-3 py-2 bg-[#FFFBEB] border-b border-[#FDE68A] flex items-center justify-between shrink-0">
               <div className="flex items-center space-x-1.5 text-[10px] text-[#92400E] font-medium">
                 <Wrench className="w-3 h-3 shrink-0" />
-                <span>Edit Mode Enabled: You can add releases & edit logs.</span>
+                <span className="hidden sm:inline">Edit Mode: You can author releases & edit logs.</span>
+                <span className="sm:hidden">Edit Mode Active</span>
               </div>
               <div className="flex items-center space-x-1.5">
+                {/* Commit to cloud button inside edit banner */}
+                <button
+                  type="button"
+                  onClick={handleCommitToCloud}
+                  disabled={isCommittingToCloud || !diff.hasChanges}
+                  className={`flex items-center space-x-1 px-2 py-1 rounded-[3px] text-[10px] font-technical font-bold transition-all cursor-pointer ${
+                    diff.hasChanges
+                      ? 'bg-[#059669] hover:bg-[#047857] text-white shadow-xs'
+                      : 'bg-white/80 text-[#6B7280] border border-[#E5E7EB] opacity-60 cursor-not-allowed'
+                  }`}
+                  title={diff.hasChanges ? 'Commit changes to Cloud Firestore' : 'All changes already synchronized with Cloud Firestore'}
+                >
+                  <CloudUpload className={`w-3 h-3 ${isCommittingToCloud ? 'animate-bounce' : ''}`} />
+                  <span>
+                    {isCommittingToCloud 
+                      ? 'Committing...' 
+                      : diff.hasChanges 
+                        ? `Commit (${diff.summary.length})` 
+                        : 'Cloud Synced'}
+                  </span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => setShowAddForm(!showAddForm)}
@@ -595,7 +798,7 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
                     type="text"
                     value={newVersion}
                     onChange={(e) => setNewVersion(e.target.value)}
-                    placeholder={config.appVersion || "1.0.0"}
+                    placeholder={config.appVersion || "1.2.2"}
                     className="w-full text-xs font-technical px-2 py-1 border border-[#E5E7EB] rounded-[3px] outline-none focus:border-[#111827]"
                   />
                 </div>
@@ -666,7 +869,7 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
                 <button
                   type="submit"
                   disabled={!newTitle.trim()}
-                  className="px-3.5 py-1 bg-[#111827] text-white rounded-[3px] text-xs font-sans font-medium hover:bg-[#374151] disabled:opacity-50"
+                  className="px-3.5 py-1 bg-[#111827] text-white rounded-[3px] text-xs font-sans font-medium hover:bg-[#374151] disabled:opacity-50 cursor-pointer"
                 >
                   Save Entry
                 </button>
@@ -689,7 +892,7 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-2 top-1.5 text-[#9CA3AF] hover:text-[#111827]"
+                  className="absolute right-2 top-1.5 text-[#9CA3AF] hover:text-[#111827] cursor-pointer"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -1024,9 +1227,23 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
             <span className="truncate">
               {config.entries.length} recorded releases & commits
             </span>
-            <span className="text-[#6B7280]">
-              {editMode ? 'Edit Mode: Unlocked' : 'Read-Only View'}
-            </span>
+            <div className="flex items-center space-x-2">
+              {diff.hasChanges ? (
+                <span className="text-amber-700 font-bold flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  Uncommitted changes
+                </span>
+              ) : (
+                <span className="text-[#059669] font-medium flex items-center gap-1">
+                  <CheckCheck className="w-3 h-3" />
+                  Cloud Synced
+                </span>
+              )}
+              <span className="text-[#D1D5DB]">|</span>
+              <span className="text-[#6B7280]">
+                {editMode ? 'Edit Mode: Unlocked' : 'Read-Only View'}
+              </span>
+            </div>
           </div>
         </div>
       )}

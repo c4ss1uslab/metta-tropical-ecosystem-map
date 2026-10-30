@@ -615,17 +615,7 @@ export const Header: React.FC<HeaderProps> = ({
               <RefreshCw className="w-4 h-4 text-[#111827]" />
             </button>
 
-            {onOpenPositionSnapshotModal && (
-              <button
-                id="header-snapshot-btn"
-                onClick={onOpenPositionSnapshotModal}
-                title="Positions Snapshot (Export / Import coordinates & boundaries)"
-                aria-label="Positions Snapshot"
-                className="p-1.5 text-[#2563EB] hover:bg-[#EFF6FF] border border-[#BFDBFE] hover:border-[#2563EB] rounded-[4px] transition-all cursor-pointer bg-white shadow-xs"
-              >
-                <Layers className="w-4 h-4 text-[#2563EB]" />
-              </button>
-            )}
+            {/* Snapshots button removed from top menu in edit mode per user request */}
           </div>
         )}
 

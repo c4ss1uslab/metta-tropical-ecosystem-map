@@ -496,7 +496,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
 
   const [isUniformQuadrantSizing, setIsUniformQuadrantSizing] = useState(true);
   const [isDetailedQuadrantHudOpen, setIsDetailedQuadrantHudOpen] = useState(false);
-  const [isQuadrantHudMinimized, setIsQuadrantHudMinimized] = useState(false);
+  const [isQuadrantHudOpen, setIsQuadrantHudOpen] = useState(false);
 
   // Stable World Bounds Calculation:
   // World bounds encompass all quadrants stably so SVG frame does not shear or jump during focus views
@@ -2906,245 +2906,231 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
 
 
 
-      {/* EDIT MODE: FLOATING QUADRANT SIZING HUD */}
-      {editMode && onUpdateQuadrantSizes && (
-        isQuadrantHudMinimized ? (
-          <div className="absolute bottom-16 left-4 z-40">
+      {/* EDIT MODE: FLOATING QUADRANT SIZING HUD (Only appears when clicked from the right sidebar/toolbar below snapshots) */}
+      {editMode && onUpdateQuadrantSizes && isQuadrantHudOpen && (
+        <div className="absolute top-4 right-14 z-40 w-80 bg-[#111827]/95 backdrop-blur-md text-white rounded-[6px] shadow-2xl border border-[#374151] p-3 text-xs font-sans space-y-2.5 animate-in fade-in zoom-in-95 duration-150">
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-gray-700 pb-2">
+            <div className="flex items-center space-x-2">
+              <Maximize2 className="w-4 h-4 text-[#D9C01B]" />
+              <span className="font-editorial font-bold text-sm text-[#F9FAFB]">
+                Quadrant Sizes
+              </span>
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-technical uppercase font-semibold bg-[#059669]/20 text-[#34D399] border border-[#059669]/40">
+                Layer {activeLayer}
+              </span>
+            </div>
             <button
-              onClick={() => setIsQuadrantHudMinimized(false)}
-              className="flex items-center space-x-2 bg-[#111827]/95 hover:bg-[#111827] text-white px-3 py-1.5 rounded-[5px] shadow-xl border border-[#D9C01B]/50 text-xs font-editorial cursor-pointer transition-all hover:scale-[1.02]"
-              title="Open Quadrant Sizing Tool"
+              onClick={() => setIsQuadrantHudOpen(false)}
+              className="p-1 hover:bg-white/10 rounded text-gray-400 hover:text-white cursor-pointer transition-colors"
+              title="Close Quadrant Sizing Panel"
             >
-              <Maximize2 className="w-3.5 h-3.5 text-[#D9C01B]" />
-              <span>Quadrant Sizes (Layer {activeLayer}: {currentQuadrantSizes.Inner.width}px)</span>
-              <ChevronUp className="w-3.5 h-3.5 text-gray-400" />
+              <X className="w-4 h-4" />
             </button>
           </div>
-        ) : (
-          <div className="absolute bottom-16 left-4 z-40 w-80 bg-[#111827]/95 backdrop-blur-md text-white rounded-[6px] shadow-2xl border border-[#374151] p-3 text-xs font-sans space-y-2.5 animate-in fade-in duration-150">
-            {/* Header */}
-            <div className="flex items-center justify-between border-b border-gray-700 pb-2">
-              <div className="flex items-center space-x-2">
-                <Maximize2 className="w-4 h-4 text-[#D9C01B]" />
-                <span className="font-editorial font-bold text-sm text-[#F9FAFB]">
-                  Quadrant Sizes
-                </span>
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-technical uppercase font-semibold bg-[#059669]/20 text-[#34D399] border border-[#059669]/40">
-                  Layer {activeLayer}
-                </span>
-              </div>
-              <button
-                onClick={() => setIsQuadrantHudMinimized(true)}
-                className="p-1 hover:bg-white/10 rounded text-gray-400 hover:text-white cursor-pointer transition-colors"
-                title="Minimize Quadrant Sizing Panel"
-              >
-                <ChevronDown className="w-4 h-4" />
-              </button>
-            </div>
 
-            {/* Layer Selector Tabs */}
-            <div className="space-y-1">
-              <div className="text-[10px] font-technical uppercase tracking-wider text-gray-400 flex items-center justify-between">
-                <span>Active Layer:</span>
-                <span className="text-[10px] text-gray-400">Loads attributed size</span>
-              </div>
-              <div className="grid grid-cols-4 gap-1">
-                {[
-                  { id: 1 as const, label: 'Layer 1' },
-                  { id: 2 as const, label: 'Layer 2' },
-                  { id: 3 as const, label: 'Layer 3' },
-                  { id: 'all' as const, label: 'All' }
-                ].map(tab => (
-                  <button
-                    key={String(tab.id)}
-                    onClick={() => onSelectLayer && onSelectLayer(tab.id)}
-                    className={`py-1 text-[11px] font-editorial font-semibold rounded-[3px] transition-all cursor-pointer border ${
-                      activeLayer === tab.id
-                        ? 'bg-[#D9C01B] text-[#111827] border-[#D9C01B] shadow-xs'
-                        : 'bg-[#1F2937] hover:bg-[#374151] text-gray-300 border-[#374151]'
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
+          {/* Layer Selector Tabs */}
+          <div className="space-y-1">
+            <div className="text-[10px] font-technical uppercase tracking-wider text-gray-400 flex items-center justify-between">
+              <span>Active Layer:</span>
+              <span className="text-[10px] text-gray-400">Loads attributed size</span>
             </div>
-
-            {/* Quick Presets */}
-            <div className="space-y-1 pt-1 border-t border-gray-800">
-              <div className="flex items-center justify-between text-[10px] font-technical text-gray-400">
-                <span>Quick Presets:</span>
-                <span className="font-mono text-[#D9C01B]">{currentQuadrantSizes.Inner.width} × {currentQuadrantSizes.Inner.height} px</span>
-              </div>
-              <div className="grid grid-cols-4 gap-1">
-                {[
-                  { label: 'Compact', size: 750 },
-                  { label: 'Default', size: activeLayer === 1 ? 950 : (activeLayer === 2 ? 1400 : 1600) },
-                  { label: 'Medium', size: 1250 },
-                  { label: 'Spacious', size: 1600 }
-                ].map(preset => (
-                  <button
-                    key={preset.label}
-                    onClick={() => {
-                      if (onUpdateQuadrantSizes) {
-                        onUpdateQuadrantSizes({
-                          Inner: { width: preset.size, height: preset.size },
-                          Social: { width: preset.size, height: preset.size },
-                          Cultural: { width: preset.size, height: preset.size },
-                          Systems: { width: preset.size, height: preset.size }
-                        }, activeLayer);
-                      }
-                    }}
-                    className={`py-1 text-[10px] font-technical uppercase rounded-[3px] transition-colors cursor-pointer border ${
-                      currentQuadrantSizes.Inner.width === preset.size
-                        ? 'bg-[#2563EB] text-white border-[#3B82F6]'
-                        : 'bg-[#1F2937] hover:bg-[#374151] text-gray-300 border-gray-700'
-                    }`}
-                    title={`Set quadrants for Layer ${activeLayer} to ${preset.size}px`}
-                  >
-                    {preset.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Uniform Size Slider */}
-            <div className="space-y-1.5 pt-1 border-t border-gray-800">
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-gray-300">Uniform Size:</span>
-                <span className="font-mono text-xs text-[#D9C01B] font-bold">
-                  {currentQuadrantSizes.Inner.width} px
-                </span>
-              </div>
-              <input
-                type="range"
-                min="500"
-                max="2500"
-                step="25"
-                value={currentQuadrantSizes.Inner.width}
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  if (onUpdateQuadrantSizes) {
-                    onUpdateQuadrantSizes({
-                      Inner: { width: val, height: val },
-                      Social: { width: val, height: val },
-                      Cultural: { width: val, height: val },
-                      Systems: { width: val, height: val }
-                    }, activeLayer);
-                  }
-                }}
-                className="w-full accent-[#D9C01B] cursor-pointer"
-              />
-            </div>
-
-            {/* Auto-Fit and Actions */}
-            <div className="pt-2 border-t border-gray-800 flex items-center justify-between gap-1.5">
-              {onAutoFitQuadrantSizes && (
+            <div className="grid grid-cols-4 gap-1">
+              {[
+                { id: 1 as const, label: 'Layer 1' },
+                { id: 2 as const, label: 'Layer 2' },
+                { id: 3 as const, label: 'Layer 3' },
+                { id: 'all' as const, label: 'All' }
+              ].map(tab => (
                 <button
-                  onClick={() => onAutoFitQuadrantSizes(activeLayer)}
-                  className="flex-1 py-1 px-2 bg-[#059669] hover:bg-[#047857] text-white font-technical uppercase font-bold text-[10px] rounded-[3px] transition-colors flex items-center justify-center space-x-1 cursor-pointer shadow-xs"
-                  title={`Automatically fit quadrant sizes for Layer ${activeLayer} based on its initiative coordinates`}
+                  key={String(tab.id)}
+                  onClick={() => onSelectLayer && onSelectLayer(tab.id)}
+                  className={`py-1 text-[11px] font-editorial font-semibold rounded-[3px] transition-all cursor-pointer border ${
+                    activeLayer === tab.id
+                      ? 'bg-[#D9C01B] text-[#111827] border-[#D9C01B] shadow-xs'
+                      : 'bg-[#1F2937] hover:bg-[#374151] text-gray-300 border-[#374151]'
+                  }`}
                 >
-                  <Wand2 className="w-3 h-3" />
-                  <span>Auto-Fit Layer</span>
+                  {tab.label}
                 </button>
-              )}
-              <button
-                onClick={() => setIsDetailedQuadrantHudOpen(!isDetailedQuadrantHudOpen)}
-                className={`py-1 px-2 text-[10px] font-technical uppercase rounded-[3px] transition-colors flex items-center space-x-1 cursor-pointer border ${
-                  isDetailedQuadrantHudOpen
-                    ? 'bg-[#374151] text-white border-gray-500'
-                    : 'bg-[#1F2937] hover:bg-[#374151] text-gray-300 border-gray-700'
-                }`}
-                title="Toggle individual quadrant width and height sliders"
-              >
-                <Sliders className="w-3 h-3" />
-                <span>Details</span>
-              </button>
-              {onResetQuadrantSizes && (
-                <button
-                  onClick={() => onResetQuadrantSizes(activeLayer)}
-                  className="py-1 px-2 bg-[#1F2937] hover:bg-red-900/40 text-gray-300 hover:text-red-200 text-[10px] font-technical uppercase rounded-[3px] transition-colors border border-gray-700 cursor-pointer"
-                  title={`Reset Layer ${activeLayer} quadrant sizes to default`}
-                >
-                  <RotateCcw className="w-3 h-3" />
-                </button>
-              )}
-            </div>
-
-            {/* Detailed Per-Quadrant Sliders */}
-            {isDetailedQuadrantHudOpen && (
-              <div className="pt-2 border-t border-gray-800 space-y-2 text-[11px] animate-in fade-in duration-150">
-                <div className="text-[10px] font-technical uppercase text-gray-400">
-                  Individual Quadrant Dimensions:
-                </div>
-                {(['Inner', 'Social', 'Cultural', 'Systems'] as CategoryQuadrant[]).map(q => {
-                  const colors: Record<CategoryQuadrant, string> = {
-                    Inner: '#A78BFA',
-                    Social: '#FDE047',
-                    Cultural: '#86EFAC',
-                    Systems: '#7DD3FC'
-                  };
-                  return (
-                    <div key={q} className="bg-black/20 p-1.5 rounded-[3px] space-y-1">
-                      <div className="flex items-center justify-between font-editorial font-bold" style={{ color: colors[q] }}>
-                        <span>{q} Change</span>
-                        <span className="font-mono text-[10px]">
-                          {currentQuadrantSizes[q].width} × {currentQuadrantSizes[q].height}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <label className="flex items-center space-x-1">
-                          <span className="text-[9px] text-gray-400">W:</span>
-                          <input
-                            type="range"
-                            min="450"
-                            max="2500"
-                            step="25"
-                            value={currentQuadrantSizes[q].width}
-                            onChange={(e) => {
-                              if (onUpdateQuadrantSizes) {
-                                onUpdateQuadrantSizes({
-                                  ...currentQuadrantSizes,
-                                  [q]: { ...currentQuadrantSizes[q], width: Number(e.target.value) }
-                                }, activeLayer);
-                              }
-                            }}
-                            className="w-full accent-white cursor-pointer"
-                          />
-                        </label>
-                        <label className="flex items-center space-x-1">
-                          <span className="text-[9px] text-gray-400">H:</span>
-                          <input
-                            type="range"
-                            min="450"
-                            max="2500"
-                            step="25"
-                            value={currentQuadrantSizes[q].height}
-                            onChange={(e) => {
-                              if (onUpdateQuadrantSizes) {
-                                onUpdateQuadrantSizes({
-                                  ...currentQuadrantSizes,
-                                  [q]: { ...currentQuadrantSizes[q], height: Number(e.target.value) }
-                                }, activeLayer);
-                              }
-                            }}
-                            className="w-full accent-white cursor-pointer"
-                          />
-                        </label>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            <div className="text-[9px] text-gray-400 italic pt-1 border-t border-gray-800 flex items-center justify-between">
-              <span>• Drag corner handles on map or use sliders</span>
-              <span className="text-gray-500">Auto-saved</span>
+              ))}
             </div>
           </div>
-        )
+
+          {/* Quick Presets */}
+          <div className="space-y-1 pt-1 border-t border-gray-800">
+            <div className="flex items-center justify-between text-[10px] font-technical text-gray-400">
+              <span>Quick Presets:</span>
+              <span className="font-mono text-[#D9C01B]">{currentQuadrantSizes.Inner.width} × {currentQuadrantSizes.Inner.height} px</span>
+            </div>
+            <div className="grid grid-cols-4 gap-1">
+              {[
+                { label: 'Compact', size: 750 },
+                { label: 'Default', size: activeLayer === 1 ? 950 : (activeLayer === 2 ? 1400 : 1600) },
+                { label: 'Medium', size: 1250 },
+                { label: 'Spacious', size: 1600 }
+              ].map(preset => (
+                <button
+                  key={preset.label}
+                  onClick={() => {
+                    if (onUpdateQuadrantSizes) {
+                      onUpdateQuadrantSizes({
+                        Inner: { width: preset.size, height: preset.size },
+                        Social: { width: preset.size, height: preset.size },
+                        Cultural: { width: preset.size, height: preset.size },
+                        Systems: { width: preset.size, height: preset.size }
+                      }, activeLayer);
+                    }
+                  }}
+                  className={`py-1 text-[10px] font-technical uppercase rounded-[3px] transition-colors cursor-pointer border ${
+                    currentQuadrantSizes.Inner.width === preset.size
+                      ? 'bg-[#2563EB] text-white border-[#3B82F6]'
+                      : 'bg-[#1F2937] hover:bg-[#374151] text-gray-300 border-gray-700'
+                  }`}
+                  title={`Set quadrants for Layer ${activeLayer} to ${preset.size}px`}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Uniform Size Slider */}
+          <div className="space-y-1.5 pt-1 border-t border-gray-800">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-gray-300">Uniform Size:</span>
+              <span className="font-mono text-xs text-[#D9C01B] font-bold">
+                {currentQuadrantSizes.Inner.width} px
+              </span>
+            </div>
+            <input
+              type="range"
+              min="500"
+              max="2500"
+              step="25"
+              value={currentQuadrantSizes.Inner.width}
+              onChange={(e) => {
+                const val = Number(e.target.value);
+                if (onUpdateQuadrantSizes) {
+                  onUpdateQuadrantSizes({
+                    Inner: { width: val, height: val },
+                    Social: { width: val, height: val },
+                    Cultural: { width: val, height: val },
+                    Systems: { width: val, height: val }
+                  }, activeLayer);
+                }
+              }}
+              className="w-full accent-[#D9C01B] cursor-pointer"
+            />
+          </div>
+
+          {/* Auto-Fit and Actions */}
+          <div className="pt-2 border-t border-gray-800 flex items-center justify-between gap-1.5">
+            {onAutoFitQuadrantSizes && (
+              <button
+                onClick={() => onAutoFitQuadrantSizes(activeLayer)}
+                className="flex-1 py-1 px-2 bg-[#059669] hover:bg-[#047857] text-white font-technical uppercase font-bold text-[10px] rounded-[3px] transition-colors flex items-center justify-center space-x-1 cursor-pointer shadow-xs"
+                title={`Automatically fit quadrant sizes for Layer ${activeLayer} based on its initiative coordinates`}
+              >
+                <Wand2 className="w-3 h-3" />
+                <span>Auto-Fit Layer</span>
+              </button>
+            )}
+            <button
+              onClick={() => setIsDetailedQuadrantHudOpen(!isDetailedQuadrantHudOpen)}
+              className={`py-1 px-2 text-[10px] font-technical uppercase rounded-[3px] transition-colors flex items-center space-x-1 cursor-pointer border ${
+                isDetailedQuadrantHudOpen
+                  ? 'bg-[#374151] text-white border-gray-500'
+                  : 'bg-[#1F2937] hover:bg-[#374151] text-gray-300 border-gray-700'
+              }`}
+              title="Toggle individual quadrant width and height sliders"
+            >
+              <Sliders className="w-3 h-3" />
+              <span>Details</span>
+            </button>
+            {onResetQuadrantSizes && (
+              <button
+                onClick={() => onResetQuadrantSizes(activeLayer)}
+                className="py-1 px-2 bg-[#1F2937] hover:bg-red-900/40 text-gray-300 hover:text-red-200 text-[10px] font-technical uppercase rounded-[3px] transition-colors border border-gray-700 cursor-pointer"
+                title={`Reset Layer ${activeLayer} quadrant sizes to default`}
+              >
+                <RotateCcw className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+
+          {/* Detailed Per-Quadrant Sliders */}
+          {isDetailedQuadrantHudOpen && (
+            <div className="pt-2 border-t border-gray-800 space-y-2 text-[11px] animate-in fade-in duration-150">
+              <div className="text-[10px] font-technical uppercase text-gray-400">
+                Individual Quadrant Dimensions:
+              </div>
+              {(['Inner', 'Social', 'Cultural', 'Systems'] as CategoryQuadrant[]).map(q => {
+                const colors: Record<CategoryQuadrant, string> = {
+                  Inner: '#A78BFA',
+                  Social: '#FDE047',
+                  Cultural: '#86EFAC',
+                  Systems: '#7DD3FC'
+                };
+                return (
+                  <div key={q} className="bg-black/20 p-1.5 rounded-[3px] space-y-1">
+                    <div className="flex items-center justify-between font-editorial font-bold" style={{ color: colors[q] }}>
+                      <span>{q} Change</span>
+                      <span className="font-mono text-[10px]">
+                        {currentQuadrantSizes[q].width} × {currentQuadrantSizes[q].height}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <label className="flex items-center space-x-1">
+                        <span className="text-[9px] text-gray-400">W:</span>
+                        <input
+                          type="range"
+                          min="450"
+                          max="2500"
+                          step="25"
+                          value={currentQuadrantSizes[q].width}
+                          onChange={(e) => {
+                            if (onUpdateQuadrantSizes) {
+                              onUpdateQuadrantSizes({
+                                ...currentQuadrantSizes,
+                                [q]: { ...currentQuadrantSizes[q], width: Number(e.target.value) }
+                              }, activeLayer);
+                            }
+                          }}
+                          className="w-full accent-white cursor-pointer"
+                        />
+                      </label>
+                      <label className="flex items-center space-x-1">
+                        <span className="text-[9px] text-gray-400">H:</span>
+                        <input
+                          type="range"
+                          min="450"
+                          max="2500"
+                          step="25"
+                          value={currentQuadrantSizes[q].height}
+                          onChange={(e) => {
+                            if (onUpdateQuadrantSizes) {
+                              onUpdateQuadrantSizes({
+                                ...currentQuadrantSizes,
+                                [q]: { ...currentQuadrantSizes[q], height: Number(e.target.value) }
+                              }, activeLayer);
+                            }
+                          }}
+                          className="w-full accent-white cursor-pointer"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="text-[9px] text-gray-400 italic pt-1 border-t border-gray-800 flex items-center justify-between">
+            <span>• Drag corner handles on map or use sliders</span>
+            <span className="text-gray-500">Auto-saved</span>
+          </div>
+        </div>
       )}
 
       {/* EDIT MODE BOTTOM STATUS RIBBON */}
@@ -3292,11 +3278,28 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
 
             {onOpenPositionSnapshotModal && (
               <button
+                id="canvas-right-snapshot-btn"
                 onClick={onOpenPositionSnapshotModal}
                 title="Positions Snapshot (Export / Import JSON)"
                 className="p-1.5 rounded-[2px] transition-colors flex items-center justify-center cursor-pointer text-[#4B5563] hover:bg-[#FAF8F5] hover:text-[#2563EB]"
               >
                 <Layers className="w-3.5 h-3.5" />
+              </button>
+            )}
+
+            {/* Quadrant Sizes button placed in the right sidebar below the snapshots */}
+            {onUpdateQuadrantSizes && (
+              <button
+                id="canvas-right-quadrant-sizes-btn"
+                onClick={() => setIsQuadrantHudOpen(prev => !prev)}
+                title={isQuadrantHudOpen ? "Close Quadrant Sizes Control" : "Quadrant Sizes (Adjust Inner, Social, Cultural & Systems dimensions)"}
+                className={`p-1.5 rounded-[2px] transition-colors flex items-center justify-center cursor-pointer ${
+                  isQuadrantHudOpen
+                    ? 'bg-[#111827] text-[#D9C01B] shadow-xs'
+                    : 'text-[#4B5563] hover:bg-[#FAF8F5] hover:text-[#111827]'
+                }`}
+              >
+                <Maximize2 className="w-3.5 h-3.5" />
               </button>
             )}
           </div>

@@ -9,7 +9,7 @@ import {
   Check, Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { EcosystemEntity, CategoryQuadrant, EntityType, ContinentInfo, SidebarListScope, DataQualityStatus, DataCompletenessLevel, DATA_COMPLETENESS_LEVELS, DATA_COMPLETENESS_CONFIG, getEntityCompleteness, getCompletenessConfig, ConnectedInstitutionNode } from '../types';
+import { EcosystemEntity, CategoryQuadrant, EntityType, ContinentInfo, SidebarListScope, DataQualityStatus, DataCompletenessLevel, DATA_COMPLETENESS_LEVELS, DATA_COMPLETENESS_CONFIG, getEntityCompleteness, getCompletenessConfig, ConnectedInstitutionNode, LayerQuadrantSizes, LayerQuadrantConfig, DEFAULT_LAYER_QUADRANT_SIZES, getQuadrantSizesForLayer } from '../types';
 import { suggestContinent, getEntityIntersectionZone, isEntityEcotone, formatClusterWithNumber, getEntityOtherArchipelagos, entityMatchesArchipelago, filterProfileTags, isEntityPrimaryToArchipelago, normalizeArchipelagoBaseName } from '../utils/layoutGenerator';
 import { CommunityNotesSection } from './CommunityNotesSection';
 import { formatDisplayUrl, cleanWebsiteUrl, extractSocialLinks, parseSocialProfilesField, getSocialPlatformLabel, isTransformationFocusValue, SocialLink } from '../utils/socialMedia';
@@ -1438,6 +1438,14 @@ interface RightSidebarProps {
   onScaleContinent?: (continentName: string, factor: number) => void;
   onFitContinentTightly?: (continentName: string) => void;
   setEditMode?: (val: boolean | ((prev: boolean) => boolean)) => void;
+  onOpenPositionSnapshotModal?: () => void;
+  quadrantSizes?: LayerQuadrantSizes;
+  onUpdateQuadrantSizes?: (newSizes: LayerQuadrantSizes, targetLayer?: 1 | 2 | 3 | 'all') => void;
+  activeLayer?: 1 | 2 | 3 | 'all';
+  onSelectLayer?: (layer: 1 | 2 | 3 | 'all') => void;
+  onResetQuadrantSizes?: (layer?: 1 | 2 | 3 | 'all') => void;
+  onAutoFitQuadrantSizes?: (layer?: 1 | 2 | 3 | 'all') => void;
+  allLayerQuadrantSizes?: LayerQuadrantConfig;
 }
 
 export const RightSidebar: React.FC<RightSidebarProps> = ({
@@ -1487,11 +1495,24 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   onScaleContinent,
   onFitContinentTightly,
   setEditMode,
+  onOpenPositionSnapshotModal,
+  quadrantSizes,
+  onUpdateQuadrantSizes,
+  activeLayer = 1,
+  onSelectLayer,
+  onResetQuadrantSizes,
+  onAutoFitQuadrantSizes,
+  allLayerQuadrantSizes,
 }) => {
   const [newTagInput, setNewTagInput] = useState('');
   const [snapshotSearch, setSnapshotSearch] = useState('');
   const [isEnlarged, setIsEnlarged] = useState(initialEnlarged || enlargedOnly || fullPageEmbedded);
   const [unmappedPopupEntity, setUnmappedPopupEntity] = useState<string | null>(null);
+  const [isSidebarQuadrantOpen, setIsSidebarQuadrantOpen] = useState(false);
+
+  const activeQuadrantSizes = useMemo(() => {
+    return quadrantSizes || getQuadrantSizesForLayer(activeLayer, allLayerQuadrantSizes);
+  }, [quadrantSizes, activeLayer, allLayerQuadrantSizes]);
 
   // Archipelago editor states
   const [isEditingArchipelagoName, setIsEditingArchipelagoName] = useState(false);
@@ -2676,6 +2697,172 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                     </div>
                   )}
                 </div>
+              </div>
+            )}
+
+            {/* Map Snapshots & Quadrant Sizes (Edit Mode) */}
+            {editMode && (
+              <div className="p-3 bg-[#FAF8F5] border border-[#E5E7EB] rounded-[4px] space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-technical text-[11px] uppercase font-bold text-[#111827] tracking-wider flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-[#2563EB]" />
+                    Map Snapshots & Layout
+                  </span>
+                </div>
+
+                <p className="font-sans text-[11px] text-[#4B5563] leading-normal">
+                  Export or restore snapshots of map coordinates and adjust quadrant dimensions.
+                </p>
+
+                {/* 1. Snapshots button */}
+                {onOpenPositionSnapshotModal && (
+                  <button
+                    type="button"
+                    onClick={onOpenPositionSnapshotModal}
+                    className="w-full flex items-center justify-center space-x-2 py-2 px-3 bg-white border border-[#BFDBFE] hover:border-[#2563EB] hover:bg-[#EFF6FF] text-[#1D4ED8] rounded-[4px] text-xs font-technical font-semibold transition-all cursor-pointer shadow-2xs"
+                    title="Export or Import positions snapshot JSON"
+                  >
+                    <Layers className="w-3.5 h-3.5 text-[#2563EB]" />
+                    <span>Positions Snapshot (Export / Import JSON)</span>
+                  </button>
+                )}
+
+                {/* 2. Quadrant Sizes below Snapshots (only opens when clicked) */}
+                {onUpdateQuadrantSizes && (
+                  <div className="space-y-2 pt-1 border-t border-[#E5E7EB]">
+                    <button
+                      type="button"
+                      onClick={() => setIsSidebarQuadrantOpen(prev => !prev)}
+                      className={`w-full flex items-center justify-between py-2 px-3 rounded-[4px] text-xs font-technical font-semibold transition-all cursor-pointer border ${
+                        isSidebarQuadrantOpen
+                          ? 'bg-[#111827] text-[#D9C01B] border-[#111827] shadow-xs'
+                          : 'bg-white hover:bg-[#FAF8F5] text-[#111827] border-[#E5E7EB] hover:border-[#111827]'
+                      }`}
+                      title="Adjust quadrant sizes across layers"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <Maximize2 className="w-3.5 h-3.5 text-[#D9C01B]" />
+                        <span>Quadrant Sizes (Layer {activeLayer})</span>
+                      </div>
+                      <span className="text-xs">
+                        {isSidebarQuadrantOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                      </span>
+                    </button>
+
+                    {/* Expandable quadrant sizing controls */}
+                    {isSidebarQuadrantOpen && (
+                      <div className="p-2.5 bg-white border border-[#E5E7EB] rounded-[4px] space-y-2.5 animate-in fade-in duration-150">
+                        {/* Layer selection */}
+                        <div className="grid grid-cols-4 gap-1">
+                          {[
+                            { id: 1 as const, label: 'L1' },
+                            { id: 2 as const, label: 'L2' },
+                            { id: 3 as const, label: 'L3' },
+                            { id: 'all' as const, label: 'All' }
+                          ].map(tab => (
+                            <button
+                              key={String(tab.id)}
+                              type="button"
+                              onClick={() => onSelectLayer?.(tab.id)}
+                              className={`py-1 text-[10px] font-technical uppercase font-bold rounded-[2px] transition-all cursor-pointer border ${
+                                activeLayer === tab.id
+                                  ? 'bg-[#111827] text-[#D9C01B] border-[#111827]'
+                                  : 'bg-[#FAF8F5] hover:bg-[#F3F4F6] text-[#374151] border-[#E5E7EB]'
+                              }`}
+                            >
+                              {tab.label}
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* Quick Presets */}
+                        <div className="space-y-1">
+                          <span className="text-[10px] font-technical uppercase text-[#8C877F] block">Quick Presets:</span>
+                          <div className="grid grid-cols-4 gap-1">
+                            {[
+                              { label: '750px', size: 750 },
+                              { label: 'Default', size: activeLayer === 1 ? 950 : (activeLayer === 2 ? 1400 : 1600) },
+                              { label: '1250px', size: 1250 },
+                              { label: '1600px', size: 1600 }
+                            ].map(p => (
+                              <button
+                                key={p.label}
+                                type="button"
+                                onClick={() => {
+                                  onUpdateQuadrantSizes?.({
+                                    Inner: { width: p.size, height: p.size },
+                                    Social: { width: p.size, height: p.size },
+                                    Cultural: { width: p.size, height: p.size },
+                                    Systems: { width: p.size, height: p.size }
+                                  }, activeLayer);
+                                }}
+                                className={`py-1 text-[10px] font-technical rounded-[2px] cursor-pointer border ${
+                                  (activeQuadrantSizes?.Inner?.width === p.size)
+                                    ? 'bg-[#2563EB] text-white border-[#2563EB] font-bold'
+                                    : 'bg-[#FAF8F5] hover:bg-[#F3F4F6] text-[#374151] border-[#E5E7EB]'
+                                }`}
+                              >
+                                {p.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Uniform slider */}
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-[11px] font-technical">
+                            <span className="font-bold text-[#111827]">Uniform Size:</span>
+                            <span className="font-mono text-[#5B21B6] font-bold">
+                              {activeQuadrantSizes?.Inner?.width || 950} px
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min="500"
+                            max="2500"
+                            step="25"
+                            value={activeQuadrantSizes?.Inner?.width || 950}
+                            onChange={(e) => {
+                              const val = Number(e.target.value);
+                              onUpdateQuadrantSizes?.({
+                                Inner: { width: val, height: val },
+                                Social: { width: val, height: val },
+                                Cultural: { width: val, height: val },
+                                Systems: { width: val, height: val }
+                              }, activeLayer);
+                            }}
+                            className="w-full accent-[#5B21B6] cursor-pointer"
+                          />
+                        </div>
+
+                        {/* Actions: Auto-Fit & Reset */}
+                        <div className="flex items-center gap-1.5 pt-1">
+                          {onAutoFitQuadrantSizes && (
+                            <button
+                              type="button"
+                              onClick={() => onAutoFitQuadrantSizes(activeLayer)}
+                              className="flex-1 py-1 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-technical text-[10.5px] font-semibold rounded-[3px] transition-colors cursor-pointer flex items-center justify-center space-x-1"
+                              title="Auto-fit quadrant boundaries around initiatives"
+                            >
+                              <Wand2 className="w-3 h-3 text-emerald-600" />
+                              <span>Auto-Fit</span>
+                            </button>
+                          )}
+                          {onResetQuadrantSizes && (
+                            <button
+                              type="button"
+                              onClick={() => onResetQuadrantSizes(activeLayer)}
+                              className="py-1 px-2 bg-white hover:bg-red-50 text-red-700 border border-red-200 font-technical text-[10.5px] rounded-[3px] transition-colors cursor-pointer"
+                              title="Reset quadrant dimensions to default"
+                            >
+                              Reset
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 

@@ -538,6 +538,7 @@ export interface ChangelogConfig {
   githubBranch: string; // e.g. "main"
   lastSyncedAt?: string;
   entries: ChangelogItem[];
+  deletedEntryIds?: string[]; // IDs of entries permanently deleted by users
 }
 
 export interface FieldDiff {

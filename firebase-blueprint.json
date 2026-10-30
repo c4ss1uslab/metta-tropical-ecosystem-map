@@ -64,12 +64,44 @@
         }
       },
       "required": ["id", "entityId", "entityName", "submitterEmail", "status"]
+    },
+    "ChangelogConfig": {
+      "title": "ChangelogConfig",
+      "description": "Application changelog entries, version, and repository tracking",
+      "type": "object",
+      "properties": {
+        "appVersion": {
+          "type": "string",
+          "description": "Current semantic version of the application"
+        },
+        "githubRepo": {
+          "type": "string",
+          "description": "Target GitHub repository in owner/repo format"
+        },
+        "githubBranch": {
+          "type": "string",
+          "description": "Target Git branch"
+        },
+        "lastSyncedAt": {
+          "type": "string",
+          "description": "ISO timestamp of last GitHub or cloud sync"
+        },
+        "entries": {
+          "type": "array",
+          "description": "List of changelog and release entries"
+        },
+        "deletedEntryIds": {
+          "type": "array",
+          "description": "List of entry IDs that have been permanently deleted"
+        }
+      },
+      "required": ["appVersion", "entries"]
     }
   },
   "firestore": {
     "/ecosystem/{docId}": {
       "schema": "PublishedDataset",
-      "description": "Published dataset documents including published_dataset and continents_config"
+      "description": "Published dataset documents including published_dataset, continents_config, and changelog_config"
     },
     "/contributions/{contributionId}": {
       "schema": "ContributionSubmission",

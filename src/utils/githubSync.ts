@@ -1,13 +1,66 @@
 import { ChangelogConfig, ChangelogItem, ChangelogTag } from '../types';
+import { db } from '../firebase';
+import { doc, getDoc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 
 export const CHANGELOG_STORAGE_KEY = 'metta_map_changelog_config_v1';
+export const CHANGELOG_COMMITTED_KEY = 'metta_map_changelog_committed_baseline_v1';
+export const CHANGELOG_FIRESTORE_DOC = 'changelog_config';
 
 export const DEFAULT_CHANGELOG_CONFIG: ChangelogConfig = {
-  appVersion: '1.2.0',
+  appVersion: '1.2.4',
   githubRepo: 'metta-earth/metta-ecosystem-map',
   githubBranch: 'main',
   lastSyncedAt: new Date().toISOString(),
+  deletedEntryIds: [],
   entries: [
+    {
+      id: 'release-1-2-4',
+      version: '1.2.4',
+      date: '2026-10-29',
+      title: 'Right-Sidebar On-Demand Quadrant Sizes & Edit Mode Header Refinement',
+      description: 'Relocated quadrant size controls to the right sidebar below snapshots with on-demand display, and cleaned top header in edit mode.',
+      changes: [
+        'Prevented the quadrant sizing box from automatically popping up upon entering Edit Mode',
+        'Added Quadrant Sizes control button in the right sidebar below Positions Snapshot, opening only on demand',
+        'Integrated expandable quadrant dimensions panel directly within the right sidebar with quick presets, layer selection, and uniform size sliders',
+        'Removed redundant Positions Snapshot button from the top navigation header in Edit Mode for a cleaner bar'
+      ],
+      tag: 'ui',
+      author: 'AI Studio Assistant',
+      source: 'manual'
+    },
+    {
+      id: 'release-1-2-3',
+      version: '1.2.3',
+      date: '2026-10-29',
+      title: 'Permanent Deletion & Tombstone Tracking in Changelog',
+      description: 'Permanent deletion guarantee for changelog entries across cloud commits, real-time listeners, and local baselines.',
+      changes: [
+        'Fixed issue where deleted changelog entries were resurrected on cloud commit due to default seed re-merging',
+        'Implemented deletedEntryIds tombstone tracking persisted in Firestore to permanently purge deleted entries',
+        'Updated real-time Firestore listeners to strictly respect user deletions and avoid phantom entry reloads',
+        'Protected baseline snapshots and diff calculations to guarantee deletions stay committed permanently'
+      ],
+      tag: 'fix',
+      author: 'AI Studio Assistant',
+      source: 'manual'
+    },
+    {
+      id: 'release-1-2-2',
+      version: '1.2.2',
+      date: '2026-10-29',
+      title: 'Cloud Persistence & Commit Engine for Map Changelog',
+      description: 'Persistent cloud storage on Firestore with explicit commit identification, sync pipeline, and automated assistant change logging.',
+      changes: [
+        'Added cloud persistence for Map Changelog backed by Firestore (doc: ecosystem/changelog_config)',
+        'Added dedicated "Commit to Cloud" button with change diff detection and uncommitted status indicator',
+        'Real-time Firestore synchronization ensures changelog updates persist across devices, tabs, and page reloads',
+        'Added automatic change-logging protocol for all AI Studio assistant modifications with automatic cloud saving'
+      ],
+      tag: 'feature',
+      author: 'AI Studio Assistant',
+      source: 'manual'
+    },
     {
       id: 'release-1-2-0',
       version: '1.2.0',
@@ -76,13 +129,34 @@ export const DEFAULT_CHANGELOG_CONFIG: ChangelogConfig = {
   ]
 };
 
+/**
+ * Sanitize an object for Firestore (eliminating undefined values and ensuring serializable objects)
+ */
+function sanitizeForFirestore(obj: any): any {
+  if (obj === null || obj === undefined) return null;
+  if (Array.isArray(obj)) {
+    return obj.map(item => sanitizeForFirestore(item));
+  }
+  if (typeof obj === 'object') {
+    if (obj instanceof Date) return obj;
+    const res: Record<string, any> = {};
+    for (const [key, val] of Object.entries(obj)) {
+      if (val !== undefined) {
+        res[key] = sanitizeForFirestore(val);
+      }
+    }
+    return res;
+  }
+  return obj;
+}
+
 export function loadChangelogConfig(): ChangelogConfig {
   try {
     const raw = localStorage.getItem(CHANGELOG_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (parsed && Array.isArray(parsed.entries) && parsed.appVersion) {
-        return parsed;
+        return mergeWithCodeDefaults(parsed);
       }
     }
   } catch (e) {
@@ -99,13 +173,354 @@ export function saveChangelogConfig(config: ChangelogConfig): void {
   }
 }
 
+export function loadCommittedChangelogBaseline(): ChangelogConfig {
+  try {
+    const raw = localStorage.getItem(CHANGELOG_COMMITTED_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.entries) && parsed.appVersion) {
+        const deletedSet = new Set(parsed.deletedEntryIds || []);
+        return {
+          ...parsed,
+          entries: parsed.entries.filter((e: ChangelogItem) => !deletedSet.has(e.id)),
+          deletedEntryIds: Array.from(deletedSet)
+        };
+      }
+    }
+  } catch {}
+  return DEFAULT_CHANGELOG_CONFIG;
+}
+
+export function saveCommittedChangelogBaseline(config: ChangelogConfig): void {
+  try {
+    localStorage.setItem(CHANGELOG_COMMITTED_KEY, JSON.stringify(config));
+  } catch {}
+}
+
+/**
+ * Merges loaded changelog with the latest code-defined defaults so newly published assistant or codebase entries
+ * are automatically included without discarding user edits or resurrecting user-deleted entries.
+ */
+export function mergeWithCodeDefaults(incoming: ChangelogConfig): ChangelogConfig {
+  if (!incoming || !Array.isArray(incoming.entries)) return DEFAULT_CHANGELOG_CONFIG;
+
+  const deletedSet = new Set(incoming.deletedEntryIds || []);
+  const existingIds = new Set(incoming.entries.map(e => e.id));
+
+  // Only consider code entries that have NOT been deleted by the user and aren't already present
+  const missingCodeEntries = DEFAULT_CHANGELOG_CONFIG.entries.filter(
+    e => !existingIds.has(e.id) && !deletedSet.has(e.id)
+  );
+
+  // Determine newest version
+  let appVersion = incoming.appVersion || DEFAULT_CHANGELOG_CONFIG.appVersion;
+  if (DEFAULT_CHANGELOG_CONFIG.appVersion > appVersion) {
+    appVersion = DEFAULT_CHANGELOG_CONFIG.appVersion;
+  }
+
+  // Ensure no deleted entries sneak in from incoming
+  const filteredIncomingEntries = incoming.entries.filter(e => !deletedSet.has(e.id));
+
+  return {
+    appVersion,
+    githubRepo: incoming.githubRepo || DEFAULT_CHANGELOG_CONFIG.githubRepo,
+    githubBranch: incoming.githubBranch || DEFAULT_CHANGELOG_CONFIG.githubBranch,
+    lastSyncedAt: incoming.lastSyncedAt || new Date().toISOString(),
+    entries: [...missingCodeEntries, ...filteredIncomingEntries],
+    deletedEntryIds: Array.from(deletedSet)
+  };
+}
+
+export interface ChangelogDiffResult {
+  hasChanges: boolean;
+  summary: string[];
+  addedCount: number;
+  modifiedCount: number;
+  deletedCount: number;
+  versionChanged: boolean;
+  repoChanged: boolean;
+}
+
+/**
+ * Computes exact changes between the active working changelog and the last committed cloud baseline.
+ */
+export function getUncommittedChangelogDiff(
+  current: ChangelogConfig,
+  committedBaseline?: ChangelogConfig | null
+): ChangelogDiffResult {
+  const baseline = committedBaseline || loadCommittedChangelogBaseline();
+  const summary: string[] = [];
+
+  const versionChanged = current.appVersion.trim() !== baseline.appVersion.trim();
+  if (versionChanged) {
+    summary.push(`Version updated: v${baseline.appVersion} → v${current.appVersion}`);
+  }
+
+  const repoChanged =
+    current.githubRepo.trim() !== baseline.githubRepo.trim() ||
+    (current.githubBranch || 'main') !== (baseline.githubBranch || 'main');
+  if (repoChanged) {
+    summary.push(`Repository/branch modified: ${current.githubRepo} (${current.githubBranch || 'main'})`);
+  }
+
+  const baselineMap = new Map(baseline.entries.map(e => [e.id, e]));
+  const currentMap = new Map(current.entries.map(e => [e.id, e]));
+
+  let addedCount = 0;
+  let modifiedCount = 0;
+  let deletedCount = 0;
+
+  for (const item of current.entries) {
+    const base = baselineMap.get(item.id);
+    if (!base) {
+      addedCount++;
+    } else {
+      // Check if fields modified
+      const titleDiff = item.title !== base.title;
+      const verDiff = item.version !== base.version;
+      const dateDiff = item.date !== base.date;
+      const tagDiff = item.tag !== base.tag;
+      const authorDiff = (item.author || '') !== (base.author || '');
+      const changesDiff = JSON.stringify(item.changes) !== JSON.stringify(base.changes);
+
+      if (titleDiff || verDiff || dateDiff || tagDiff || authorDiff || changesDiff) {
+        modifiedCount++;
+      }
+    }
+  }
+
+  for (const base of baseline.entries) {
+    if (!currentMap.has(base.id)) {
+      deletedCount++;
+    }
+  }
+
+  // Also check if new IDs were added to deletedEntryIds
+  const currentDeletedSet = new Set(current.deletedEntryIds || []);
+  const baselineDeletedSet = new Set(baseline.deletedEntryIds || []);
+  const newlyDeletedIds = (current.deletedEntryIds || []).filter(id => !baselineDeletedSet.has(id));
+  if (newlyDeletedIds.length > 0 && deletedCount === 0) {
+    deletedCount += newlyDeletedIds.length;
+  }
+
+  if (addedCount > 0) {
+    summary.push(`${addedCount} new ${addedCount === 1 ? 'entry' : 'entries'} added`);
+  }
+  if (modifiedCount > 0) {
+    summary.push(`${modifiedCount} existing ${modifiedCount === 1 ? 'entry' : 'entries'} edited`);
+  }
+  if (deletedCount > 0) {
+    summary.push(`${deletedCount} ${deletedCount === 1 ? 'entry' : 'entries'} deleted`);
+  }
+
+  const hasChanges = versionChanged || repoChanged || addedCount > 0 || modifiedCount > 0 || deletedCount > 0;
+
+  return {
+    hasChanges,
+    summary,
+    addedCount,
+    modifiedCount,
+    deletedCount,
+    versionChanged,
+    repoChanged
+  };
+}
+
+/**
+ * Persist the changelog to Cloud Firestore and sync local storage baseline.
+ */
+export async function persistChangelogConfigToFirestore(
+  config: ChangelogConfig,
+  commitMessage?: string
+): Promise<{ success: boolean; quotaExceeded?: boolean; error?: string }> {
+  try {
+    const docRef = doc(db, 'ecosystem', CHANGELOG_FIRESTORE_DOC);
+    
+    // Ensure all entries marked as deleted are strictly excluded from entries array
+    const deletedSet = new Set(config.deletedEntryIds || []);
+    const cleanEntries = (config.entries || []).filter(e => !deletedSet.has(e.id));
+
+    const cleanConfig = sanitizeForFirestore({
+      ...config,
+      entries: cleanEntries,
+      deletedEntryIds: Array.from(deletedSet)
+    });
+
+    const payload = {
+      ...cleanConfig,
+      updatedAt: serverTimestamp(),
+      updatedAtIso: new Date().toISOString(),
+      ...(commitMessage ? { lastCommitMessage: commitMessage } : {})
+    };
+
+    await setDoc(docRef, payload);
+    const committedCopy: ChangelogConfig = {
+      ...config,
+      entries: cleanEntries,
+      deletedEntryIds: Array.from(deletedSet)
+    };
+    saveCommittedChangelogBaseline(committedCopy);
+    saveChangelogConfig(committedCopy);
+    console.info('Successfully persisted changelog configuration to Cloud Firestore.');
+    return { success: true };
+  } catch (err: any) {
+    const msg = err?.message || String(err);
+    const isQuota =
+      err?.code === 'resource-exhausted' ||
+      msg.includes('Quota exceeded') ||
+      msg.includes('RESOURCE_EXHAUSTED') ||
+      msg.includes('quota metric');
+
+    if (isQuota) {
+      console.warn('Firestore write quota limit reached. Changelog saved locally on device.', err);
+      saveCommittedChangelogBaseline(config);
+      saveChangelogConfig(config);
+      return { success: false, quotaExceeded: true, error: msg };
+    }
+
+    console.error('Failed to persist changelog to Firestore:', err);
+    return { success: false, quotaExceeded: false, error: msg };
+  }
+}
+
+/**
+ * Fetch the changelog from Cloud Firestore.
+ */
+export async function fetchChangelogConfigFromFirestore(): Promise<ChangelogConfig | null> {
+  try {
+    const docRef = doc(db, 'ecosystem', CHANGELOG_FIRESTORE_DOC);
+    const snap = await getDoc(docRef);
+
+    if (snap.exists()) {
+      const data = snap.data();
+      if (data && Array.isArray(data.entries)) {
+        const deletedEntryIds = Array.isArray(data.deletedEntryIds) ? (data.deletedEntryIds as string[]) : [];
+        const deletedSet = new Set(deletedEntryIds);
+        const filteredEntries = (data.entries as ChangelogItem[]).filter(e => !deletedSet.has(e.id));
+
+        const decoded: ChangelogConfig = {
+          appVersion: data.appVersion || DEFAULT_CHANGELOG_CONFIG.appVersion,
+          githubRepo: data.githubRepo || DEFAULT_CHANGELOG_CONFIG.githubRepo,
+          githubBranch: data.githubBranch || DEFAULT_CHANGELOG_CONFIG.githubBranch,
+          lastSyncedAt: data.lastSyncedAt || data.updatedAtIso || new Date().toISOString(),
+          entries: filteredEntries,
+          deletedEntryIds
+        };
+        const merged = mergeWithCodeDefaults(decoded);
+        saveCommittedChangelogBaseline(merged);
+        saveChangelogConfig(merged);
+        return merged;
+      }
+    }
+  } catch (err) {
+    console.warn('Could not fetch changelog from Firestore (falling back to local cache):', err);
+  }
+  return null;
+}
+
+/**
+ * Subscribe to real-time updates of the changelog from Cloud Firestore.
+ * Does NOT resurrect deleted entries on snapshot events.
+ */
+export function subscribeToChangelogConfig(
+  onUpdate: (config: ChangelogConfig) => void
+): () => void {
+  try {
+    const docRef = doc(db, 'ecosystem', CHANGELOG_FIRESTORE_DOC);
+    const unsubscribe = onSnapshot(
+      docRef,
+      (snap) => {
+        // If local write is still in flight, skip echoing to prevent UI flicker
+        if (snap.metadata.hasPendingWrites) {
+          return;
+        }
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data && Array.isArray(data.entries)) {
+            const deletedEntryIds = Array.isArray(data.deletedEntryIds) ? (data.deletedEntryIds as string[]) : [];
+            const deletedSet = new Set(deletedEntryIds);
+            const filteredEntries = (data.entries as ChangelogItem[]).filter(e => !deletedSet.has(e.id));
+
+            const decoded: ChangelogConfig = {
+              appVersion: data.appVersion || DEFAULT_CHANGELOG_CONFIG.appVersion,
+              githubRepo: data.githubRepo || DEFAULT_CHANGELOG_CONFIG.githubRepo,
+              githubBranch: data.githubBranch || DEFAULT_CHANGELOG_CONFIG.githubBranch,
+              lastSyncedAt: data.lastSyncedAt || data.updatedAtIso || new Date().toISOString(),
+              entries: filteredEntries,
+              deletedEntryIds
+            };
+            
+            // Live snapshot reflects the exact state in the cloud — do NOT re-merge or resurrect deleted items
+            saveCommittedChangelogBaseline(decoded);
+            saveChangelogConfig(decoded);
+            onUpdate(decoded);
+          }
+        }
+      },
+      (error) => {
+        console.warn('Changelog Firestore subscription error:', error);
+      }
+    );
+    return unsubscribe;
+  } catch (err) {
+    console.warn('Failed to subscribe to changelog in Firestore:', err);
+    return () => {};
+  }
+}
+
+/**
+ * Automatically records an assistant modification to the changelog and commits it to cloud.
+ */
+export async function recordAssistantChangelogEntry(
+  entry: {
+    version?: string;
+    title: string;
+    changes: string[];
+    tag?: ChangelogTag;
+    author?: string;
+    description?: string;
+  }
+): Promise<ChangelogConfig> {
+  const current = loadChangelogConfig();
+  const version = entry.version || current.appVersion || '1.2.3';
+  const newId = `assistant-${Date.now()}`;
+
+  const newEntry: ChangelogItem = {
+    id: newId,
+    version,
+    date: new Date().toISOString().split('T')[0],
+    title: entry.title,
+    description: entry.description,
+    changes: entry.changes,
+    tag: entry.tag || 'fix',
+    author: entry.author || 'AI Studio Assistant',
+    source: 'manual'
+  };
+
+  const deletedSet = new Set(current.deletedEntryIds || []);
+  const filteredCurrent = current.entries.filter(e => !deletedSet.has(e.id));
+
+  // Avoid exact duplicate titles on same day
+  const exists = filteredCurrent.some(e => e.title === entry.title && e.version === version);
+  let updatedEntries = filteredCurrent;
+  if (!exists) {
+    updatedEntries = [newEntry, ...filteredCurrent];
+  }
+
+  const updatedConfig: ChangelogConfig = {
+    ...current,
+    appVersion: version,
+    entries: updatedEntries,
+    deletedEntryIds: Array.from(deletedSet)
+  };
+
+  saveChangelogConfig(updatedConfig);
+  await persistChangelogConfigToFirestore(updatedConfig, `Auto-logged: ${entry.title}`);
+  return updatedConfig;
+}
+
 /**
  * Normalizes a GitHub repository string into "owner/repo" format.
- * Supports:
- * - "owner/repo"
- * - "https://github.com/owner/repo"
- * - "https://github.com/owner/repo.git"
- * - "github.com/owner/repo"
  */
 export function normalizeGitHubRepo(input: string): string {
   let cleaned = input.trim();
@@ -127,7 +542,6 @@ function parseCommitTag(message: string): ChangelogTag {
 }
 
 function cleanCommitTitle(title: string): string {
-  // Remove conventional commit prefix if present (e.g., "feat: Add new feature" -> "Add new feature")
   return title.replace(/^(feat|fix|docs|style|refactor|perf|test|chore|build|ci|revert)(\([a-z0-9_-]+\))?:\s*/i, '');
 }
 
@@ -155,7 +569,6 @@ export async function fetchGitHubCommits(
   branch = 'main',
   customToken?: string
 ): Promise<{ items: ChangelogItem[]; error?: string }> {
-  // Use explicitly provided token or fall back to gitignored VITE_GITHUB_TOKEN
   const envToken = import.meta.env.VITE_GITHUB_TOKEN;
   const token = customToken || (typeof envToken === 'string' && envToken.trim().length > 0 ? envToken.trim() : undefined);
 

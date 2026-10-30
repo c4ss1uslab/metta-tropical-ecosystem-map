@@ -3614,6 +3614,14 @@ export default function App() {
                 onScaleContinent={handleScaleContinent}
                 onFitContinentTightly={handleFitContinentTightly}
                 setEditMode={setEditMode}
+                onOpenPositionSnapshotModal={() => setPositionSnapshotModalOpen(true)}
+                quadrantSizes={activeQuadrantSizes}
+                onUpdateQuadrantSizes={handleUpdateQuadrantSizes}
+                activeLayer={filterState.activeLayer ?? 1}
+                onSelectLayer={(layer) => setFilterState(prev => ({ ...prev, activeLayer: layer }))}
+                allLayerQuadrantSizes={layerQuadrantSizes}
+                onResetQuadrantSizes={handleResetQuadrantSizes}
+                onAutoFitQuadrantSizes={handleAutoFitQuadrantSizes}
               />
             )}
           </div>
