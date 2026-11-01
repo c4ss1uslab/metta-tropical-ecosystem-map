@@ -7,12 +7,60 @@ export const CHANGELOG_COMMITTED_KEY = 'metta_map_changelog_committed_baseline_v
 export const CHANGELOG_FIRESTORE_DOC = 'changelog_config';
 
 export const DEFAULT_CHANGELOG_CONFIG: ChangelogConfig = {
-  appVersion: '1.2.4',
+  appVersion: '1.2.7',
   githubRepo: 'metta-earth/metta-ecosystem-map',
   githubBranch: 'main',
   lastSyncedAt: new Date().toISOString(),
   deletedEntryIds: [],
   entries: [
+    {
+      id: 'release-1-2-7',
+      version: '1.2.7',
+      date: '2026-10-31',
+      title: 'Layer 2 Relationship Filter (7-9) Display & Auto-Selection',
+      description: 'Integrated automatic display and auto-selection of relationships 7-9 when Layer 2 is selected in the left sidebar.',
+      changes: [
+        'Enabled auto-selection of relationships 7-9 (Following, Exploring / Interested in, Aware of) whenever Layer 2 is selected in the left sidebar',
+        'Added dedicated Layer 2 relationship dropdown inside the Layer 2 card when expanded and beneath the layer switcher when collapsed',
+        'Harmonized relationship counts, multi-select filtering, and scope drilldowns for relationships 7 to 9',
+        'Updated layer change handlers to cleanly toggle between Layer 1 (1-6) and Layer 2 (7-9) relationship filter presets'
+      ],
+      tag: 'fix',
+      author: 'AI Studio Assistant',
+      source: 'manual'
+    },
+    {
+      id: 'release-1-2-6',
+      version: '1.2.6',
+      date: '2026-10-31',
+      title: 'Firestore 1MB Limit Resolution via Partitioned Dataset Chunking',
+      description: 'Partitioned large published ecosystem datasets across chunked Firestore documents to eliminate 1MB size limit errors during cloud commits.',
+      changes: [
+        'Resolved Firestore document size limit error (1,048,576 bytes) by introducing automatic partitioned dataset chunking',
+        'Partitioned entities array into sub-documents (published_dataset_chunk_*) capped at ~350 KB and 25 entities per chunk',
+        'Maintained backwards compatibility for single-document datasets alongside high-performance parallel chunk loading',
+        'Updated real-time subscription listener and offline backup scripts to seamlessly hydrate chunked cloud datasets'
+      ],
+      tag: 'fix',
+      author: 'AI Studio Assistant',
+      source: 'manual'
+    },
+    {
+      id: 'release-1-2-5',
+      version: '1.2.5',
+      date: '2026-10-29',
+      title: 'Changelog Subtitle & Overview Description Authoring Support',
+      description: 'Full authoring and inline editing capabilities for changelog entry subtitles and descriptions with persistent cloud synchronization.',
+      changes: [
+        'Added dedicated Subtitle / Description input field to both the changelog entry editor and new entry authoring form',
+        'Enabled direct click-to-edit interaction on release subtitles and overview descriptions in Edit Mode',
+        'Integrated change detection (diff tracking) for subtitle modifications to automatically trigger uncommitted change alerts and Cloud Commit',
+        'Added instant Changelog Edit Mode unlock toggle directly inside the changelog widget for seamless updates'
+      ],
+      tag: 'feature',
+      author: 'AI Studio Assistant',
+      source: 'manual'
+    },
     {
       id: 'release-1-2-4',
       version: '1.2.4',
@@ -277,13 +325,14 @@ export function getUncommittedChangelogDiff(
     } else {
       // Check if fields modified
       const titleDiff = item.title !== base.title;
+      const descDiff = (item.description || '') !== (base.description || '');
       const verDiff = item.version !== base.version;
       const dateDiff = item.date !== base.date;
       const tagDiff = item.tag !== base.tag;
       const authorDiff = (item.author || '') !== (base.author || '');
       const changesDiff = JSON.stringify(item.changes) !== JSON.stringify(base.changes);
 
-      if (titleDiff || verDiff || dateDiff || tagDiff || authorDiff || changesDiff) {
+      if (titleDiff || descDiff || verDiff || dateDiff || tagDiff || authorDiff || changesDiff) {
         modifiedCount++;
       }
     }

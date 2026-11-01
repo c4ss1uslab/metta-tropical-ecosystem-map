@@ -1,6 +1,6 @@
 import { EcosystemEntity, LayerQuadrantConfig } from '../types';
 import { db } from '../firebase';
-import { doc, getDoc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { registerColumnComments, getAllColumnComments } from './columnComments';
 import { loadStoredParsingRules, saveStoredParsingRules } from './parsingRules';
 import { 
@@ -14,6 +14,62 @@ import { ensureUniqueEntityIds } from './excelParser';
 
 const PUBLISHED_DATASET_DOC = 'published_dataset';
 const CONTINENTS_CONFIG_DOC = 'continents_config';
+const DATASET_CHUNK_PREFIX = 'published_dataset_chunk_';
+const MAX_ENTITIES_PER_CHUNK = 25;
+const MAX_BYTES_PER_CHUNK = 350000; // ~350 KB safe limit per chunk doc to stay far below 1,048,576 byte Firestore limit
+
+/**
+ * Partitions entities into manageable chunks that will each remain well under Firestore's 1MB limit.
+ */
+export function partitionEntitiesIntoChunks(entities: EcosystemEntity[]): EcosystemEntity[][] {
+  if (!entities || entities.length === 0) return [];
+  
+  const chunks: EcosystemEntity[][] = [];
+  let currentChunk: EcosystemEntity[] = [];
+  let currentChunkBytes = 0;
+
+  for (const entity of entities) {
+    const approxBytes = JSON.stringify(entity).length;
+    if (
+      currentChunk.length >= MAX_ENTITIES_PER_CHUNK ||
+      (currentChunkBytes + approxBytes > MAX_BYTES_PER_CHUNK && currentChunk.length > 0)
+    ) {
+      chunks.push(currentChunk);
+      currentChunk = [entity];
+      currentChunkBytes = approxBytes;
+    } else {
+      currentChunk.push(entity);
+      currentChunkBytes += approxBytes;
+    }
+  }
+
+  if (currentChunk.length > 0) {
+    chunks.push(currentChunk);
+  }
+
+  return chunks;
+}
+
+/**
+ * Loads and combines entity chunks from Firestore in parallel.
+ */
+async function loadEntitiesFromChunks(chunkCount: number): Promise<EcosystemEntity[]> {
+  const chunkPromises = [];
+  for (let i = 0; i < chunkCount; i++) {
+    chunkPromises.push(getDoc(doc(db, 'ecosystem', `${DATASET_CHUNK_PREFIX}${i}`)));
+  }
+  const chunkSnaps = await Promise.all(chunkPromises);
+  const allEntities: EcosystemEntity[] = [];
+  for (const cSnap of chunkSnaps) {
+    if (cSnap.exists()) {
+      const cData = cSnap.data();
+      if (Array.isArray(cData?.entities)) {
+        allEntities.push(...cData.entities);
+      }
+    }
+  }
+  return allEntities;
+}
 
 /**
  * Encode continent polygon shapes from Record<string, [number, number][]>
@@ -164,7 +220,9 @@ export interface PersistResult {
 }
 
 /**
- * Save the entire active published dataset to Firestore
+ * Save the entire active published dataset to Firestore.
+ * Automatically partitions large datasets into chunked documents (<350KB each)
+ * so that Firestore's 1,048,576 byte (1MB) document limit is never exceeded.
  */
 export async function persistPublishedDatasetToFirestore(
   entities: EcosystemEntity[],
@@ -179,8 +237,49 @@ export async function persistPublishedDatasetToFirestore(
     const cleanEntities = sanitizeForFirestore(uniqueEntities);
     const commentsToSave = columnComments || getAllColumnComments();
 
+    // Check previous chunk count to delete any orphaned chunks if entity count decreased
+    let prevChunkCount = 0;
+    try {
+      const existingDocSnap = await getDoc(entitiesDocRef);
+      if (existingDocSnap.exists()) {
+        const existingData = existingDocSnap.data();
+        if (typeof existingData?.chunkCount === 'number') {
+          prevChunkCount = existingData.chunkCount;
+        }
+      }
+    } catch {
+      // non-fatal read error
+    }
+
+    // Partition entities into chunks that remain well under 1MB
+    const chunks = partitionEntitiesIntoChunks(cleanEntities);
+
+    // Write all chunk documents in parallel
+    const chunkWritePromises = chunks.map((chunkEntities, idx) => {
+      const chunkDocRef = doc(db, 'ecosystem', `${DATASET_CHUNK_PREFIX}${idx}`);
+      return setDoc(chunkDocRef, {
+        chunkIndex: idx,
+        count: chunkEntities.length,
+        entities: chunkEntities,
+        updatedAt: serverTimestamp()
+      });
+    });
+    await Promise.all(chunkWritePromises);
+
+    // Clean up any old chunks if previous chunk count was higher
+    if (prevChunkCount > chunks.length) {
+      const deletePromises = [];
+      for (let i = chunks.length; i < prevChunkCount; i++) {
+        deletePromises.push(deleteDoc(doc(db, 'ecosystem', `${DATASET_CHUNK_PREFIX}${i}`)).catch(() => {}));
+      }
+      await Promise.all(deletePromises);
+    }
+
+    // Save master dataset metadata document (without the 2MB raw entities array!)
     const payload: any = {
-      entities: cleanEntities,
+      isChunked: true,
+      chunkCount: chunks.length,
+      chunkPrefix: DATASET_CHUNK_PREFIX,
       totalCount: cleanEntities.length,
       updatedAt: serverTimestamp(),
       updatedAtIso: new Date().toISOString()
@@ -217,7 +316,7 @@ export async function persistPublishedDatasetToFirestore(
       }, { merge: true });
     }
 
-    console.info(`Saved ${entities.length} entities to Firestore published dataset.`);
+    console.info(`Saved ${cleanEntities.length} entities across ${chunks.length} chunks to Firestore published dataset.`);
     return { success: true };
   } catch (err: any) {
     const msg = err?.message || String(err);
@@ -238,7 +337,8 @@ export async function persistPublishedDatasetToFirestore(
 }
 
 /**
- * Fetch the published dataset from Firestore
+ * Fetch the published dataset from Firestore.
+ * Supports both partitioned chunked datasets and legacy single-document datasets.
  */
 export async function fetchPublishedDatasetFromFirestore(): Promise<{
   entities: EcosystemEntity[] | null;
@@ -259,15 +359,23 @@ export async function fetchPublishedDatasetFromFirestore(): Promise<{
 
     if (docSnap.exists()) {
       const data = docSnap.data();
-      if (data && Array.isArray(data.entities) && data.entities.length > 0) {
-        entities = ensureUniqueEntityIds(data.entities as EcosystemEntity[]);
-      }
-      if (data && data.columnComments && typeof data.columnComments === 'object') {
-        columnComments = data.columnComments as Record<string, string>;
-        registerColumnComments(columnComments);
-      }
-      if (data && Array.isArray(data.parsingRules) && data.parsingRules.length > 0) {
-        saveStoredParsingRules(data.parsingRules);
+      if (data) {
+        if (data.isChunked && typeof data.chunkCount === 'number' && data.chunkCount > 0) {
+          const chunkEntities = await loadEntitiesFromChunks(data.chunkCount);
+          if (chunkEntities.length > 0) {
+            entities = ensureUniqueEntityIds(chunkEntities);
+          }
+        } else if (Array.isArray(data.entities) && data.entities.length > 0) {
+          entities = ensureUniqueEntityIds(data.entities as EcosystemEntity[]);
+        }
+
+        if (data.columnComments && typeof data.columnComments === 'object') {
+          columnComments = data.columnComments as Record<string, string>;
+          registerColumnComments(columnComments);
+        }
+        if (Array.isArray(data.parsingRules) && data.parsingRules.length > 0) {
+          saveStoredParsingRules(data.parsingRules);
+        }
       }
     }
 
@@ -294,7 +402,8 @@ export async function fetchPublishedDatasetFromFirestore(): Promise<{
 }
 
 /**
- * Subscribe to real-time updates of the published ecosystem dataset
+ * Subscribe to real-time updates of the published ecosystem dataset.
+ * Seamlessly resolves chunked datasets when master document updates.
  */
 export function subscribeToPublishedDataset(
   onUpdate: (data: {
@@ -315,7 +424,7 @@ export function subscribeToPublishedDataset(
 
     const unsubEntities = onSnapshot(
       entitiesDocRef,
-      (docSnap) => {
+      async (docSnap) => {
         // Ignore local uncommitted writes to prevent echoing and wiping active drag state
         if (docSnap.metadata.hasPendingWrites) {
           return;
@@ -328,8 +437,23 @@ export function subscribeToPublishedDataset(
           if (data && Array.isArray(data.parsingRules) && data.parsingRules.length > 0) {
             saveStoredParsingRules(data.parsingRules);
           }
-          if (data && Array.isArray(data.entities) && data.entities.length > 0) {
-            latestEntities = ensureUniqueEntityIds(data.entities as EcosystemEntity[]);
+
+          let loadedEntities: EcosystemEntity[] | null = null;
+          if (data && data.isChunked && typeof data.chunkCount === 'number' && data.chunkCount > 0) {
+            try {
+              const chunkEntities = await loadEntitiesFromChunks(data.chunkCount);
+              if (chunkEntities.length > 0) {
+                loadedEntities = ensureUniqueEntityIds(chunkEntities);
+              }
+            } catch (err) {
+              console.warn('Failed to load dataset chunks in subscription:', err);
+            }
+          } else if (data && Array.isArray(data.entities) && data.entities.length > 0) {
+            loadedEntities = ensureUniqueEntityIds(data.entities as EcosystemEntity[]);
+          }
+
+          if (loadedEntities && loadedEntities.length > 0) {
+            latestEntities = loadedEntities;
             onUpdate({
               entities: latestEntities,
               continentShapes: latestShapes,

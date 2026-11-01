@@ -3034,7 +3034,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                             ) : (
                               <span
                                 className="text-[9px] font-technical uppercase px-1.5 py-0.5 bg-amber-50 border border-amber-200 text-amber-800 font-semibold rounded-[2px]"
-                                title={`Affiliated with this archipelago via Other Archipelagos (Primary: ${ent.continent || suggestContinent(ent)})`}
+                                title={`Affiliated with this archipelago via Other Archipelagos (Primary: ${ent.continent || 'None'})`}
                               >
                                 ★ Affiliated
                               </span>
@@ -3571,7 +3571,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
 
   if (!entity || !modalEntity) return null;
 
-  const entContinent = formatClusterWithNumber(entity.continent || suggestContinent(entity));
+  const entContinent = entity.continent ? formatClusterWithNumber(entity.continent) : '';
 
   // Field change handlers for Edit Mode
   const handleFieldChange = (key: keyof EcosystemEntity, value: any) => {
@@ -3630,7 +3630,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
 
   // Active entity displayed in enlarged focus modal (either draft during contribution or current entity)
   const isModalEditMode = editMode || isContributing;
-  const modalEntContinent = formatClusterWithNumber(modalEntity.continent || suggestContinent(modalEntity));
+  const modalEntContinent = modalEntity.continent ? formatClusterWithNumber(modalEntity.continent) : '';
 
   const handleModalFieldChange = (key: keyof EcosystemEntity, value: any) => {
     if (isContributing) {
@@ -4069,12 +4069,21 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
               /* Normal Read-Only View */
               <div>
                 <div className="flex items-center space-x-2 mb-1.5 flex-wrap gap-y-1">
-                  <span
-                    className="px-2 py-0.5 text-[10px] font-technical uppercase font-semibold text-white rounded-[2px]"
-                    style={{ backgroundColor: categoryColors[entity.category] || '#111827' }}
-                  >
-                    {entity.category} Quadrant
-                  </span>
+                  {entity.quadrant ? (
+                    <span
+                      className="px-2 py-0.5 text-[10px] font-technical uppercase font-semibold text-white rounded-[2px]"
+                      style={{ backgroundColor: categoryColors[entity.quadrant] || '#111827' }}
+                    >
+                      {entity.quadrant} Quadrant
+                    </span>
+                  ) : (
+                    <span
+                      className="px-2 py-0.5 text-[10px] font-technical uppercase font-semibold text-[#4B5563] bg-[#F3F4F6] border border-[#E5E7EB] rounded-[2px]"
+                      title="Outside Quadrants (Unassigned)"
+                    >
+                      Outside Quadrants
+                    </span>
+                  )}
                   <span className="inline-flex items-center space-x-1 px-2 py-0.5 text-[10px] font-technical uppercase font-medium bg-white border border-[#E5E7EB] text-[#111827] rounded-[2px]">
                     {entity.type === 'Organization' && <span className="w-2 h-2 rounded-full bg-[#111827] inline-block" title="Circle shape" />}
                     {entity.type === 'Person' && <span className="w-1.5 h-1.5 rotate-45 bg-[#0369A1] inline-block" title="Lozenge shape" />}
@@ -4467,25 +4476,33 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
             </div>
           ) : (
             <div className="flex items-center justify-between">
-              <span className="font-editorial text-sm font-semibold text-[#111827]">
-                {entContinent}
-              </span>
-              {onSelectContinent && (
-                <button
-                  onClick={() => {
-                    if (isEnlarged) setIsEnlarged(false);
-                    if (enlargedOnly || fullPageEmbedded) onClose();
-                    onSelectEntity(null);
-                    onSelectContinent(entContinent);
-                    const targetCont = continents.find(c => c.name === entContinent || formatClusterWithNumber(c.name).toLowerCase() === formatClusterWithNumber(entContinent).toLowerCase());
-                    if (targetCont && onFlyToContinent) {
-                      onFlyToContinent(targetCont);
-                    }
-                  }}
-                  className="font-technical text-[10px] text-[#5B21B6] hover:underline font-semibold cursor-pointer"
-                >
-                  View Archipelago Overview →
-                </button>
+              {entContinent ? (
+                <>
+                  <span className="font-editorial text-sm font-semibold text-[#111827]">
+                    {entContinent}
+                  </span>
+                  {onSelectContinent && (
+                    <button
+                      onClick={() => {
+                        if (isEnlarged) setIsEnlarged(false);
+                        if (enlargedOnly || fullPageEmbedded) onClose();
+                        onSelectEntity(null);
+                        onSelectContinent(entContinent);
+                        const targetCont = continents.find(c => c.name === entContinent || formatClusterWithNumber(c.name).toLowerCase() === formatClusterWithNumber(entContinent).toLowerCase());
+                        if (targetCont && onFlyToContinent) {
+                          onFlyToContinent(targetCont);
+                        }
+                      }}
+                      className="font-technical text-[10px] text-[#5B21B6] hover:underline font-semibold cursor-pointer"
+                    >
+                      View Archipelago Overview →
+                    </button>
+                  )}
+                </>
+              ) : (
+                <span className="font-sans text-xs italic text-[#9CA3AF]">
+                  None (Unassigned)
+                </span>
               )}
             </div>
           )}

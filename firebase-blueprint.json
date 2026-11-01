@@ -2,12 +2,20 @@
   "entities": {
     "PublishedDataset": {
       "title": "PublishedDataset",
-      "description": "Published ecosystem entities and global metadata",
+      "description": "Published ecosystem entities metadata and chunk index",
       "type": "object",
       "properties": {
         "entities": {
           "type": "array",
-          "description": "List of ecosystem entities"
+          "description": "List of ecosystem entities (omitted or partitioned across DatasetChunk documents when chunked)"
+        },
+        "isChunked": {
+          "type": "boolean",
+          "description": "Whether entities are partitioned into chunks to respect Firestore 1MB document limit"
+        },
+        "chunkCount": {
+          "type": "number",
+          "description": "Number of dataset chunks"
         },
         "totalCount": {
           "type": "number",
@@ -18,7 +26,27 @@
           "description": "ISO timestamp of last update"
         }
       },
-      "required": ["entities", "totalCount"]
+      "required": ["totalCount"]
+    },
+    "DatasetChunk": {
+      "title": "DatasetChunk",
+      "description": "Partitioned chunk of ecosystem entities adhering to Firestore document size limits",
+      "type": "object",
+      "properties": {
+        "chunkIndex": {
+          "type": "number",
+          "description": "0-based index of this chunk"
+        },
+        "count": {
+          "type": "number",
+          "description": "Count of entities in this chunk"
+        },
+        "entities": {
+          "type": "array",
+          "description": "List of ecosystem entities in this chunk"
+        }
+      },
+      "required": ["chunkIndex", "count", "entities"]
     },
     "ContinentsConfig": {
       "title": "ContinentsConfig",

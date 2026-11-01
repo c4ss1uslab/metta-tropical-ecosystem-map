@@ -14,10 +14,63 @@ export const SPREADSHEET_COLUMNS: ColumnDef[] = [
   { letter: 'B', index: 2, field: 'Name/Label', category: 'Overview', aliases: ['name/label', 'entity name', 'organization name'] },
   { letter: 'C', index: 3, field: 'Entity Type', category: 'Overview', aliases: ['entity type', 'organization type'] },
   { letter: 'D', index: 4, field: 'Organization Structure', category: 'Overview', aliases: ['organization structure', 'org structure', 'legal structure', 'governance model'] },
-  { letter: 'E', index: 5, field: 'Quadrant', category: 'Overview', aliases: ['quadrant', 'quadrants', 'quadrant / domain', 'map placement'] },
+  {
+    letter: 'E',
+    index: 5,
+    field: 'Quadrant',
+    category: 'Overview',
+    aliases: [
+      'quadrant',
+      'quadrants',
+      'quadrant / domain',
+      'domain / quadrant',
+      'map placement',
+      'quadrant (e)',
+      '[e] quadrant',
+      'e - quadrant',
+      'e: quadrant',
+      'e',
+      'col_5',
+      'col 5',
+      'column 5',
+      '__col_5',
+      'transformation quadrant',
+      'change quadrant',
+      'map quadrant',
+      'quadrant: inner, social, cultural, systems',
+      'quadrant (inner, social, cultural, systems)',
+      'primary quadrant'
+    ]
+  },
   { letter: 'F', index: 6, field: 'Category', category: 'Overview', aliases: ['category', 'categories', 'experimental category'] },
   { letter: 'G', index: 7, field: 'Stream', category: 'Overview', aliases: ['stream', 'streams', 'workstream', 'workstreams', 'thematic stream', 'focus stream', 'stream(s)', 'stream / streams'] },
-  { letter: 'H', index: 8, field: 'Archipelago', category: 'Overview', aliases: ['archipelago', 'archipelagos', 'island/cluster', 'island / cluster', 'cluster', 'continent', 'continents', 'biome', 'archipelagos / islands', 'islands'] },
+  {
+    letter: 'H',
+    index: 8,
+    field: 'Archipelago',
+    category: 'Overview',
+    aliases: [
+      'archipelago',
+      'archipelagos',
+      'island/cluster',
+      'island / cluster',
+      'cluster',
+      'continent',
+      'continents',
+      'biome',
+      'archipelagos / islands',
+      'islands',
+      'archipelago (h)',
+      '[h] archipelago',
+      'h - archipelago',
+      'h: archipelago',
+      'h',
+      'col_8',
+      'col 8',
+      'column 8',
+      '__col_8'
+    ]
+  },
   { letter: 'I', index: 9, field: 'Layer of Response (Holistic Cultural Materialism)', category: 'Overview', aliases: ['layer of response (holistic cultural materialism)', 'holistic cultural materialism', 'cultural materialism', 'hcm layer'] },
   { letter: 'J', index: 10, field: 'Layer of Response (Gaia Education)', category: 'Overview', aliases: ['layer of response (gaia education)', 'gaia education', 'gaia layer'] },
   { letter: 'K', index: 11, field: 'Area of Response (Life Itself)', category: 'Overview', aliases: ['area of response (life itself)', 'life itself area of response', 'life itself area'] },
@@ -282,6 +335,12 @@ export function findColumnDef(columnName: string): ColumnDef | undefined {
   }
   if (clean.includes('completeness') || clean === 'x' || clean === 'col_24' || clean === '__col_24') {
     return SPREADSHEET_COLUMNS.find(c => c.letter === 'X');
+  }
+  if ((clean.includes('quadrant') || clean === 'e' || clean === 'col_5' || clean === '__col_5') && !clean.includes('secondary')) {
+    return SPREADSHEET_COLUMNS.find(c => c.letter === 'E');
+  }
+  if (clean.includes('archipelago') || clean === 'h' || clean === 'col_8' || clean === '__col_8') {
+    return SPREADSHEET_COLUMNS.find(c => c.letter === 'H');
   }
 
   return undefined;

@@ -380,86 +380,204 @@ export function getDirectlyLinkedEntities(
 
 
 /**
- * Normalizes category string to one of the 4 main quadrants
+ * Accurately parses a raw Column E cell value into one of the 4 CategoryQuadrants:
+ * 'Inner', 'Social', 'Cultural', 'Systems'.
+ * Returns null if the value is empty, blank, a placeholder ('-', 'n/a', 'none', 'unassigned', 'outside'),
+ * or does not correspond to any valid quadrant.
  */
-export function normalizeCategory(val?: string): CategoryQuadrant {
-  if (!val) return 'Inner';
-  const clean = val.trim().toLowerCase();
+export function parseQuadrantValue(val?: any): CategoryQuadrant | null {
+  if (val === null || val === undefined) return null;
+  const str = String(val).trim();
+  if (!str) return null;
 
-  // Systems Change (bottom-right / quadrant 4)
+  const clean = str.toLowerCase().replace(/^[("'\s]+|[)"'\s]+$/g, '').trim();
   if (
-    clean.includes('system') ||
-    clean.includes('economic') ||
-    clean.includes('doughnut') ||
-    clean.includes('post-growth') ||
-    clean.includes('planetary') ||
-    clean.includes('circular') ||
-    clean.includes('biomimicry') ||
-    clean.includes('agriculture') ||
-    clean.includes('bottom right') ||
-    clean.includes('quadrant 4') ||
-    clean === 'systems' ||
-    clean === 'sys'
+    !clean ||
+    clean === '-' ||
+    clean === 'n/a' ||
+    clean === 'na' ||
+    clean === 'none' ||
+    clean === 'null' ||
+    clean === 'undefined' ||
+    clean === 'outside' ||
+    clean === 'around' ||
+    clean === 'unassigned' ||
+    clean === 'no quadrant' ||
+    clean === '?'
   ) {
-    return 'Systems';
+    return null;
   }
 
-  // Cultural Change / Regeneration (bottom-left / quadrant 3)
+  // 1. Quadrant 1 / Inner (Top-Left)
   if (
-    clean.includes('cultural') ||
-    clean.includes('culture') ||
-    clean.includes('indigenous') ||
-    clean.includes('ancestral') ||
-    clean.includes('narrative') ||
-    clean.includes('myth') ||
-    clean.includes('lore') ||
-    clean.includes('decolonial') ||
-    clean.includes('worldview') ||
-    clean.includes('bottom left') ||
-    clean.includes('quadrant 3') ||
-    clean === 'cultural' ||
-    clean === 'cult'
-  ) {
-    return 'Cultural';
-  }
-
-  // Social Change / Transformation (top-right / quadrant 2)
-  if (
-    clean.includes('social') ||
-    clean.includes('civic') ||
-    clean.includes('community') ||
-    clean.includes('commons') ||
-    clean.includes('solidarity') ||
-    clean.includes('mutual') ||
-    clean.includes('weaving') ||
-    clean.includes('cooperative') ||
-    clean.includes('coop') ||
-    clean.includes('upper right') ||
-    clean.includes('quadrant 2') ||
-    clean === 'social' ||
-    clean === 'soc'
-  ) {
-    return 'Social';
-  }
-
-  // Inner Change (top-left / quadrant 1)
-  if (
+    clean === '1' ||
+    clean === '1.' ||
+    clean === '1)' ||
+    clean === 'q1' ||
+    clean === 'quadrant 1' ||
+    clean === 'quadrant i' ||
+    clean === 'quad 1' ||
+    clean === 'quad i' ||
+    clean === 'i' ||
+    clean === 'i.' ||
+    clean === 'i)' ||
+    clean === 'top left' ||
+    clean === 'top-left' ||
+    clean === 'upper left' ||
+    clean === 'upper-left' ||
+    clean === 'nw' ||
+    clean === 'northwest' ||
+    clean.startsWith('1.') ||
+    clean.startsWith('1-') ||
+    clean.startsWith('1 -') ||
+    clean.startsWith('1:') ||
+    clean.startsWith('i.') ||
+    clean.startsWith('i-') ||
+    clean.startsWith('i -') ||
+    clean.startsWith('i:') ||
     clean.includes('inner') ||
+    clean.includes('mind & self') ||
+    clean.includes('mind and self') ||
+    clean.includes('individual interior') ||
     clean.includes('somatic') ||
-    clean.includes('healing') ||
     clean.includes('contemplat') ||
-    clean.includes('personal') ||
-    clean.includes('mind') ||
+    clean.includes('healing') ||
     clean.includes('psycholog') ||
-    clean.includes('spiritual') ||
-    clean.includes('upper left') ||
-    clean.includes('quadrant 1') ||
-    clean === 'inner'
+    clean.includes('spiritual')
   ) {
     return 'Inner';
   }
 
-  return 'Inner';
+  // 2. Quadrant 2 / Social (Top-Right)
+  if (
+    clean === '2' ||
+    clean === '2.' ||
+    clean === '2)' ||
+    clean === 'q2' ||
+    clean === 'quadrant 2' ||
+    clean === 'quadrant ii' ||
+    clean === 'quad 2' ||
+    clean === 'quad ii' ||
+    clean === 'ii' ||
+    clean === 'ii.' ||
+    clean === 'ii)' ||
+    clean === 'top right' ||
+    clean === 'top-right' ||
+    clean === 'upper right' ||
+    clean === 'upper-right' ||
+    clean === 'ne' ||
+    clean === 'northeast' ||
+    clean.startsWith('2.') ||
+    clean.startsWith('2-') ||
+    clean.startsWith('2 -') ||
+    clean.startsWith('2:') ||
+    clean.startsWith('ii.') ||
+    clean.startsWith('ii-') ||
+    clean.startsWith('ii -') ||
+    clean.startsWith('ii:') ||
+    clean.includes('social') ||
+    clean.includes('commons & civic') ||
+    clean.includes('commons and civic') ||
+    clean.includes('collective exterior') ||
+    clean.includes('civic') ||
+    clean.includes('commons') ||
+    clean.includes('solidarity') ||
+    clean.includes('mutual aid') ||
+    clean.includes('cooperative') ||
+    clean.includes('coop')
+  ) {
+    return 'Social';
+  }
+
+  // 3. Quadrant 3 / Cultural (Bottom-Left)
+  if (
+    clean === '3' ||
+    clean === '3.' ||
+    clean === '3)' ||
+    clean === 'q3' ||
+    clean === 'quadrant 3' ||
+    clean === 'quadrant iii' ||
+    clean === 'quad 3' ||
+    clean === 'quad iii' ||
+    clean === 'iii' ||
+    clean === 'iii.' ||
+    clean === 'iii)' ||
+    clean === 'bottom left' ||
+    clean === 'bottom-left' ||
+    clean === 'lower left' ||
+    clean === 'lower-left' ||
+    clean === 'sw' ||
+    clean === 'southwest' ||
+    clean.startsWith('3.') ||
+    clean.startsWith('3-') ||
+    clean.startsWith('3 -') ||
+    clean.startsWith('3:') ||
+    clean.startsWith('iii.') ||
+    clean.startsWith('iii-') ||
+    clean.startsWith('iii -') ||
+    clean.startsWith('iii:') ||
+    clean.includes('cultural') ||
+    clean.includes('culture') ||
+    clean.includes('mythos & ecology') ||
+    clean.includes('mythos and ecology') ||
+    clean.includes('collective interior') ||
+    clean.includes('myth') ||
+    clean.includes('decolonial') ||
+    clean.includes('worldview') ||
+    clean.includes('indigenous') ||
+    clean.includes('ancestral')
+  ) {
+    return 'Cultural';
+  }
+
+  // 4. Quadrant 4 / Systems (Bottom-Right)
+  if (
+    clean === '4' ||
+    clean === '4.' ||
+    clean === '4)' ||
+    clean === 'q4' ||
+    clean === 'quadrant 4' ||
+    clean === 'quadrant iv' ||
+    clean === 'quad 4' ||
+    clean === 'quad iv' ||
+    clean === 'iv' ||
+    clean === 'iv.' ||
+    clean === 'iv)' ||
+    clean === 'bottom right' ||
+    clean === 'bottom-right' ||
+    clean === 'lower right' ||
+    clean === 'lower-right' ||
+    clean === 'se' ||
+    clean === 'southeast' ||
+    clean.startsWith('4.') ||
+    clean.startsWith('4-') ||
+    clean.startsWith('4 -') ||
+    clean.startsWith('4:') ||
+    clean.startsWith('iv.') ||
+    clean.startsWith('iv-') ||
+    clean.startsWith('iv -') ||
+    clean.startsWith('iv:') ||
+    clean.includes('system') ||
+    clean.includes('systems') ||
+    clean.includes('ecosystems & tech') ||
+    clean.includes('ecosystems and tech') ||
+    clean.includes('economic') ||
+    clean.includes('doughnut') ||
+    clean.includes('post-growth') ||
+    clean.includes('circular economy') ||
+    clean.includes('biomimicry')
+  ) {
+    return 'Systems';
+  }
+
+  return null;
+}
+
+/**
+ * Normalizes category string to one of the 4 main quadrants
+ */
+export function normalizeCategory(val?: string): CategoryQuadrant {
+  return parseQuadrantValue(val) || 'Inner';
 }
 
 /**
@@ -1338,13 +1456,16 @@ function mapRowsToEntities(
     const description = String(rawDesc || '').trim();
 
     // Column H: Archipelago (col 8)
-    const rawArchipelago = String(
-      getVal('Archipelago', 'Island/Cluster', 'Continent', 'Biome', 'Archipelagos', 'Island') || ''
+    let rawArchipelago = String(
+      getVal('Archipelago', 'Island/Cluster', 'Continent', 'Biome', 'Archipelagos', 'Island', 'h', 'col_8', 'column 8') || ''
     ).trim();
+    if (!rawArchipelago) {
+      rawArchipelago = String(row['__col_8'] ?? row['Col_8'] ?? row['__col_H'] ?? row['H'] ?? '').trim();
+    }
     let continent = '';
     const archipelagoExtraTags: string[] = [];
 
-    if (rawArchipelago) {
+    if (rawArchipelago && rawArchipelago !== '-' && rawArchipelago.toLowerCase() !== 'none' && rawArchipelago.toLowerCase() !== 'n/a') {
       const parts = rawArchipelago.split(/[,;|\n]+/).map(p => p.trim()).filter(Boolean);
       if (parts.length > 0) {
         continent = formatClusterWithNumber(parts[0]);
@@ -1378,25 +1499,59 @@ function mapRowsToEntities(
     const rawKeywords = keywordsTags.length > 0 ? keywordsTags : genericFieldTags;
     const fields = Array.from(new Set([...rawKeywords, ...archipelagoExtraTags])).filter(Boolean);
 
-    // Auto-suggest archipelago if not explicitly set in file
-    if (!continent) {
-      continent = suggestContinent({ name, category: 'Inner', fields, description });
-    }
+    // CRITICAL: DO NOT auto-assign organizations without an archipelago to "6. Developmental Practice" or any archipelago!
+    // If Column H is empty/not filled, continent stays unassigned ('').
 
     // Column E: Quadrant (col 5)
-    // CRITICAL: Explicit quadrant in spreadsheet MUST take top priority over inferred quadrant!
-    const rawQuadrant = getVal('Quadrant');
-    const inferredArchipelagoQuad = continent ? getArchipelagoQuadrant(continent) : undefined;
-    let category: CategoryQuadrant;
+    // Sourced specifically from Column E.
+    let rawQuadrant = getVal(
+      'Quadrant',
+      'quadrant',
+      'quadrants',
+      'quadrant / domain',
+      'domain / quadrant',
+      'e',
+      'col_5',
+      'col 5',
+      'column 5',
+      '__col_5',
+      'quadrant (e)',
+      '[e] quadrant',
+      'e - quadrant',
+      'e: quadrant',
+      'transformation quadrant',
+      'change quadrant',
+      'map quadrant'
+    );
 
-    if (rawQuadrant) {
-      category = normalizeCategory(rawQuadrant);
-    } else if (inferredArchipelagoQuad) {
-      category = inferredArchipelagoQuad;
+    if (rawQuadrant === undefined || rawQuadrant === null || String(rawQuadrant).trim() === '') {
+      rawQuadrant = row['__col_5'] ?? row['Col_5'] ?? row['__col_E'] ?? row['E'];
+    }
+
+    if (rawQuadrant === undefined || rawQuadrant === null || String(rawQuadrant).trim() === '') {
+      const quadKey = Object.keys(row).find(k => {
+        if (k.startsWith('__col_')) return false;
+        const lk = cleanHeaderString(k).toLowerCase();
+        return (lk.includes('quadrant') || lk === 'e' || lk.startsWith('e ') || lk.startsWith('e-') || lk.startsWith('e:')) && !lk.includes('secondary');
+      });
+      if (quadKey) {
+        rawQuadrant = row[quadKey];
+      }
+    }
+
+    const explicitQuadrant = parseQuadrantValue(rawQuadrant);
+    let quadrant: CategoryQuadrant | undefined = undefined;
+    let category: CategoryQuadrant = 'Inner';
+
+    if (explicitQuadrant) {
+      quadrant = explicitQuadrant;
+      category = explicitQuadrant;
     } else {
+      // Column E is not filled!
+      // Must NOT be placed in Inner or any quadrant; quadrant remains undefined so layoutGenerator adds them around/outside the quadrants.
+      quadrant = undefined;
       category = 'Inner';
     }
-    const quadrant = category;
 
     // Column F: Category (col 6)
     const rawExperimentalCategory = getVal('Category');
@@ -1775,7 +1930,7 @@ function mapRowsToEntities(
       organizationStructure,
       secondaryCategories,
       isDomainElevation,
-      continent,
+      continent: continent ? continent : undefined,
       otherArchipelagos: archipelagoExtraTags.length > 0 ? archipelagoExtraTags : undefined,
       fields,
       approach: approachTags.length > 0 ? approachTags : undefined,
@@ -2486,7 +2641,7 @@ export async function exportEntitiesToXlsx(entities: EcosystemEntity[], filename
       quadrant: ent.quadrant || ent.category || '',
       category: ent.spreadsheetCategory || ent.category || '',
       stream: ent.stream || (ent.streams && ent.streams.length > 0 ? ent.streams.join(', ') : '') || ent.categorizedFields?.['Overview']?.['Stream'] || '',
-      continent: [ent.continent ? formatClusterWithNumber(ent.continent) : suggestContinent(ent), ...getEntityOtherArchipelagos(ent)].filter(Boolean).join(', '),
+      continent: [ent.continent ? formatClusterWithNumber(ent.continent) : '', ...getEntityOtherArchipelagos(ent)].filter(Boolean).join(', '),
       layerHcm: ent.categorizedFields?.['Overview']?.['Layer of Response (Holistic Cultural Materialism)'] || ent.extraFields?.['Layer of Response (Holistic Cultural Materialism)'] || '',
       layerGaia: ent.categorizedFields?.['Overview']?.['Layer of Response (Gaia Education)'] || ent.extraFields?.['Layer of Response (Gaia Education)'] || '',
       areaLifeItself: ent.categorizedFields?.['Overview']?.['Area of Response (Life Itself)'] || ent.extraFields?.['Area of Response (Life Itself)'] || '',

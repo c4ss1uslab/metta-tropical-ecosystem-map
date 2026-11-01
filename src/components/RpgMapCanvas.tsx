@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 import { EcosystemEntity, CategoryQuadrant, FieldCluster, MapViewport, ContinentInfo, EcotoneCorridorInfo, getEntityCompleteness, DATA_COMPLETENESS_CONFIG, getCompletenessConfig, LayerQuadrantSizes, LayerQuadrantConfig, DEFAULT_LAYER_QUADRANT_SIZES, getQuadrantSizesForLayer } from '../types';
 import { QUADRANT_CENTERS, generateContinentLabelPath, getContinentLabelCenter, isEntityDomainElevation, getEntityIntersectionZone, getEntityQuadrantGradient, INTERSECTION_ZONES, calculateEcotoneCorridors, getEntityClusterWithNumber, formatClusterWithNumber, normalizeArchipelagoBaseName, isEntityPrimaryToArchipelago, suggestContinent, entityMatchesArchipelago } from '../utils/layoutGenerator';
-import { calculateAutoFitQuadrantSizes } from '../utils/layerClassifier';
+import { calculateAutoFitQuadrantSizes, doesArchipelagoAppearInLayer } from '../utils/layerClassifier';
 import { ChangelogWidget } from './ChangelogWidget';
 import { getConnectedEntityIds } from '../utils/socialMedia';
 import { areEntitiesDirectlyLinked, ensureUniqueEntityIds } from '../utils/excelParser';
@@ -449,7 +449,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
     const ids = new Set<string>();
     entities.forEach(ent => {
       if (isEntityDomainElevation(ent)) return;
-      const entContinent = ent.continent || suggestContinent(ent);
+      const entContinent = ent.continent;
       const isMember = (
         entContinent === draggingContinentName ||
         entContinent === formattedContName ||
@@ -521,6 +521,15 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
       });
     });
 
+    visibleEntities.forEach(e => {
+      if (typeof e.x === 'number' && typeof e.y === 'number' && Number.isFinite(e.x) && Number.isFinite(e.y)) {
+        if (e.x - margin < minLeft) minLeft = e.x - margin;
+        if (e.x + margin > maxRight) maxRight = e.x + margin;
+        if (e.y - margin < minTop) minTop = e.y - margin;
+        if (e.y + margin > maxBottom) maxBottom = e.y + margin;
+      }
+    });
+
     minLeft = Math.floor(minLeft / 50) * 50;
     maxRight = Math.ceil(maxRight / 50) * 50;
     minTop = Math.floor(minTop / 50) * 50;
@@ -544,7 +553,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
       svgTransX: -minLeft + 1000,
       svgTransY: -minTop + 1000
     };
-  }, [currentQuadrantSizes, continents]);
+  }, [currentQuadrantSizes, continents, visibleEntities]);
 
   // Helper to convert mouse event client coordinates to world coordinates
   const getWorldCoords = useCallback((e: MouseEvent | React.MouseEvent) => {
@@ -1157,10 +1166,13 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
   }, [onSelectIntersectionZone, clearPendingClick]);
 
 
-  // Visible continents
+  // Visible continents (ensuring archipelagos strictly follow activeLayer relationship level rules)
   const visibleContinentsList = useMemo(() => {
-    return continents.filter(c => !hiddenContinents.includes(c.name));
-  }, [continents, hiddenContinents]);
+    return continents.filter(c => {
+      if (hiddenContinents.includes(c.name)) return false;
+      return doesArchipelagoAppearInLayer(c.name, entities, activeLayer);
+    });
+  }, [continents, hiddenContinents, activeLayer, entities]);
 
   // Calculate connection lines for selected or hovered entity or all relationships across all quadrants
   const activeFocusEntity = focusedEntity || hoveredEntity || selectedEntity;

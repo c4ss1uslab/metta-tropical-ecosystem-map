@@ -2263,13 +2263,21 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({
                         {/* Top Right Badges: Quadrant, Entity Type & Data Quality */}
                         <div className="flex flex-col items-end space-y-1">
                           <div className="flex items-center space-x-1.5">
-                            <span
-                              className="w-2 h-2 rounded-full inline-block shrink-0 shadow-2xs"
-                              style={{ backgroundColor: qColor.dot }}
-                            />
-                            <span className="font-technical text-[10px] uppercase font-semibold text-[#4B5563]">
-                              {ent.category}
-                            </span>
+                            {ent.quadrant ? (
+                              <>
+                                <span
+                                  className="w-2 h-2 rounded-full inline-block shrink-0 shadow-2xs"
+                                  style={{ backgroundColor: qColor.dot }}
+                                />
+                                <span className="font-technical text-[10px] uppercase font-semibold text-[#4B5563]">
+                                  {ent.quadrant}
+                                </span>
+                              </>
+                            ) : (
+                              <span className="font-technical text-[9px] uppercase font-medium text-[#6B7280] bg-[#F3F4F6] px-1.5 py-0.5 rounded-[2px]" title="Outside Quadrants (Unassigned)">
+                                Outside
+                              </span>
+                            )}
                           </div>
 
                           <div className="flex items-center">
@@ -2543,7 +2551,7 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({
                                 return (
                                   <td key={col.id} className="py-2.5 px-3 whitespace-nowrap">
                                     <span className="font-technical text-[10.5px] font-semibold text-[#374151]">
-                                      {ent.category}
+                                      {ent.quadrant ? `${ent.quadrant} Quadrant` : 'Outside Quadrants'}
                                     </span>
                                   </td>
                                 );

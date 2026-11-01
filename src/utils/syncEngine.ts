@@ -102,7 +102,8 @@ export function syncDatasets(
         id: matched.id, // keep original ID
         dataCompleteness: incoming.dataCompleteness || incoming.dataQuality || matched.dataCompleteness || matched.dataQuality,
         dataQuality: incoming.dataCompleteness || incoming.dataQuality || matched.dataCompleteness || matched.dataQuality,
-        continent: incoming.continent || matched.continent,
+        continent: incoming.continent, // strictly use incoming continent (do not resurrect old continent if removed or blank)
+        quadrant: incoming.quadrant, // strictly use incoming quadrant from Column E
         secondaryCategories: incoming.secondaryCategories || matched.secondaryCategories,
         isDomainElevation: incoming.isDomainElevation ?? matched.isDomainElevation,
         x: preservedX,
@@ -110,7 +111,7 @@ export function syncDatasets(
         isCustomPosition: preservedCustomFlag,
         notes: (matched.notes && matched.notes !== matched.societalSector ? matched.notes : undefined) || incoming.notes, // keep true user notes
         communityNotes: matched.communityNotes || incoming.communityNotes,
-        featured: matched.featured || incoming.featured
+        featured: incoming.featured ?? matched.featured
       };
 
       const cleanMerged = sanitizeEntityObsoleteFields(sanitizeEntitySocialProfiles(mergedEntity));

@@ -41,7 +41,26 @@ async function main() {
   const pubData = pubSnap.data();
   const contData = contSnap.data();
 
-  const entities = pubData?.entities || [];
+  let entities = pubData?.entities || [];
+  if (pubData?.isChunked && typeof pubData?.chunkCount === 'number' && pubData.chunkCount > 0) {
+    console.log(`Loading ${pubData.chunkCount} partitioned dataset chunks...`);
+    const chunkPromises = [];
+    for (let i = 0; i < pubData.chunkCount; i++) {
+      chunkPromises.push(getDoc(doc(db, 'ecosystem', `published_dataset_chunk_${i}`)));
+    }
+    const chunkSnaps = await Promise.all(chunkPromises);
+    const allEntities = [];
+    for (const cSnap of chunkSnaps) {
+      if (cSnap.exists()) {
+        const cData = cSnap.data();
+        if (Array.isArray(cData?.entities)) {
+          allEntities.push(...cData.entities);
+        }
+      }
+    }
+    entities = allEntities;
+  }
+
   const decodedShapes = decodeContinentShapes(contData?.shapes);
   const metadata = contData?.metadata || {};
   const layerQuadrantSizes = contData?.layerQuadrantSizes;

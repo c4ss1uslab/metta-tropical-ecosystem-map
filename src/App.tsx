@@ -47,7 +47,14 @@ import {
   healAndAlignContinentShapes
 } from './utils/ecosystemPersistence';
 import { registerColumnComments, getAllColumnComments } from './utils/columnComments';
-import { getEntityMapLayer, calculateAutoFitQuadrantSizes } from './utils/layerClassifier';
+import { 
+  getEntityMapLayer, 
+  calculateAutoFitQuadrantSizes, 
+  getLayer1Relationships, 
+  getLayer2Relationships,
+  doesArchipelagoAppearInLayer,
+  getArchipelagoLayerEntities
+} from './utils/layerClassifier';
 
 const LOCAL_STORAGE_KEY = 'metta_ecosystem_custom_positions_v3';
 const CONTINENTS_STORAGE_KEY = 'metta_ecosystem_continents_v3';
@@ -1556,7 +1563,7 @@ export default function App() {
       }
 
       // S2 — Our Relationship (supports multi-selection)
-      const activeOurRels = (filterState.selectedOurRelationships && filterState.selectedOurRelationships.length > 0)
+      let activeOurRels = (filterState.selectedOurRelationships && filterState.selectedOurRelationships.length > 0)
         ? filterState.selectedOurRelationships.filter(r => r !== 'All')
         : (filterState.selectedOurRelationship && filterState.selectedOurRelationship !== 'All' ? [filterState.selectedOurRelationship] : []);
 
@@ -1564,8 +1571,37 @@ export default function App() {
         return false;
       }
 
+      // Layer-specific relationship scoping
+      if (currentLayer === 2) {
+        const rels2 = activeOurRels.filter(r => {
+          const m = r.match(/^(\d+)/);
+          return m ? parseInt(m[1], 10) >= 7 && parseInt(m[1], 10) <= 9 : false;
+        });
+        if (rels2.length > 0) {
+          activeOurRels = rels2;
+        } else if (!filterState.selectedOurRelationships?.includes('none') && filterState.selectedOurRelationship !== 'none') {
+          // If no layer 2 rels are in array yet (e.g. freshly switched), treat as all layer 2 active
+          activeOurRels = [];
+        }
+      } else if (currentLayer === 1) {
+        const rels1 = activeOurRels.filter(r => {
+          const m = r.match(/^(\d+)/);
+          return m ? parseInt(m[1], 10) >= 1 && parseInt(m[1], 10) <= 6 : false;
+        });
+        if (rels1.length > 0) {
+          activeOurRels = rels1;
+        } else if (!filterState.selectedOurRelationships?.includes('none') && filterState.selectedOurRelationship !== 'none') {
+          // Default all layer 1 active
+          activeOurRels = [];
+        }
+      }
+
       if (activeOurRels.length > 0) {
-        const isAllLayerRelsActive = currentLayer === 1 && activeOurRels.length >= 6;
+        const isAllLayerRelsActive = 
+          (currentLayer === 1 && activeOurRels.length >= 6) ||
+          (currentLayer === 2 && activeOurRels.length >= 3) ||
+          (currentLayer === 'all' && activeOurRels.length >= 9);
+
         if (!isAllLayerRelsActive) {
           const val = getEntitySpreadsheetField(ent, 'S2') || ent.ourRelationship;
           if (!val) return false;
@@ -1846,15 +1882,51 @@ export default function App() {
     return ensureUniqueEntityIds(matched);
   }, [entities, filterState, activeListScope, selectedContinentName, baseContinents]);
 
-  // Merge dynamic focus hull expansion with base continents when an archipelago is focused
+  // Layer-filtered and dynamic focus continents:
+  // In Layer 1 (default): archipelagos appear ONLY if they have assigned entities in relationship levels 1-6!
+  // In Layer 2: archipelagos appear ONLY if they have assigned entities in relationship levels 7-9!
+  // In Layer 3: archipelagos appear ONLY if they have assigned entities in relationship levels 10-11!
+  // In 'all': all archipelagos with assigned entities appear.
   const continents = useMemo(() => {
     const targetFocusArchipelago = selectedContinentName || (activeListScope?.type === 'continent' ? activeListScope.name : null);
+    const activeLayer = filterState.activeLayer ?? 1;
+
+    // Filter baseContinents according to activeLayer rule:
+    // In Layer 1: archipelago ONLY appears if it has entities assigned to relationship levels 1-6!
+    const layerScopedContinents = baseContinents
+      .filter(cont => doesArchipelagoAppearInLayer(cont.name, entities, activeLayer))
+      .map(cont => {
+        const layerEnts = getArchipelagoLayerEntities(cont.name, entities, activeLayer);
+        const layerCount = layerEnts.length;
+
+        if (layerCount !== cont.count) {
+          const subLabelPath = generateContinentLabelPath(
+            cont.centerX,
+            cont.centerY,
+            cont.minX,
+            cont.maxX,
+            cont.minY,
+            cont.maxY,
+            cont.controlPoints,
+            -22,
+            cont.subTitleCurvature !== undefined ? cont.subTitleCurvature : 0.7,
+            `${layerCount} ${layerCount === 1 ? 'entity' : 'entities'}`
+          );
+          return {
+            ...cont,
+            count: layerCount,
+            subLabelPath
+          };
+        }
+        return cont;
+      });
+
     if (!targetFocusArchipelago) {
-      return baseContinents;
+      return layerScopedContinents;
     }
     const targetBase = normalizeArchipelagoBaseName(targetFocusArchipelago);
 
-    return baseContinents.map(cont => {
+    return layerScopedContinents.map(cont => {
       const isFocused = normalizeArchipelagoBaseName(cont.name) === targetBase;
       if (!isFocused) {
         return cont;
@@ -1864,11 +1936,25 @@ export default function App() {
       const focusEntities = filteredEntities.filter(e => entityMatchesArchipelago(e, targetFocusArchipelago));
       const focusedCount = focusEntities.length > 0 ? focusEntities.length : cont.count;
 
+      const subLabelPath = generateContinentLabelPath(
+        cont.centerX,
+        cont.centerY,
+        cont.minX,
+        cont.maxX,
+        cont.minY,
+        cont.maxY,
+        cont.controlPoints,
+        -22,
+        cont.subTitleCurvature !== undefined ? cont.subTitleCurvature : 0.7,
+        `${focusedCount} ${focusedCount === 1 ? 'entity' : 'entities'}`
+      );
+
       // In edit mode or if continent has a custom shape, NEVER force-expand boundaries or override the user's sizing, but DO update the count!
       if (editMode || cont.isCustomShape) {
         return {
           ...cont,
-          count: focusedCount
+          count: focusedCount,
+          subLabelPath
         };
       }
 
@@ -1876,6 +1962,18 @@ export default function App() {
       // primary + guest entities appearing in this archipelago
       if (focusEntities.length > 0) {
         const expanded = calculateExpandedContinentHull(cont, focusEntities);
+        const expandedSubLabelPath = generateContinentLabelPath(
+          expanded.centerX,
+          expanded.centerY,
+          expanded.minX,
+          expanded.maxX,
+          expanded.minY,
+          expanded.maxY,
+          expanded.controlPoints,
+          -22,
+          cont.subTitleCurvature !== undefined ? cont.subTitleCurvature : 0.7,
+          `${focusedCount} ${focusedCount === 1 ? 'entity' : 'entities'}`
+        );
         return {
           ...expanded,
           count: focusedCount,
@@ -1883,16 +1981,18 @@ export default function App() {
           labelOffsetX: cont.labelOffsetX,
           labelOffsetY: cont.labelOffsetY,
           subLabelOffsetX: cont.subLabelOffsetX,
-          subLabelOffsetY: cont.subLabelOffsetY
+          subLabelOffsetY: cont.subLabelOffsetY,
+          subLabelPath: expandedSubLabelPath
         };
       }
 
       return {
         ...cont,
-        count: focusedCount
+        count: focusedCount,
+        subLabelPath
       };
     });
-  }, [baseContinents, selectedContinentName, activeListScope, filteredEntities, editMode]);
+  }, [baseContinents, selectedContinentName, activeListScope, filteredEntities, editMode, entities, filterState.activeLayer]);
 
   // Check if an archipelago is currently focused (selected without an individual entity)
   const targetFocusArchipelagoName = selectedContinentName || (activeListScope?.type === 'continent' ? activeListScope.name : null);
@@ -2615,6 +2715,47 @@ export default function App() {
     const fitted = calculateAutoFitQuadrantSizes(entities, currentLayer);
     handleUpdateQuadrantSizes(fitted, currentLayer);
   }, [entities, filterState.activeLayer, handleUpdateQuadrantSizes]);
+
+  // Handler to switch active layer and auto-select appropriate relationships (Layer 1: 1-6, Layer 2: 7-9)
+  const handleSelectLayer = useCallback((layer: 1 | 2 | 3 | 'all') => {
+    // If the currently selected archipelago does not appear in the target layer, clear it cleanly
+    if (selectedContinentName && !doesArchipelagoAppearInLayer(selectedContinentName, entities, layer)) {
+      setSelectedContinentName(null);
+      if (activeListScope?.type === 'continent') {
+        setActiveListScope(null);
+      }
+    }
+    if (layer === 2) {
+      const rels2 = getLayer2Relationships(entities);
+      setFilterState(prev => ({
+        ...prev,
+        activeLayer: 2,
+        selectedOurRelationships: rels2,
+        selectedOurRelationship: rels2.join(', ')
+      }));
+    } else if (layer === 1) {
+      const rels1 = getLayer1Relationships(entities);
+      setFilterState(prev => ({
+        ...prev,
+        activeLayer: 1,
+        selectedOurRelationships: rels1,
+        selectedOurRelationship: rels1.join(', ')
+      }));
+    } else if (layer === 'all') {
+      const allRels = [...getLayer1Relationships(entities), ...getLayer2Relationships(entities)];
+      setFilterState(prev => ({
+        ...prev,
+        activeLayer: 'all',
+        selectedOurRelationships: allRels,
+        selectedOurRelationship: allRels.join(', ')
+      }));
+    } else {
+      setFilterState(prev => ({
+        ...prev,
+        activeLayer: layer
+      }));
+    }
+  }, [entities, selectedContinentName, activeListScope]);
 
   // Fly camera to quadrant center calculated with attributed layer quadrant sizes
   const handleFlyToQuadrant = useCallback((category: CategoryQuadrant) => {
@@ -3513,7 +3654,7 @@ export default function App() {
           quadrantSizes={activeQuadrantSizes}
           onUpdateQuadrantSizes={handleUpdateQuadrantSizes}
           activeLayer={filterState.activeLayer ?? 1}
-          onSelectLayer={(layer) => setFilterState(prev => ({ ...prev, activeLayer: layer }))}
+          onSelectLayer={handleSelectLayer}
           allLayerQuadrantSizes={layerQuadrantSizes}
           onResetQuadrantSizes={handleResetQuadrantSizes}
           onAutoFitQuadrantSizes={handleAutoFitQuadrantSizes}
@@ -3618,7 +3759,7 @@ export default function App() {
                 quadrantSizes={activeQuadrantSizes}
                 onUpdateQuadrantSizes={handleUpdateQuadrantSizes}
                 activeLayer={filterState.activeLayer ?? 1}
-                onSelectLayer={(layer) => setFilterState(prev => ({ ...prev, activeLayer: layer }))}
+                onSelectLayer={handleSelectLayer}
                 allLayerQuadrantSizes={layerQuadrantSizes}
                 onResetQuadrantSizes={handleResetQuadrantSizes}
                 onAutoFitQuadrantSizes={handleAutoFitQuadrantSizes}

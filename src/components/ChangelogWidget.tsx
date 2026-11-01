@@ -50,6 +50,10 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
   const [cloudCommitSuccessMsg, setCloudCommitSuccessMsg] = useState<string | null>(null);
   const [cloudCommitError, setCloudCommitError] = useState<string | null>(null);
 
+  // Widget edit mode override (allows authoring directly from changelog modal even if global map edit mode is off)
+  const [widgetEditOverride, setWidgetEditOverride] = useState(false);
+  const effectiveEditMode = editMode || widgetEditOverride;
+
   // Edit Mode state
   const [isEditingVersion, setIsEditingVersion] = useState(false);
   const [versionInput, setVersionInput] = useState(config.appVersion);
@@ -61,6 +65,7 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
   const [showAddForm, setShowAddForm] = useState(false);
   const [newVersion, setNewVersion] = useState(config.appVersion);
   const [newTitle, setNewTitle] = useState('');
+  const [newDescription, setNewDescription] = useState('');
   const [newTag, setNewTag] = useState<ChangelogTag>('feature');
   const [newChangesText, setNewChangesText] = useState('');
   const [newAuthor, setNewAuthor] = useState('');
@@ -70,6 +75,7 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
   const [isConfirmingReset, setIsConfirmingReset] = useState(false);
   const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
   const [editVersion, setEditVersion] = useState('');
   const [editDate, setEditDate] = useState('');
   const [editTag, setEditTag] = useState<ChangelogTag>('feature');
@@ -284,6 +290,7 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
       version: newVersion.trim() || config.appVersion,
       date: new Date().toISOString().split('T')[0],
       title: newTitle.trim(),
+      description: newDescription.trim() ? newDescription.trim() : undefined,
       changes: changes.length > 0 ? changes : [newTitle.trim()],
       tag: newTag,
       author: newAuthor.trim() || 'Contributor',
@@ -297,6 +304,7 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
 
     // Reset form
     setNewTitle('');
+    setNewDescription('');
     setNewChangesText('');
     setNewAuthor('');
     setShowAddForm(false);
@@ -306,6 +314,7 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
   const handleStartEditItem = (item: ChangelogItem) => {
     setEditingItemId(item.id);
     setEditTitle(item.title);
+    setEditDescription(item.description || '');
     setEditVersion(item.version);
     setEditDate(item.date);
     setEditTag(item.tag || 'feature');
@@ -326,6 +335,7 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
           return {
             ...item,
             title: editTitle.trim() || item.title,
+            description: editDescription.trim() ? editDescription.trim() : undefined,
             version: editVersion.trim() || item.version,
             date: editDate.trim() || item.date,
             author: editAuthor.trim() || item.author || 'Contributor',
@@ -433,7 +443,7 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
           />
         )}
 
-        {editMode && (
+        {effectiveEditMode && (
           <span className="bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] text-[9px] font-technical uppercase font-bold px-1 py-0.2 rounded-[2px] ml-1">
             Edit
           </span>
@@ -467,15 +477,15 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
                   {/* Version Pill */}
                   {!isEditingVersion ? (
                     <span 
-                      onClick={() => editMode && setIsEditingVersion(true)}
+                      onClick={() => effectiveEditMode && setIsEditingVersion(true)}
                       className={`font-technical text-[10px] px-1.5 py-0.5 rounded-[3px] font-bold border transition-colors ${
-                        editMode 
+                        effectiveEditMode 
                           ? 'bg-[#FEF3C7] text-[#92400E] border-[#FDE68A] cursor-pointer hover:border-[#92400E]' 
                           : 'bg-white text-[#111827] border-[#E5E7EB]'
                       }`}
-                      title={editMode ? 'Click to edit app version' : `Version ${config.appVersion}`}
+                      title={effectiveEditMode ? 'Click to edit app version' : `Version ${config.appVersion}`}
                     >
-                      v{config.appVersion} {editMode && '✏️'}
+                      v{config.appVersion} {effectiveEditMode && '✏️'}
                     </span>
                   ) : (
                     <form onSubmit={handleSaveVersion} className="flex items-center space-x-1">
@@ -512,6 +522,22 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
 
             {/* Header Right Actions */}
             <div className="flex items-center space-x-1.5">
+              {/* Unlock Changelog Editing toggle button when global editMode is false */}
+              {!editMode && (
+                <button
+                  type="button"
+                  onClick={() => setWidgetEditOverride(!widgetEditOverride)}
+                  className={`flex items-center space-x-1 px-2 py-1 rounded-[3px] text-[10px] font-technical font-bold border transition-all cursor-pointer ${
+                    widgetEditOverride
+                      ? 'bg-[#FEF3C7] text-[#92400E] border-[#FDE68A] shadow-xs'
+                      : 'bg-white text-[#4B5563] border-[#E5E7EB] hover:text-[#111827] hover:border-[#111827]'
+                  }`}
+                  title={widgetEditOverride ? 'Lock Changelog Editing' : 'Unlock Changelog Editing to customize titles, subtitles, and entries'}
+                >
+                  <Edit3 className="w-2.5 h-2.5" />
+                  <span>{widgetEditOverride ? 'Editing Unlocked' : 'Edit Changelog'}</span>
+                </button>
+              )}
               {/* Quick Commit button in header if uncommitted changes exist */}
               {diff.hasChanges && (
                 <button
@@ -633,7 +659,7 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
                   </span>
                 )}
 
-                {editMode && (
+                {effectiveEditMode && (
                   <button
                     type="button"
                     onClick={() => setIsEditingRepo(!isEditingRepo)}
@@ -646,7 +672,7 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
             </div>
 
             {/* Editable repo form in edit mode */}
-            {isEditingRepo && editMode && (
+            {isEditingRepo && effectiveEditMode && (
               <form onSubmit={handleSaveRepo} className="p-2 bg-white border border-[#E5E7EB] rounded-[4px] space-y-2 mt-1">
                 <div className="space-y-1">
                   <label className="font-technical text-[9px] text-[#6B7280] uppercase">GitHub Repo (owner/repo):</label>
@@ -702,7 +728,7 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
           </div>
 
           {/* Edit Mode Banner & Actions */}
-          {editMode && (
+          {effectiveEditMode && (
             <div className="px-3 py-2 bg-[#FFFBEB] border-b border-[#FDE68A] flex items-center justify-between shrink-0">
               <div className="flex items-center space-x-1.5 text-[10px] text-[#92400E] font-medium">
                 <Wrench className="w-3 h-3 shrink-0" />
@@ -776,7 +802,7 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
           )}
 
           {/* Add New Entry Form (Edit Mode) */}
-          {showAddForm && editMode && (
+          {showAddForm && effectiveEditMode && (
             <form onSubmit={handleAddEntry} className="p-3 bg-white border-b border-[#E5E7EB] space-y-2.5 shrink-0 animate-in fade-in duration-150">
               <div className="flex items-center justify-between">
                 <span className="font-editorial text-xs font-bold text-[#111827]">
@@ -842,6 +868,20 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
                   placeholder="e.g. Added Interactive Filter for Ecotones (Intersections)"
                   className="w-full text-xs font-sans px-2 py-1 border border-[#E5E7EB] rounded-[3px] outline-none focus:border-[#111827]"
                   required
+                />
+              </div>
+
+              <div>
+                <label className="font-technical text-[9px] text-[#6B7280] uppercase block mb-0.5 flex items-center justify-between">
+                  <span>Subtitle / Overview Description</span>
+                  <span className="text-[#9CA3AF] text-[8.5px] font-normal lowercase">(optional summary)</span>
+                </label>
+                <textarea
+                  value={newDescription}
+                  onChange={(e) => setNewDescription(e.target.value)}
+                  placeholder="e.g. First public release of the interactive 2D RPG cartography for system change."
+                  rows={2}
+                  className="w-full text-xs font-sans p-2 border border-[#E5E7EB] rounded-[3px] outline-none focus:border-[#111827]"
                 />
               </div>
 
@@ -1014,6 +1054,20 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
                           </div>
 
                           <div>
+                            <label className="font-technical text-[9px] text-[#6B7280] uppercase block mb-0.5 flex items-center justify-between">
+                              <span>Subtitle / Description (Overview)</span>
+                              <span className="text-[#9CA3AF] text-[8.5px] font-normal lowercase">(summary shown beneath title)</span>
+                            </label>
+                            <textarea
+                              value={editDescription}
+                              onChange={(e) => setEditDescription(e.target.value)}
+                              placeholder="e.g. First public release of the interactive 2D RPG cartography for system change."
+                              rows={2}
+                              className="w-full text-xs font-sans p-2 border border-[#E5E7EB] rounded bg-white outline-none focus:border-[#111827]"
+                            />
+                          </div>
+
+                          <div>
                             <label className="font-technical text-[9px] text-[#6B7280] uppercase block mb-0.5">Changes (one per line)</label>
                             <textarea
                               value={editChangesText}
@@ -1105,7 +1159,7 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
                                 <span>{item.date}</span>
                               </span>
 
-                              {editMode && (
+                              {effectiveEditMode && (
                                 <div className={`flex items-center space-x-1 ml-1 transition-opacity ${
                                   deletingItemId === item.id ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'
                                 }`}>
@@ -1173,11 +1227,41 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
                             {item.title}
                           </h4>
 
-                          {/* Description if present */}
-                          {item.description && (
-                            <p className="font-sans text-[11px] text-[#4B5563] leading-relaxed">
-                              {item.description}
-                            </p>
+                          {/* Subtitle / Description */}
+                          {item.description ? (
+                            <div
+                              onClick={() => {
+                                if (effectiveEditMode) {
+                                  handleStartEditItem(item);
+                                }
+                              }}
+                              className={`font-sans text-[11px] leading-relaxed transition-colors ${
+                                effectiveEditMode
+                                  ? 'cursor-pointer hover:bg-amber-50/80 p-1 -mx-1 rounded border border-transparent hover:border-amber-200 text-[#374151] group/desc'
+                                  : 'text-[#4B5563]'
+                              }`}
+                              title={effectiveEditMode ? 'Click to edit subtitle / description and entry' : undefined}
+                            >
+                              <span>{item.description}</span>
+                              {effectiveEditMode && (
+                                <span className="inline-flex items-center ml-1.5 text-[9.5px] font-technical text-[#059669] opacity-75 group-hover/desc:opacity-100 font-semibold">
+                                  <Edit3 className="w-2.5 h-2.5 inline mr-0.5" />
+                                  Edit subtitle
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            effectiveEditMode && (
+                              <button
+                                type="button"
+                                onClick={() => handleStartEditItem(item)}
+                                className="inline-flex items-center space-x-1 text-[10px] font-technical text-[#059669] hover:text-[#047857] hover:underline cursor-pointer pt-0.5"
+                                title="Add subtitle/description to this entry"
+                              >
+                                <Plus className="w-2.5 h-2.5" />
+                                <span>Add Subtitle / Description</span>
+                              </button>
+                            )
                           )}
 
                           {/* Changes Bullet List */}
@@ -1241,7 +1325,7 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
               )}
               <span className="text-[#D1D5DB]">|</span>
               <span className="text-[#6B7280]">
-                {editMode ? 'Edit Mode: Unlocked' : 'Read-Only View'}
+                {effectiveEditMode ? 'Edit Mode: Unlocked' : 'Read-Only View'}
               </span>
             </div>
           </div>

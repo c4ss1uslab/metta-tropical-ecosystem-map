@@ -1194,7 +1194,7 @@ export function entityMatchesArchipelago(entity: EcosystemEntity, archipelagoNam
   };
 
   // 1. Check primary assigned continent / archipelago
-  const primary = entity.continent || suggestContinent(entity);
+  const primary = entity.continent;
   if (primary && isMatch(primary)) return true;
 
   // 2. Check other archipelagos
@@ -1207,7 +1207,7 @@ export function entityMatchesArchipelago(entity: EcosystemEntity, archipelagoNam
  */
 export function isEntityPrimaryToArchipelago(entity: EcosystemEntity, archipelagoName: string): boolean {
   if (!entity || !archipelagoName) return false;
-  const primary = entity.continent || suggestContinent(entity);
+  const primary = entity.continent;
   if (!primary) return false;
   const targetBase = normalizeArchipelagoBaseName(archipelagoName);
   const primaryBase = normalizeArchipelagoBaseName(primary);
@@ -2210,7 +2210,8 @@ export function resolveEntityOverlaps(
       for (let i = 0; i < resolved.length; i++) {
         const ent = resolved[i];
         if (ent.isCustomPosition || isEntityDomainElevation(ent)) continue;
-        const archName = ent.continent || suggestContinent(ent);
+        if (!ent.continent) continue; // Do not tether entities with no archipelago!
+        const archName = ent.continent;
         const aCenter = archipelagoCenters.get(archName) || archipelagoCenters.get(formatClusterWithNumber(archName));
         if (aCenter) {
           const adx = aCenter.x - ent.x;
@@ -2241,9 +2242,10 @@ export function resolveEntityOverlaps(
       }
     }
 
-    // Preserve quadrant boundaries strictly
+    // Preserve quadrant boundaries strictly for entities that have an assigned quadrant
     for (let i = 0; i < resolved.length; i++) {
       const ent = resolved[i];
+      if (!ent.quadrant) continue; // Entities outside quadrants are not clamped inside quadrant boundaries
       const signX = (ent.category === 'Inner' || ent.category === 'Cultural') ? -1 : 1;
       const signY = (ent.category === 'Inner' || ent.category === 'Social') ? -1 : 1;
 
@@ -2287,14 +2289,18 @@ export function calculateEntityLayout(
   const archipelagoMajorityQuadrant = new Map<string, CategoryQuadrant>();
 
   entities.forEach(ent => {
-    const rawArch = ent.continent && ent.continent.trim() ? ent.continent.trim() : suggestContinent(ent);
-    const formattedArch = formatClusterWithNumber(rawArch);
-    entityArchipelagoMap.set(ent.id, formattedArch);
+    const rawArch = ent.continent && ent.continent.trim() ? ent.continent.trim() : '';
+    if (rawArch) {
+      const formattedArch = formatClusterWithNumber(rawArch);
+      entityArchipelagoMap.set(ent.id, formattedArch);
 
-    if (!archipelagoEntityMap.has(formattedArch)) {
-      archipelagoEntityMap.set(formattedArch, []);
+      if (!archipelagoEntityMap.has(formattedArch)) {
+        archipelagoEntityMap.set(formattedArch, []);
+      }
+      archipelagoEntityMap.get(formattedArch)!.push(ent);
+    } else {
+      entityArchipelagoMap.set(ent.id, '');
     }
-    archipelagoEntityMap.get(formattedArch)!.push(ent);
   });
 
   // Calculate majority quadrant for each archipelago
@@ -2401,34 +2407,28 @@ export function calculateEntityLayout(
 
   const elevatedIndexTracker: Record<CategoryQuadrant, number> = { Inner: 0, Social: 0, Cultural: 0, Systems: 0 };
   const archipelagoEntityIndexTracker = new Map<string, number>();
+  const unassignedQuadrantEntityIndexTracker = new Map<CategoryQuadrant, number>();
+  let outsideQuadrantsEntityIndex = 0;
 
   const positionedEntities = entities.map(ent => {
-    const arch = entityArchipelagoMap.get(ent.id) || formatClusterWithNumber(suggestContinent(ent));
-    const archQuad = archipelagoMajorityQuadrant.get(arch) || ent.category || 'Inner';
+    const arch = entityArchipelagoMap.get(ent.id) || '';
     const isElevated = isEntityDomainElevation(ent);
 
-    // Synchronize category and quadrant with archipelago unless elevated ecotone
-    let effectiveCategory = isElevated ? (ent.category || 'Inner') : archQuad;
-    let effectiveQuadrant = effectiveCategory;
+    // Resolve quadrant and category:
+    // If entity has explicit quadrant (from Column E): that quadrant is primary.
+    // If entity has an archipelago: archipelagoMajorityQuadrant is used.
+    // If neither is present: ent.quadrant is undefined, meaning outside the quadrants.
+    let effectiveQuadrant: CategoryQuadrant | undefined = ent.quadrant;
+    if (!effectiveQuadrant && arch) {
+      effectiveQuadrant = archipelagoMajorityQuadrant.get(arch);
+    }
 
-    // Track index in this archipelago for phyllotaxis spiral
-    const archIdx = archipelagoEntityIndexTracker.get(arch) || 0;
-    archipelagoEntityIndexTracker.set(arch, archIdx + 1);
-
-    const archCenter = archipelagoCenters.get(arch) || QUADRANT_CENTERS[effectiveCategory];
+    let effectiveCategory: CategoryQuadrant = isElevated
+      ? (ent.category || 'Inner')
+      : (effectiveQuadrant || ent.category || 'Inner');
 
     let x = ent.x;
     let y = ent.y;
-
-    // Check if current coordinates are invalid / in wrong quadrant
-    const signX = (effectiveCategory === 'Inner' || effectiveCategory === 'Cultural') ? -1 : 1;
-    const signY = (effectiveCategory === 'Inner' || effectiveCategory === 'Social') ? -1 : 1;
-    const isWrongQuadrant = !isElevated && (
-      (signX < 0 && x > 0) ||
-      (signX > 0 && x < 0) ||
-      (signY < 0 && y > 0) ||
-      (signY > 0 && y < 0)
-    );
 
     // If entity already has an established position from user dragging, snapshot, or previous layout, preserve it strictly!
     const hasValidCoordinates = typeof x === 'number' && typeof y === 'number' && (x !== 0 || y !== 0) && Number.isFinite(x) && Number.isFinite(y);
@@ -2451,7 +2451,12 @@ export function calculateEntityLayout(
         const elevatedPos = calculateDomainElevationPosition(ent, elevatedIdx, totalElevated);
         x = elevatedPos.x;
         y = elevatedPos.y;
-      } else {
+      } else if (arch) {
+        // Track index in this archipelago for phyllotaxis spiral
+        const archIdx = archipelagoEntityIndexTracker.get(arch) || 0;
+        archipelagoEntityIndexTracker.set(arch, archIdx + 1);
+        const archCenter = archipelagoCenters.get(arch) || QUADRANT_CENTERS[effectiveCategory];
+
         // Golden-ratio phyllotaxis spiral around the archipelago's designated center
         const phi = 1.61803398875;
         const itemAngle = archIdx * phi * Math.PI * 2 + (archIdx % 2 === 0 ? 0.25 : -0.25);
@@ -2459,11 +2464,39 @@ export function calculateEntityLayout(
         const itemDist = archIdx === 0 ? 18 : (archIdx === 1 ? 34 : (38 + Math.sqrt(archIdx) * 38));
         x = Math.round(archCenter.x + Math.cos(itemAngle) * itemDist);
         y = Math.round(archCenter.y + Math.sin(itemAngle) * itemDist);
+      } else if (effectiveQuadrant) {
+        // Has a quadrant (from Column E), but NO archipelago!
+        // Position within its quadrant's territory in open space
+        const qIdx = unassignedQuadrantEntityIndexTracker.get(effectiveQuadrant) || 0;
+        unassignedQuadrantEntityIndexTracker.set(effectiveQuadrant, qIdx + 1);
+        const qCenter = QUADRANT_CENTERS[effectiveQuadrant];
+
+        const phi = 1.61803398875;
+        const itemAngle = qIdx * phi * Math.PI * 2 + 0.35;
+        const itemDist = 140 + Math.sqrt(qIdx) * 45;
+        x = Math.round(qCenter.x + Math.cos(itemAngle) * itemDist);
+        y = Math.round(qCenter.y + Math.sin(itemAngle) * itemDist);
+      } else {
+        // Neither Column E quadrant nor archipelago is filled!
+        // User requirement: "if it's not filled, they should be added around the quadrants (outside of them)."
+        const outerIdx = outsideQuadrantsEntityIndex++;
+        const phi = 1.61803398875;
+        const theta = outerIdx * phi * Math.PI * 2 + 0.2;
+        const absCos = Math.max(0.0001, Math.abs(Math.cos(theta)));
+        const absSin = Math.max(0.0001, Math.abs(Math.sin(theta)));
+        // 4 quadrants span approximately 1050x1050 from center (0,0)
+        const dBox = Math.min(1050 / absCos, 1050 / absSin);
+        // Stagger lanes so entities around the perimeter have plenty of breathing room
+        const lane = Math.floor(outerIdx / 24);
+        const margin = 180 + lane * 105;
+        const d = dBox + margin;
+        x = Math.round(d * Math.cos(theta));
+        y = Math.round(d * Math.sin(theta));
       }
     }
 
-    // If entity has a custom/established position and is not elevated, align effective category/quadrant with its actual position on map
-    if (hasValidPosition && !isElevated) {
+    // If entity has a custom/established position and is not elevated, align effective category/quadrant with its actual position on map ONLY IF it was intended to have a quadrant
+    if (hasValidPosition && !isElevated && ent.quadrant) {
       effectiveCategory = (x < 0 && y < 0) ? 'Inner'
         : (x > 0 && y < 0) ? 'Social'
         : (x < 0 && y > 0) ? 'Cultural'
@@ -2475,7 +2508,7 @@ export function calculateEntityLayout(
       ...ent,
       category: effectiveCategory,
       quadrant: effectiveQuadrant,
-      continent: arch,
+      continent: arch || undefined,
       x,
       y,
       isCustomPosition: options?.forceRecalculate ? false : (hasValidPosition || Boolean(ent.isCustomPosition))
@@ -2495,7 +2528,8 @@ export function calculateEntityLayout(
   }>();
 
   updatedEntities.forEach(ent => {
-    const contName = ent.continent || formatClusterWithNumber(suggestContinent(ent));
+    if (!ent.continent) return; // Organizations without an archipelago must not create any continent landmass
+    const contName = ent.continent;
     if (!continentMap.has(contName)) {
       const quad = archipelagoMajorityQuadrant.get(contName) || ent.category || 'Inner';
       const tCenter = archipelagoCenters.get(contName) || QUADRANT_CENTERS[quad];
