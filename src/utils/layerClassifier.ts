@@ -1,6 +1,6 @@
 import { EcosystemEntity, LayerQuadrantSizes, QuadrantDimension, CategoryQuadrant } from '../types';
 import { getEntitySpreadsheetField } from './excelParser';
-import { entityMatchesArchipelago } from './layoutGenerator';
+import { entityMatchesArchipelago, isEntityPrimaryToArchipelago } from './layoutGenerator';
 
 export type MapLayerNumber = 1 | 2 | 3;
 
@@ -88,6 +88,41 @@ export function getLayer2Relationships(entities?: EcosystemEntity[], ourRelation
 
   const result = [...existing];
   DEFAULT_LAYER_2_RELATIONSHIPS.forEach(defRel => {
+    const defNum = defRel.match(/^(\d+)/)?.[1];
+    const hasDefNum = result.some(r => r.match(/^(\d+)/)?.[1] === defNum);
+    if (!hasDefNum) {
+      result.push(defRel);
+    }
+  });
+
+  return result.sort((a, b) => {
+    const numA = parseInt(a.match(/^(\d+)/)?.[1] || '0', 10);
+    const numB = parseInt(b.match(/^(\d+)/)?.[1] || '0', 10);
+    return numA - numB;
+  });
+}
+
+/**
+ * Extracts distinct relationships for Layer 3 (10 to 11) from entities, with default fallback
+ */
+export function getLayer3Relationships(entities?: EcosystemEntity[], ourRelationshipsList?: string[]): string[] {
+  const source = ourRelationshipsList && ourRelationshipsList.length > 0
+    ? ourRelationshipsList
+    : (entities ? Array.from(new Set(
+        entities.map(e => getEntitySpreadsheetField(e, 'S2') || e.ourRelationship).filter(Boolean) as string[]
+      )) : []);
+
+  const existing = source.filter(r => {
+    const match = r.match(/^(\d+)/);
+    if (match) {
+      const num = parseInt(match[1], 10);
+      return num >= 10 && num <= 11;
+    }
+    return false;
+  });
+
+  const result = [...existing];
+  DEFAULT_LAYER_3_RELATIONSHIPS.forEach(defRel => {
     const defNum = defRel.match(/^(\d+)/)?.[1];
     const hasDefNum = result.some(r => r.match(/^(\d+)/)?.[1] === defNum);
     if (!hasDefNum) {
@@ -231,19 +266,23 @@ export function isEntityInLayer(entity: EcosystemEntity, layer: 1 | 2 | 3 | 'all
 }
 
 /**
- * Finds all entities assigned to an archipelago that qualify for the given layer
+ * Finds all entities assigned to an archipelago that qualify for the given layer.
+ * If primaryOnly is true, only returns entities whose primary archipelago is archipelagoName.
  */
 export function getArchipelagoLayerEntities(
   archipelagoName: string,
   entities: EcosystemEntity[],
-  layer: 1 | 2 | 3 | 'all' | number = 1
+  layer: 1 | 2 | 3 | 'all' | number = 1,
+  primaryOnly: boolean = false
 ): EcosystemEntity[] {
   if (!archipelagoName || !entities || entities.length === 0) return [];
-  const assigned = entities.filter(e => entityMatchesArchipelago(e, archipelagoName));
+  // In Layer 2 and Layer 3: archipelagos are stopped/hidden completely
+  if (layer === 2 || layer === 3) return [];
+  const assigned = primaryOnly
+    ? entities.filter(e => isEntityPrimaryToArchipelago(e, archipelagoName))
+    : entities.filter(e => entityMatchesArchipelago(e, archipelagoName));
   if (layer === 'all') return assigned;
   if (layer === 1) return assigned.filter(e => isEntityInRelationshipLevels1to6(e));
-  if (layer === 2) return assigned.filter(e => isEntityInRelationshipLevels7to9(e));
-  if (layer === 3) return assigned.filter(e => isEntityInRelationshipLevels10to11(e));
   return [];
 }
 
@@ -251,6 +290,7 @@ export function getArchipelagoLayerEntities(
  * Determines whether an archipelago should appear in the given map layer.
  * Specifically for Layer 1: it ONLY appears if it has at least one entity assigned
  * with a relationship level between 1 and 6.
+ * In Layer 2 and Layer 3: archipelagos stop showing completely.
  */
 export function doesArchipelagoAppearInLayer(
   archipelagoName: string,
@@ -258,12 +298,12 @@ export function doesArchipelagoAppearInLayer(
   layer: 1 | 2 | 3 | 'all' | number = 1
 ): boolean {
   if (!archipelagoName || !entities || entities.length === 0) return false;
+  // In Layer 2 and Layer 3: archipelagos stop showing completely
+  if (layer === 2 || layer === 3) return false;
   const assigned = entities.filter(e => entityMatchesArchipelago(e, archipelagoName));
   if (assigned.length === 0) return false;
   if (layer === 'all') return true;
   if (layer === 1) return assigned.some(e => isEntityInRelationshipLevels1to6(e));
-  if (layer === 2) return assigned.some(e => isEntityInRelationshipLevels7to9(e));
-  if (layer === 3) return assigned.some(e => isEntityInRelationshipLevels10to11(e));
   return false;
 }
 

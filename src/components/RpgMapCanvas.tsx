@@ -3,7 +3,7 @@ import {
   ZoomIn, ZoomOut, Maximize2, Move, Eye, Shield, Sparkles, Navigation, Globe, Map as MapIcon, RotateCcw, RotateCw, Plus, Trash2, Mountain, Layers, Network, Star, Save, Unlock, X, Sliders, Wand2, ChevronUp, ChevronDown, Undo2, Redo2
 } from 'lucide-react';
 import { EcosystemEntity, CategoryQuadrant, FieldCluster, MapViewport, ContinentInfo, EcotoneCorridorInfo, getEntityCompleteness, DATA_COMPLETENESS_CONFIG, getCompletenessConfig, LayerQuadrantSizes, LayerQuadrantConfig, DEFAULT_LAYER_QUADRANT_SIZES, getQuadrantSizesForLayer } from '../types';
-import { QUADRANT_CENTERS, generateContinentLabelPath, getContinentLabelCenter, isEntityDomainElevation, getEntityIntersectionZone, getEntityQuadrantGradient, INTERSECTION_ZONES, calculateEcotoneCorridors, getEntityClusterWithNumber, formatClusterWithNumber, normalizeArchipelagoBaseName, isEntityPrimaryToArchipelago, suggestContinent, entityMatchesArchipelago } from '../utils/layoutGenerator';
+import { QUADRANT_CENTERS, generateContinentLabelPath, getContinentLabelCenter, isEntityDomainElevation, getEntityIntersectionZone, getEntityQuadrantGradient, INTERSECTION_ZONES, calculateEcotoneCorridors, getEntityClusterWithNumber, formatClusterWithNumber, normalizeArchipelagoBaseName, isEntityPrimaryToArchipelago, entityMatchesArchipelago } from '../utils/layoutGenerator';
 import { calculateAutoFitQuadrantSizes, doesArchipelagoAppearInLayer } from '../utils/layerClassifier';
 import { ChangelogWidget } from './ChangelogWidget';
 import { getConnectedEntityIds } from '../utils/socialMedia';
@@ -1166,13 +1166,18 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
   }, [onSelectIntersectionZone, clearPendingClick]);
 
 
+  // Archipelagos are stopped/hidden when in Layer 2 or Layer 3
+  const isArchipelagoHiddenInLayer = activeLayer === 2 || activeLayer === 3;
+  const effectiveShowContinents = showContinents && !isArchipelagoHiddenInLayer;
+
   // Visible continents (ensuring archipelagos strictly follow activeLayer relationship level rules)
   const visibleContinentsList = useMemo(() => {
+    if (isArchipelagoHiddenInLayer) return [];
     return continents.filter(c => {
       if (hiddenContinents.includes(c.name)) return false;
       return doesArchipelagoAppearInLayer(c.name, entities, activeLayer);
     });
-  }, [continents, hiddenContinents, activeLayer, entities]);
+  }, [continents, hiddenContinents, activeLayer, entities, isArchipelagoHiddenInLayer]);
 
   // Calculate connection lines for selected or hovered entity or all relationships across all quadrants
   const activeFocusEntity = focusedEntity || hoveredEntity || selectedEntity;
@@ -1684,11 +1689,23 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
             ))}
 
             {/* Curved Path Definitions for Continent Names & Entity Counts Circling the Perimeter */}
-            {showContinents && visibleContinentsList.map(cont => {
+            {effectiveShowContinents && visibleContinentsList.map(cont => {
               const pathId = `continent-label-path-${sanitizeId(cont.name)}`;
               const subPathId = `continent-sublabel-path-${sanitizeId(cont.name)}`;
               const titleCurv = cont.titleCurvature !== undefined ? cont.titleCurvature : 0.7;
               const subTitleCurv = cont.subTitleCurvature !== undefined ? cont.subTitleCurvature : 0.7;
+
+              const isSelected = selectedContinentName === cont.name ||
+                Boolean(selectedContinentName && (
+                  normalizeArchipelagoBaseName(selectedContinentName) === normalizeArchipelagoBaseName(cont.name) ||
+                  formatClusterWithNumber(selectedContinentName).toLowerCase() === formatClusterWithNumber(cont.name).toLowerCase()
+                ));
+
+              // When selected/focused: count all visible entities matching archipelago (primary + secondary/affiliated).
+              // When not selected: count only visible entities that are primary to this archipelago (actually displayed in its territory).
+              const currentDisplayCount = isSelected
+                ? visibleEntities.filter(e => entityMatchesArchipelago(e, cont.name)).length
+                : visibleEntities.filter(e => isEntityPrimaryToArchipelago(e, cont.name)).length;
 
               const labelPathD = generateContinentLabelPath(
                 cont.centerX,
@@ -1713,7 +1730,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
                 cont.controlPoints,
                 -22,
                 subTitleCurv,
-                `${cont.count} ${cont.count === 1 ? 'entity' : 'entities'}`
+                `${currentDisplayCount} ${currentDisplayCount === 1 ? 'entity' : 'entities'}`
               );
 
               return (
@@ -1799,7 +1816,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
             })}
 
             {/* 1. Archipelagos Organic Landmasses & Circling Archipelago Names */}
-            {showContinents && visibleContinentsList.map(cont => {
+            {effectiveShowContinents && visibleContinentsList.map(cont => {
               if (!cont.pathData) return null;
               const isHovered = editMode && hoveredContinent === cont.name;
               const isSelected = selectedContinentName === cont.name ||
@@ -1808,8 +1825,8 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
                   formatClusterWithNumber(selectedContinentName).toLowerCase() === formatClusterWithNumber(cont.name).toLowerCase()
                 ));
               const displayCount = isSelected
-                ? (visibleEntities.filter(e => entityMatchesArchipelago(e, cont.name)).length || cont.count)
-                : cont.count;
+                ? visibleEntities.filter(e => entityMatchesArchipelago(e, cont.name)).length
+                : visibleEntities.filter(e => isEntityPrimaryToArchipelago(e, cont.name)).length;
               const isBeingMoved = draggingContinentName === cont.name;
               const dragTransform = isBeingMoved && continentDragDelta
                 ? `translate(${continentDragDelta.dx}, ${continentDragDelta.dy})`
@@ -2238,7 +2255,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
             ))}
 
             {/* 3. EDIT MODE: Continent Perimeter Reshape Handles (Control Vertices & '+' Midpoints) */}
-            {editMode && showContinents && visibleContinentsList.map(cont => {
+            {editMode && effectiveShowContinents && visibleContinentsList.map(cont => {
               if (!cont.controlPoints || cont.controlPoints.length === 0) return null;
               const isBeingMoved = draggingContinentName === cont.name;
               const isContinentActive = selectedContinentName === cont.name || hoveredContinent === cont.name || draggingVertex?.continentName === cont.name || isBeingMoved;

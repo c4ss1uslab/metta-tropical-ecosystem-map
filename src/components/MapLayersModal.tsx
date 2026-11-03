@@ -273,9 +273,26 @@ export const MapLayersModal: React.FC<MapLayersModalProps> = ({
                   </span>
                 </div>
 
-                <span className="text-[10px] font-technical uppercase font-semibold px-2 py-0.5 rounded-[2px] bg-[#F3F4F6] text-[#6B7280] border border-[#E5E7EB]">
-                  Coming Soon • Unclickable for now
-                </span>
+                <div className="flex items-center space-x-2">
+                  {activeLayer === 3 ? (
+                    <span className="text-[10px] font-technical uppercase font-bold px-2 py-0.5 rounded-[2px] bg-[#7C3AED] text-white flex items-center space-x-1 shadow-2xs">
+                      <Check className="w-3 h-3" />
+                      <span>Active on Map</span>
+                    </span>
+                  ) : (
+                    onSelectLayer && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onSelectLayer(3);
+                        }}
+                        className="text-[10.5px] font-technical uppercase font-semibold px-2 py-0.5 rounded-[2px] bg-white hover:bg-[#F5F3FF] text-[#6D28D9] border border-[#7C3AED]/50 transition-colors cursor-pointer shadow-2xs"
+                      >
+                        Switch to Layer 3
+                      </button>
+                    )
+                  )}
+                </div>
               </div>
 
               {/* Title */}

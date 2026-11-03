@@ -1071,9 +1071,8 @@ export function getEntityClusterWithNumber(entity: EcosystemEntity, allContinent
     }
   }
 
-  // 3. Third choice: suggest from entity attributes
-  const suggested = suggestContinent(entity);
-  return formatClusterWithNumber(suggested);
+  // If entity has no archipelago in Column H, return empty string! DO NOT auto-assign any archipelago.
+  return '';
 }
 
 /**
@@ -1099,7 +1098,7 @@ export function getEntityOtherArchipelagos(entity: EcosystemEntity): string[] {
   if (!entity) return [];
 
   // Determine the primary archipelago assigned to the entity
-  const primary = (entity.continent || suggestContinent(entity) || '').trim();
+  const primary = (entity.continent || '').trim();
   const primaryNorm = formatClusterWithNumber(primary).toLowerCase().trim();
   const primaryBase = normalizeArchipelagoBaseName(primary);
 
@@ -1364,7 +1363,7 @@ export function calculateFocusArchipelagoPositions(
       y: bestY,
       isFocusGuest: true,
       focusArchipelago: targetArchipelago,
-      primaryContinentName: guest.continent || suggestContinent(guest)
+      primaryContinentName: guest.continent || ''
     });
   });
 
@@ -1633,7 +1632,7 @@ export function isArchipelagoOrCluster(val?: string, entity?: EcosystemEntity): 
 
   // 1. If entity is provided, check against its primary continent and other archipelagos
   if (entity) {
-    const primary = (entity.continent || suggestContinent(entity) || '').trim().toLowerCase();
+    const primary = (entity.continent || '').trim().toLowerCase();
     const primaryNorm = formatClusterWithNumber(primary).toLowerCase();
     const primaryNoNum = primary.replace(/^\d+[\.\)]\s*/, '').trim();
 
@@ -1722,7 +1721,7 @@ export function suggestContinent(entity: Partial<EcosystemEntity>): string {
     if (combinedText.includes('psychedelic') || combinedText.includes('plant medicine')) {
       return '25. Psychedelic Research';
     }
-    return '6. Developmental Practice';
+    return '';
   }
 
   if (cat === 'Social') {
@@ -1738,7 +1737,7 @@ export function suggestContinent(entity: Partial<EcosystemEntity>): string {
     if (combinedText.includes('consultan')) {
       return '32. Consultancies';
     }
-    return '30. Grassroots Communities';
+    return '';
   }
 
   if (cat === 'Cultural') {
@@ -1760,7 +1759,7 @@ export function suggestContinent(entity: Partial<EcosystemEntity>): string {
     if (combinedText.includes('indigenous') || combinedText.includes('ancestral')) {
       return '27. Indigenous Education';
     }
-    return '21. Sociocultural Education';
+    return '';
   }
 
   if (cat === 'Systems') {
@@ -1776,10 +1775,10 @@ export function suggestContinent(entity: Partial<EcosystemEntity>): string {
     if (combinedText.includes('technology') || combinedText.includes('software') || combinedText.includes('regenerative technology') || combinedText.includes('design & development')) {
       return '52. Regenerative Technology Design & Development';
     }
-    return '53. Regenerative Coordination';
+    return '';
   }
 
-  return '1. Wisdom Traditions';
+  return '';
 }
 
 /**
@@ -2430,19 +2429,36 @@ export function calculateEntityLayout(
     let x = ent.x;
     let y = ent.y;
 
-    // If entity already has an established position from user dragging, snapshot, or previous layout, preserve it strictly!
+    // If entity already has an established position from user dragging, snapshot, or previous layout, verify it matches its designated placement
     const hasValidCoordinates = typeof x === 'number' && typeof y === 'number' && (x !== 0 || y !== 0) && Number.isFinite(x) && Number.isFinite(y);
+
+    // Verify coordinates match quadrant placement so entities moved from Inner to Social/Cultural/Systems or outside don't stay in Inner
+    let coordinatesMatchPlacement = false;
+    if (hasValidCoordinates) {
+      if (arch) {
+        coordinatesMatchPlacement = true;
+      } else if (effectiveQuadrant === 'Inner') {
+        coordinatesMatchPlacement = x <= 0 && y <= 0;
+      } else if (effectiveQuadrant === 'Social') {
+        coordinatesMatchPlacement = x >= 0 && y <= 0;
+      } else if (effectiveQuadrant === 'Cultural') {
+        coordinatesMatchPlacement = x <= 0 && y >= 0;
+      } else if (effectiveQuadrant === 'Systems') {
+        coordinatesMatchPlacement = x >= 0 && y >= 0;
+      } else {
+        // No quadrant and no archipelago: must be positioned outside the 4 quadrants
+        coordinatesMatchPlacement = Math.abs(x) > 850 || Math.abs(y) > 850 || Math.hypot(x, y) > 950;
+      }
+    }
+
     const hasValidPosition = Boolean(
-      !options?.forceRecalculate && (
-        (ent.isCustomPosition && hasValidCoordinates) ||
-        hasValidCoordinates
-      )
+      !options?.forceRecalculate &&
+      hasValidCoordinates &&
+      coordinatesMatchPlacement &&
+      (ent.isCustomPosition || hasValidCoordinates)
     );
 
-    const needsPositioning = !hasValidPosition && (
-      options?.forceRecalculate ||
-      !hasValidCoordinates
-    );
+    const needsPositioning = !hasValidPosition;
 
     if (needsPositioning) {
       if (isElevated) {
@@ -2493,15 +2509,6 @@ export function calculateEntityLayout(
         x = Math.round(d * Math.cos(theta));
         y = Math.round(d * Math.sin(theta));
       }
-    }
-
-    // If entity has a custom/established position and is not elevated, align effective category/quadrant with its actual position on map ONLY IF it was intended to have a quadrant
-    if (hasValidPosition && !isElevated && ent.quadrant) {
-      effectiveCategory = (x < 0 && y < 0) ? 'Inner'
-        : (x > 0 && y < 0) ? 'Social'
-        : (x < 0 && y > 0) ? 'Cultural'
-        : 'Systems';
-      effectiveQuadrant = effectiveCategory;
     }
 
     return {

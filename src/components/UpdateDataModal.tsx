@@ -492,7 +492,15 @@ export const UpdateDataModal: React.FC<UpdateDataModalProps> = ({
                     <div className="p-2.5 bg-emerald-500/10 border border-emerald-300 text-emerald-900 text-xs font-sans rounded-[3px] flex items-center space-x-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
                       <span>
-                        Adding <strong>+{syncDiff.result.added.length}</strong> new entities to your existing <strong>{currentEntities.length}</strong> nodes (total <strong>{syncDiff.result.totalNew}</strong>).
+                        {syncDiff.result.added.length === 0 ? (
+                          <>
+                            All <strong>{currentEntities.length}</strong> existing map entities matched. <strong>{syncDiff.result.updated.length}</strong> will be updated with new data, keeping all <strong>{syncDiff.result.preservedCoordinatesCount}</strong> coordinates intact.
+                          </>
+                        ) : (
+                          <>
+                            Adding <strong>+{syncDiff.result.added.length}</strong> new entities to your existing <strong>{currentEntities.length}</strong> nodes (total <strong>{syncDiff.result.totalNew}</strong>).
+                          </>
+                        )}
                       </span>
                     </div>
 

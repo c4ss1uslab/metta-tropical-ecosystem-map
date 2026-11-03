@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { CategoryQuadrant, EntityType, FilterState, FieldCluster, ContinentInfo, SidebarListScope, EcosystemEntity, DataQualityStatus, DataCompletenessLevel, DATA_COMPLETENESS_LEVELS, DATA_COMPLETENESS_CONFIG, getEntityCompleteness, getCompletenessConfig, ContributionSubmission } from '../types';
 import { entityMatchesArchipelago, normalizeArchipelagoBaseName, formatClusterWithNumber } from '../utils/layoutGenerator';
-import { getEntitySpreadsheetField, splitLanguageValues, splitRelationshipValues } from '../utils/excelParser';
+import { getEntitySpreadsheetField, splitLanguageValues, splitRelationshipValues, entityMatchesRelationship } from '../utils/excelParser';
 import { 
   getStoredContributions, 
   updateContributionStatus, 
@@ -22,7 +22,8 @@ import {
   calculateLayerCounts, 
   formatLayerEntitiesBreakdown, 
   getLayer1Relationships, 
-  getLayer2Relationships 
+  getLayer2Relationships,
+  getLayer3Relationships
 } from '../utils/layerClassifier';
 
 interface LeftSidebarProps {
@@ -427,6 +428,15 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
 
   // Map Layers (Layer 1, Layer 2, Layer 3)
   const activeLayer = filterState.activeLayer ?? 1;
+  const showArchipelagos = !(activeLayer === 2 || activeLayer === 3);
+
+  // Automatically switch away from archipelagos tab if layer 2 or 3 is activated
+  useEffect(() => {
+    if (!showArchipelagos && activeTab === 'continents') {
+      setActiveTab('filters');
+    }
+  }, [showArchipelagos, activeTab]);
+
   const [isLayerSectionOpen, setIsLayerSectionOpen] = useState(false);
   const [isLayerModalOpen, setIsLayerModalOpen] = useState(false);
   const [layerModalInitialTab, setLayerModalInitialTab] = useState<1 | 2 | 3 | 'all'>('all');
@@ -450,13 +460,19 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     return getLayer2Relationships(entities, ourRelationships);
   }, [entities, ourRelationships]);
 
+  // Layer 3 specific relationships (10 to 11)
+  const layer3Relationships = useMemo(() => {
+    return getLayer3Relationships(entities, ourRelationships);
+  }, [entities, ourRelationships]);
+
   // Relationships allowed/applicable for current active layer
   const currentLayerAllowedRelationships = useMemo(() => {
+    if (activeLayer === 3) return layer3Relationships;
     if (activeLayer === 2) return layer2Relationships;
     if (activeLayer === 1) return layer1Relationships;
-    if (activeLayer === 'all') return [...layer1Relationships, ...layer2Relationships];
+    if (activeLayer === 'all') return [...layer1Relationships, ...layer2Relationships, ...layer3Relationships];
     return layer1Relationships;
-  }, [activeLayer, layer1Relationships, layer2Relationships]);
+  }, [activeLayer, layer1Relationships, layer2Relationships, layer3Relationships]);
 
   // Active selected relationships for multi-selection (defaults to all Layer 1 relationships for layer 1, and all Layer 2 relationships for layer 2)
   const activeOurRels = useMemo(() => {
@@ -482,30 +498,27 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   // Count entities for each relationship tag
   const ourRelationshipCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    ourRelationships.forEach(rel => {
+    const allRels = Array.from(new Set([
+      ...ourRelationships,
+      ...layer1Relationships,
+      ...layer2Relationships,
+      ...layer3Relationships
+    ]));
+
+    allRels.forEach(rel => {
       counts[rel] = 0;
     });
-    // Ensure all layer 1 and layer 2 relationships exist in counts map
-    [...layer1Relationships, ...layer2Relationships].forEach(rel => {
-      if (counts[rel] === undefined) {
-        counts[rel] = 0;
-      }
-    });
+
     entities.forEach(ent => {
-      const val = getEntitySpreadsheetField(ent, 'S2') || ent.ourRelationship;
-      if (val) {
-        const valLower = val.toLowerCase().trim();
-        const discreteItems = splitRelationshipValues(val).map(s => s.toLowerCase().trim());
-        [...ourRelationships, ...layer1Relationships, ...layer2Relationships].forEach(rel => {
-          const rLower = rel.toLowerCase().trim();
-          if (valLower === rLower || discreteItems.includes(rLower) || valLower.includes(rLower)) {
-            counts[rel] = (counts[rel] || 0) + 1;
-          }
-        });
-      }
+      allRels.forEach(rel => {
+        if (entityMatchesRelationship(ent, rel)) {
+          counts[rel] = (counts[rel] || 0) + 1;
+        }
+      });
     });
+
     return counts;
-  }, [entities, ourRelationships, layer1Relationships, layer2Relationships]);
+  }, [entities, ourRelationships, layer1Relationships, layer2Relationships, layer3Relationships]);
 
   const layer1RelationshipOptions = useMemo(() => {
     return layer1Relationships.map(r => ({
@@ -523,9 +536,24 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     }));
   }, [layer2Relationships, ourRelationshipCounts]);
 
+  const layer3RelationshipOptions = useMemo(() => {
+    return layer3Relationships.map(r => ({
+      value: r,
+      label: r,
+      count: ourRelationshipCounts[r] || 0
+    }));
+  }, [layer3Relationships, ourRelationshipCounts]);
+
   // Handler to switch layers and auto-select corresponding relationships
   const handleSelectLayer = useCallback((targetLayer: 1 | 2 | 3 | 'all') => {
-    if (targetLayer === 2) {
+    if (targetLayer === 3) {
+      setFilterState(prev => ({
+        ...prev,
+        activeLayer: 3,
+        selectedOurRelationships: layer3Relationships,
+        selectedOurRelationship: layer3Relationships.join(', ')
+      }));
+    } else if (targetLayer === 2) {
       setFilterState(prev => ({
         ...prev,
         activeLayer: 2,
@@ -540,7 +568,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
         selectedOurRelationship: layer1Relationships.join(', ')
       }));
     } else if (targetLayer === 'all') {
-      const allRels = [...layer1Relationships, ...layer2Relationships];
+      const allRels = [...layer1Relationships, ...layer2Relationships, ...layer3Relationships];
       setFilterState(prev => ({
         ...prev,
         activeLayer: 'all',
@@ -553,7 +581,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
         activeLayer: targetLayer
       }));
     }
-  }, [layer1Relationships, layer2Relationships, setFilterState]);
+  }, [layer1Relationships, layer2Relationships, layer3Relationships, setFilterState]);
 
   const toggleOurRelationship = (rel: string) => {
     setFilterState(prev => {
@@ -582,9 +610,37 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     }));
   };
 
-  // Render Our Relationship field attached to active Layer (Layer 1: 1-6, Layer 2: 7-9)
-  const renderOurRelationshipDropdown = (targetLayer?: 1 | 2 | 'all') => {
-    const layer = targetLayer ?? (activeLayer === 2 ? 2 : (activeLayer === 'all' ? 'all' : 1));
+  // Render Our Relationship field attached to active Layer (Layer 1: 1-6, Layer 2: 7-9, Layer 3: 10-11)
+  const renderOurRelationshipDropdown = (targetLayer?: 1 | 2 | 3 | 'all') => {
+    const layer = targetLayer ?? (activeLayer === 3 ? 3 : (activeLayer === 2 ? 2 : (activeLayer === 'all' ? 'all' : 1)));
+
+    if (layer === 3) {
+      return (
+        <div className="space-y-1">
+          <MultiSelectFilterDropdown
+            id="map-ourRelationship-layer3"
+            label="Our Relationship"
+            singularLabel="relationship"
+            pluralLabel="relationships"
+            options={layer3RelationshipOptions}
+            selectedValues={activeOurRels}
+            onChange={(newVals) => {
+              setFilterState(prev => ({
+                ...prev,
+                selectedOurRelationships: newVals.length === 0 ? ['none'] : newVals,
+                selectedOurRelationship: newVals.length === 1 ? newVals[0] : (newVals.length === 0 ? 'none' : newVals.join(', '))
+              }));
+            }}
+            totalEntitiesCount={layer3Counts.total}
+            isOpen={openDropdownId === 'map-ourRelationship-layer3'}
+            onToggle={() => setOpenDropdownId(prev => prev === 'map-ourRelationship-layer3' ? null : 'map-ourRelationship-layer3')}
+            onClose={() => setOpenDropdownId(null)}
+            allSelectedDisplayText="Active Relationships: 10-11"
+            allSelectedLabel="All Active Relationships (10-11)"
+          />
+        </div>
+      );
+    }
 
     if (layer === 2) {
       return (
@@ -660,7 +716,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
           label="Our Relationship"
           singularLabel="relationship"
           pluralLabel="relationships"
-          options={layer === 'all' ? [...layer1RelationshipOptions, ...layer2RelationshipOptions] : layer1RelationshipOptions}
+          options={layer === 'all' ? [...layer1RelationshipOptions, ...layer2RelationshipOptions, ...layer3RelationshipOptions] : layer1RelationshipOptions}
           selectedValues={activeOurRels}
           onChange={(newVals) => {
             setFilterState(prev => ({
@@ -669,12 +725,12 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
               selectedOurRelationship: newVals.length === 1 ? newVals[0] : (newVals.length === 0 ? 'none' : newVals.join(', '))
             }));
           }}
-          totalEntitiesCount={layer === 'all' ? layer1Counts.total + layer2Counts.total : layer1Counts.total}
+          totalEntitiesCount={layer === 'all' ? layer1Counts.total + layer2Counts.total + layer3Counts.total : layer1Counts.total}
           isOpen={openDropdownId === 'map-ourRelationship'}
           onToggle={() => setOpenDropdownId(prev => prev === 'map-ourRelationship' ? null : 'map-ourRelationship')}
           onClose={() => setOpenDropdownId(null)}
-          allSelectedDisplayText={layer === 'all' ? 'Active Relationships: All (1-9)' : 'Active Relationships: 1-6'}
-          allSelectedLabel={layer === 'all' ? 'All Active Relationships (1-9)' : 'All Active Relationships (1-6)'}
+          allSelectedDisplayText={layer === 'all' ? 'Active Relationships: All (1-11)' : 'Active Relationships: 1-6'}
+          allSelectedLabel={layer === 'all' ? 'All Active Relationships (1-11)' : 'All Active Relationships (1-6)'}
         />
 
         {/* Active Relationship Scope indicator & Quick Sidebar List Link */}
@@ -692,7 +748,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                 setActiveListScope?.(null);
                 setFilterState(prev => ({
                   ...prev,
-                  selectedOurRelationships: layer === 'all' ? [...layer1Relationships, ...layer2Relationships] : layer1Relationships,
+                  selectedOurRelationships: layer === 'all' ? [...layer1Relationships, ...layer2Relationships, ...layer3Relationships] : layer1Relationships,
                   selectedOurRelationship: 'All'
                 }));
               }}
@@ -1496,9 +1552,11 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
           <button onClick={() => setCollapsed(false)} title="Filter Settings">
             <Filter className="w-5 h-5 text-[#111827]" />
           </button>
-          <button onClick={() => { setCollapsed(false); setActiveTab('continents'); }} title="Archipelagos">
-            <Globe className="w-5 h-5 text-[#5B21B6]" />
-          </button>
+          {showArchipelagos && (
+            <button onClick={() => { setCollapsed(false); setActiveTab('continents'); }} title="Archipelagos">
+              <Globe className="w-5 h-5 text-[#5B21B6]" />
+            </button>
+          )}
           <button onClick={() => { setCollapsed(false); setActiveTab('fields'); }} title="Field Tags">
             <Tag className="w-5 h-5 text-[#7D8764]" />
           </button>
@@ -1534,7 +1592,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
             </div>
 
             {/* Navigation Tabs */}
-            <div className={`grid ${editMode ? 'grid-cols-5' : 'grid-cols-3'} border-b border-[#E5E7EB] mt-3 font-sans text-xs text-center`}>
+            <div className={`grid ${editMode ? (showArchipelagos ? 'grid-cols-5' : 'grid-cols-4') : (showArchipelagos ? 'grid-cols-3' : 'grid-cols-2')} border-b border-[#E5E7EB] mt-3 font-sans text-xs text-center`}>
               <button
                 onClick={() => setActiveTab('filters')}
                 className={`py-1.5 font-medium border-b-2 transition-all truncate px-1 ${
@@ -1545,16 +1603,18 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
               >
                 General
               </button>
-              <button
-                onClick={() => setActiveTab('continents')}
-                className={`py-1.5 font-medium border-b-2 transition-all truncate px-1 ${
-                  activeTab === 'continents'
-                    ? 'border-[#111827] text-[#111827] bg-[#FAF8F5]'
-                    : 'border-transparent text-[#8C877F] hover:text-[#111827]'
-                }`}
-              >
-                Archipelagos
-              </button>
+              {showArchipelagos && (
+                <button
+                  onClick={() => setActiveTab('continents')}
+                  className={`py-1.5 font-medium border-b-2 transition-all truncate px-1 ${
+                    activeTab === 'continents'
+                      ? 'border-[#111827] text-[#111827] bg-[#FAF8F5]'
+                      : 'border-transparent text-[#8C877F] hover:text-[#111827]'
+                  }`}
+                >
+                  Archipelagos
+                </button>
+              )}
               <button
                 onClick={() => setActiveTab('fields')}
                 className={`py-1.5 font-medium border-b-2 transition-all truncate px-1 ${
@@ -1874,33 +1934,35 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                   />
                 </div>
 
-                {/* Archipelago Filter (Continents, multi-selectable) */}
-                <div>
-                  <MultiSelectFilterDropdown
-                    id="map-archipelago"
-                    label="Archipelagos"
-                    singularLabel="archipelago"
-                    pluralLabel="archipelagos"
-                    options={sortedArchipelagos.map(c => ({
-                      value: c.name,
-                      label: c.name,
-                      count: archipelagoCounts[c.name] || 0
-                    }))}
-                    selectedValues={activeContinents}
-                    onChange={(newVals) => {
-                      setFilterState(prev => ({
-                        ...prev,
-                        selectedContinents: newVals
-                      }));
-                    }}
-                    totalEntitiesCount={entities.length}
-                    isOpen={openDropdownId === 'map-archipelago'}
-                    onToggle={() => setOpenDropdownId(prev => prev === 'map-archipelago' ? null : 'map-archipelago')}
-                    onClose={() => setOpenDropdownId(null)}
-                  />
-                </div>
+                {/* Archipelago Filter (Continents, multi-selectable - only in Layer 1 and all) */}
+                {showArchipelagos && (
+                  <div>
+                    <MultiSelectFilterDropdown
+                      id="map-archipelago"
+                      label="Archipelagos"
+                      singularLabel="archipelago"
+                      pluralLabel="archipelagos"
+                      options={sortedArchipelagos.map(c => ({
+                        value: c.name,
+                        label: c.name,
+                        count: archipelagoCounts[c.name] || 0
+                      }))}
+                      selectedValues={activeContinents}
+                      onChange={(newVals) => {
+                        setFilterState(prev => ({
+                          ...prev,
+                          selectedContinents: newVals
+                        }));
+                      }}
+                      totalEntitiesCount={entities.length}
+                      isOpen={openDropdownId === 'map-archipelago'}
+                      onToggle={() => setOpenDropdownId(prev => prev === 'map-archipelago' ? null : 'map-archipelago')}
+                      onClose={() => setOpenDropdownId(null)}
+                    />
+                  </div>
+                )}
 
-                {/* Map Layers Dropdown & Section with Our Relationship attached to Layer 1 or Layer 2 */}
+                {/* Map Layers Dropdown & Section with Our Relationship attached to Layer 1, 2, or 3 */}
                 <div className="pt-2 border-t border-[#E5E7EB]">
                   {!isLayerSectionOpen ? (
                     <div className="space-y-2">
@@ -1922,18 +1984,20 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                           </span>
                         </span>
                         <span className={`text-[9px] font-technical px-1.5 py-0.5 rounded-[2px] font-bold shrink-0 ml-1 flex items-center space-x-1 ${
-                          activeLayer === 2
+                          activeLayer === 3
+                            ? 'bg-[#F5F3FF] text-[#6D28D9] border border-[#DDD6FE] group-hover:border-[#7C3AED]'
+                            : activeLayer === 2
                             ? 'bg-[#EFF6FF] text-[#1D4ED8] border border-[#BFDBFE] group-hover:border-[#2563EB]'
                             : 'bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0] group-hover:border-[#059669]'
                         }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${activeLayer === 2 ? 'bg-[#2563EB]' : 'bg-[#10B981]'}`}></span>
+                          <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${activeLayer === 3 ? 'bg-[#7C3AED]' : activeLayer === 2 ? 'bg-[#2563EB]' : 'bg-[#10B981]'}`}></span>
                           <span>Active</span>
                         </span>
                       </button>
 
-                      {/* Attached Our Relationship Field (shows for active layer: 1-6 when Layer 1, 7-9 when Layer 2) */}
+                      {/* Attached Our Relationship Field (shows for active layer: 1-6 when Layer 1, 7-9 when Layer 2, 10-11 when Layer 3) */}
                       <div className="pt-0.5">
-                        {renderOurRelationshipDropdown(activeLayer === 2 ? 2 : (activeLayer === 'all' ? 'all' : 1))}
+                        {renderOurRelationshipDropdown(activeLayer === 3 ? 3 : (activeLayer === 2 ? 2 : (activeLayer === 'all' ? 'all' : 1)))}
                       </div>
                     </div>
                   ) : (
@@ -1977,7 +2041,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                             <div className="flex items-center space-x-2">
                               <span className="w-3 h-3 rounded-full bg-[#059669] shrink-0 shadow-xs" />
                               <span className="font-editorial text-[15px] font-bold text-[#111827]">
-                                Layer 1: [{formatLayerEntitiesBreakdown(layer1Counts)}]
+                                Layer 1: {formatLayerEntitiesBreakdown(layer1Counts)}
                               </span>
                             </div>
                             {activeLayer === 1 ? (
@@ -2039,7 +2103,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                             <div className="flex items-center space-x-2">
                               <span className="w-3 h-3 rounded-full bg-[#2563EB] shrink-0 shadow-xs" />
                               <span className="font-editorial text-[15px] font-bold text-[#111827]">
-                                Layer 2: [{formatLayerEntitiesBreakdown(layer2Counts)}]
+                                Layer 2: {formatLayerEntitiesBreakdown(layer2Counts)}
                               </span>
                             </div>
                             {activeLayer === 2 ? (
@@ -2088,26 +2152,39 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
 
                         {/* Layer 3 */}
                         <div
-                          className="p-3 rounded-[4px] border border-[#E5E7EB] bg-[#F9FAFB] text-left space-y-2 opacity-85 select-none"
-                          title="Layer 3 is coming soon and unclickable for now"
+                          onClick={() => {
+                            handleSelectLayer(3);
+                          }}
+                          className={`p-3 rounded-[4px] border transition-all cursor-pointer text-left space-y-2 ${
+                            activeLayer === 3
+                              ? 'bg-[#FAF9FF]/80 border-[#7C3AED] ring-1 ring-[#7C3AED] shadow-xs'
+                              : 'bg-white border-[#E5E7EB] hover:border-[#7C3AED]/60 hover:bg-[#FAF8F5]'
+                          }`}
                         >
                           <div className="flex items-start justify-between gap-1.5">
                             <div className="flex items-center space-x-2">
-                              <span className="w-3 h-3 rounded-full bg-[#7C3AED] shrink-0 opacity-70" />
-                              <span className="font-editorial text-[15px] font-bold text-[#374151]">
-                                Layer 3 (soon): [{formatLayerEntitiesBreakdown(layer3Counts)}]
+                              <span className="w-3 h-3 rounded-full bg-[#7C3AED] shrink-0 shadow-xs" />
+                              <span className="font-editorial text-[15px] font-bold text-[#111827]">
+                                Layer 3: {formatLayerEntitiesBreakdown(layer3Counts)}
                               </span>
                             </div>
-                            <span className="text-[9px] font-technical uppercase font-semibold px-1.5 py-0.5 rounded-[2px] bg-[#F3F4F6] text-[#6B7280] border border-[#E5E7EB] shrink-0">
-                              unclickable for now
-                            </span>
+                            {activeLayer === 3 ? (
+                              <span className="text-[9px] font-technical uppercase font-bold px-1.5 py-0.5 rounded-[2px] bg-[#7C3AED] text-white shrink-0 flex items-center space-x-1">
+                                <Check className="w-2.5 h-2.5" />
+                                <span>Active</span>
+                              </span>
+                            ) : (
+                              <span className="text-[9px] font-technical uppercase font-medium px-1.5 py-0.5 rounded-[2px] bg-[#FAF8F5] text-[#6B7280] border border-[#E5E7EB] shrink-0">
+                                Select
+                              </span>
+                            )}
                           </div>
 
                           <div className="font-editorial text-[14px] font-semibold text-[#6D28D9] leading-snug">
                             A Wide Range of Initiatives Possibly Working Towards Life-Affirming Futures
                           </div>
 
-                          <div className="font-sans text-[11px] text-[#4B5563] leading-relaxed pt-1 border-t border-[#E5E7EB] space-y-1.5">
+                          <div className="font-sans text-[11px] text-[#374151] leading-relaxed pt-1 border-t border-[#E5E7EB]/80 space-y-1.5">
                             <p>
                               The Layer 3 of the Map includes {formatLayerEntitiesBreakdown(layer3Counts)}, whose our relationship with are either: 10: Unaware of or 11. Crowdsourced.
                             </p>
@@ -2126,6 +2203,13 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                               </button>
                             </div>
                           </div>
+
+                          {/* Attached Our Relationship Field (showing within Layer 3 when active) */}
+                          {activeLayer === 3 && (
+                            <div className="pt-2 border-t border-[#7C3AED]/25" onClick={(e) => e.stopPropagation()}>
+                              {renderOurRelationshipDropdown(3)}
+                            </div>
+                          )}
                         </div>
 
                         {/* Combined toggle / reset */}
@@ -2910,7 +2994,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
               </>
             )}
 
-            {activeTab === 'continents' && (
+            {showArchipelagos && activeTab === 'continents' && (
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-1.5">

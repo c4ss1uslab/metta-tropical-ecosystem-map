@@ -16,6 +16,7 @@ import { formatDisplayUrl, cleanWebsiteUrl, extractSocialLinks, parseSocialProfi
 import { getEntityCategorizedData, getEntityConnectedNodes, parseInstitutionList, OBSOLETE_FABRICATED_FIELDS, parseResourceLinks, ResourceLinkItem, cleanImageUrl, getFaviconFromWebsite, splitRelationshipValues, entityMatchesRelationship, ensureUniqueEntityIds } from '../utils/excelParser';
 import { saveContributionSubmission } from '../utils/contributionPipeline';
 import { FieldCommentInfo } from './FieldCommentInfo';
+import { isEntityInLayer } from '../utils/layerClassifier';
 
 const CATEGORY_ICONS: Record<string, string> = {
   'Overview': '📋',
@@ -1771,7 +1772,11 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
         c.name === currentScope.name || 
         formatClusterWithNumber(c.name).toLowerCase() === formatClusterWithNumber(currentScope.name).toLowerCase()
       );
-      const listEntities = ensureUniqueEntityIds(allEntities.filter(e => entityMatchesArchipelago(e, currentScope.name)));
+      const listEntities = ensureUniqueEntityIds(
+        allEntities
+          .filter(e => isEntityInLayer(e, activeLayer))
+          .filter(e => entityMatchesArchipelago(e, currentScope.name))
+      );
       const currentQuadrant = (activeContinent?.category || listEntities[0]?.category || 'Inner') as CategoryQuadrant;
       const badgeBg = categoryColors[currentQuadrant] || '#111827';
       const isArchipelagoEditable = editMode || isEditingArchipelagoDetails;
@@ -1838,7 +1843,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
         if (newQuad === currentQuadrant) return;
         if (onUpdateContinentQuadrant) {
           onUpdateContinentQuadrant(currentScope.name, newQuad);
-          setQuadrantChangeFeedback(`Moved archipelago to ${newQuad} Quadrant`);
+          setQuadrantChangeFeedback(`Assigned archipelago to ${newQuad} Quadrant`);
           setTimeout(() => setQuadrantChangeFeedback(null), 3500);
         }
       };

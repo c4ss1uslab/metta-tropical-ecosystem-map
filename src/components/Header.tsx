@@ -29,6 +29,7 @@ interface HeaderProps {
   activeListScope?: SidebarListScope | null;
   onSelectEntityTypeList?: (entityType: EntityType | 'All') => void;
   onSelectEntity?: (entity: EcosystemEntity) => void;
+  activeLayer?: 1 | 2 | 3 | 'all' | number;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -54,6 +55,7 @@ export const Header: React.FC<HeaderProps> = ({
   onSelectEntity,
   onOpenReviewPipeline,
   onOpenPositionSnapshotModal,
+  activeLayer = 1,
 }) => {
   const [pendingContributionsCount, setPendingContributionsCount] = useState<number>(0);
 
@@ -522,22 +524,24 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="flex items-center space-x-2">
         {/* Toggle Archipelagos & Relationships: Stacked vertically on small screens, side-by-side on sm+ screens */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1 sm:gap-1.5">
-          {/* Toggle Archipelagos */}
-          <button
-            onClick={() => setShowContinents(prev => !prev)}
-            title={showContinents ? 'Hide Archipelago Landmasses & Territories' : 'Show Archipelago Landmasses & Territories'}
-            className={`flex items-center justify-center space-x-1.5 text-[11px] sm:text-xs font-sans px-2 py-0.5 sm:py-1.5 border rounded-[4px] transition-all cursor-pointer whitespace-nowrap ${
-              showContinents
-                ? 'bg-[#111827] text-white border-[#111827] shadow-xs'
-                : 'bg-white text-[#111827] border-[#E5E7EB] hover:bg-[#FAF8F5]'
-            }`}
-          >
-            <Globe className="w-3.5 h-3.5 shrink-0" />
-            <span>Archipelagos</span>
-            {showContinents && (
-              <span className="w-1.5 h-1.5 rounded-full bg-[#D9C01B] ml-0.5 shrink-0" />
-            )}
-          </button>
+          {/* Toggle Archipelagos (hidden on Layer 2 and Layer 3) */}
+          {!(activeLayer === 2 || activeLayer === 3) && (
+            <button
+              onClick={() => setShowContinents(prev => !prev)}
+              title={showContinents ? 'Hide Archipelago Landmasses & Territories' : 'Show Archipelago Landmasses & Territories'}
+              className={`flex items-center justify-center space-x-1.5 text-[11px] sm:text-xs font-sans px-2 py-0.5 sm:py-1.5 border rounded-[4px] transition-all cursor-pointer whitespace-nowrap ${
+                showContinents
+                  ? 'bg-[#111827] text-white border-[#111827] shadow-xs'
+                  : 'bg-white text-[#111827] border-[#E5E7EB] hover:bg-[#FAF8F5]'
+              }`}
+            >
+              <Globe className="w-3.5 h-3.5 shrink-0" />
+              <span>Archipelagos</span>
+              {showContinents && (
+                <span className="w-1.5 h-1.5 rounded-full bg-[#D9C01B] ml-0.5 shrink-0" />
+              )}
+            </button>
+          )}
 
           {/* Toggle Relationships / Connection Lines */}
           <button

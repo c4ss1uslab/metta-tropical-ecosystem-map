@@ -402,13 +402,7 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({
   const relationshipCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     ourRelationships.forEach(r => {
-      const rLower = r.toLowerCase().trim();
-      counts[r] = entities.filter(e => {
-        const val = getEntitySpreadsheetField(e, 'S2') || e.ourRelationship;
-        if (!val) return false;
-        const valLower = val.toLowerCase().trim();
-        return valLower === rLower || valLower.includes(rLower);
-      }).length;
+      counts[r] = entities.filter(e => entityMatchesRelationship(e, r)).length;
     });
     return counts;
   }, [entities, ourRelationships]);

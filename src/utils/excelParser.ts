@@ -403,171 +403,71 @@ export function parseQuadrantValue(val?: any): CategoryQuadrant | null {
     clean === 'around' ||
     clean === 'unassigned' ||
     clean === 'no quadrant' ||
+    clean === 'unfilled' ||
     clean === '?'
   ) {
     return null;
   }
 
-  // 1. Quadrant 1 / Inner (Top-Left)
-  if (
-    clean === '1' ||
-    clean === '1.' ||
-    clean === '1)' ||
-    clean === 'q1' ||
-    clean === 'quadrant 1' ||
-    clean === 'quadrant i' ||
-    clean === 'quad 1' ||
-    clean === 'quad i' ||
-    clean === 'i' ||
-    clean === 'i.' ||
-    clean === 'i)' ||
-    clean === 'top left' ||
-    clean === 'top-left' ||
-    clean === 'upper left' ||
-    clean === 'upper-left' ||
-    clean === 'nw' ||
-    clean === 'northwest' ||
-    clean.startsWith('1.') ||
-    clean.startsWith('1-') ||
-    clean.startsWith('1 -') ||
-    clean.startsWith('1:') ||
-    clean.startsWith('i.') ||
-    clean.startsWith('i-') ||
-    clean.startsWith('i -') ||
-    clean.startsWith('i:') ||
-    clean.includes('inner') ||
-    clean.includes('mind & self') ||
-    clean.includes('mind and self') ||
-    clean.includes('individual interior') ||
-    clean.includes('somatic') ||
-    clean.includes('contemplat') ||
-    clean.includes('healing') ||
-    clean.includes('psycholog') ||
-    clean.includes('spiritual')
-  ) {
-    return 'Inner';
-  }
+  // 1. Direct canonical name match
+  if (clean === 'social' || clean === 'social change' || clean === 'social / relational') return 'Social';
+  if (clean === 'cultural' || clean === 'culture' || clean === 'cultural change' || clean === 'cultural / collective') return 'Cultural';
+  if (clean === 'systems' || clean === 'system' || clean === 'systems change' || clean === 'system change' || clean === 'ecosystems & tech') return 'Systems';
+  if (clean === 'inner' || clean === 'inner development' || clean === 'inner change' || clean === 'mind & self') return 'Inner';
 
-  // 2. Quadrant 2 / Social (Top-Right)
+  // 2. Numeric and Quadrant designation match
+  // Social: Q2, 2, II, Top-Right, NE
   if (
-    clean === '2' ||
-    clean === '2.' ||
-    clean === '2)' ||
-    clean === 'q2' ||
-    clean === 'quadrant 2' ||
-    clean === 'quadrant ii' ||
-    clean === 'quad 2' ||
-    clean === 'quad ii' ||
-    clean === 'ii' ||
-    clean === 'ii.' ||
-    clean === 'ii)' ||
-    clean === 'top right' ||
-    clean === 'top-right' ||
-    clean === 'upper right' ||
-    clean === 'upper-right' ||
-    clean === 'ne' ||
-    clean === 'northeast' ||
-    clean.startsWith('2.') ||
-    clean.startsWith('2-') ||
-    clean.startsWith('2 -') ||
-    clean.startsWith('2:') ||
-    clean.startsWith('ii.') ||
-    clean.startsWith('ii-') ||
-    clean.startsWith('ii -') ||
-    clean.startsWith('ii:') ||
-    clean.includes('social') ||
-    clean.includes('commons & civic') ||
-    clean.includes('commons and civic') ||
-    clean.includes('collective exterior') ||
-    clean.includes('civic') ||
-    clean.includes('commons') ||
-    clean.includes('solidarity') ||
-    clean.includes('mutual aid') ||
-    clean.includes('cooperative') ||
-    clean.includes('coop')
+    clean === '2' || clean === '2.' || clean === '2)' || clean === 'q2' || clean === 'quad 2' || clean === 'quadrant 2' ||
+    clean === 'ii' || clean === 'ii.' || clean === 'ii)' || clean === 'quadrant ii' || clean === 'quad ii' ||
+    clean.startsWith('2.') || clean.startsWith('2 -') || clean.startsWith('2:') || clean.startsWith('2-') ||
+    clean === 'top right' || clean === 'top-right' || clean === 'upper right' || clean === 'upper-right' || clean === 'ne' || clean === 'northeast'
   ) {
     return 'Social';
   }
 
-  // 3. Quadrant 3 / Cultural (Bottom-Left)
+  // Cultural: Q3, 3, III, Bottom-Left, SW
   if (
-    clean === '3' ||
-    clean === '3.' ||
-    clean === '3)' ||
-    clean === 'q3' ||
-    clean === 'quadrant 3' ||
-    clean === 'quadrant iii' ||
-    clean === 'quad 3' ||
-    clean === 'quad iii' ||
-    clean === 'iii' ||
-    clean === 'iii.' ||
-    clean === 'iii)' ||
-    clean === 'bottom left' ||
-    clean === 'bottom-left' ||
-    clean === 'lower left' ||
-    clean === 'lower-left' ||
-    clean === 'sw' ||
-    clean === 'southwest' ||
-    clean.startsWith('3.') ||
-    clean.startsWith('3-') ||
-    clean.startsWith('3 -') ||
-    clean.startsWith('3:') ||
-    clean.startsWith('iii.') ||
-    clean.startsWith('iii-') ||
-    clean.startsWith('iii -') ||
-    clean.startsWith('iii:') ||
-    clean.includes('cultural') ||
-    clean.includes('culture') ||
-    clean.includes('mythos & ecology') ||
-    clean.includes('mythos and ecology') ||
-    clean.includes('collective interior') ||
-    clean.includes('myth') ||
-    clean.includes('decolonial') ||
-    clean.includes('worldview') ||
-    clean.includes('indigenous') ||
-    clean.includes('ancestral')
+    clean === '3' || clean === '3.' || clean === '3)' || clean === 'q3' || clean === 'quad 3' || clean === 'quadrant 3' ||
+    clean === 'iii' || clean === 'iii.' || clean === 'iii)' || clean === 'quadrant iii' || clean === 'quad iii' ||
+    clean.startsWith('3.') || clean.startsWith('3 -') || clean.startsWith('3:') || clean.startsWith('3-') ||
+    clean === 'bottom left' || clean === 'bottom-left' || clean === 'lower left' || clean === 'lower-left' || clean === 'sw' || clean === 'southwest'
   ) {
     return 'Cultural';
   }
 
-  // 4. Quadrant 4 / Systems (Bottom-Right)
+  // Systems: Q4, 4, IV, Bottom-Right, SE
   if (
-    clean === '4' ||
-    clean === '4.' ||
-    clean === '4)' ||
-    clean === 'q4' ||
-    clean === 'quadrant 4' ||
-    clean === 'quadrant iv' ||
-    clean === 'quad 4' ||
-    clean === 'quad iv' ||
-    clean === 'iv' ||
-    clean === 'iv.' ||
-    clean === 'iv)' ||
-    clean === 'bottom right' ||
-    clean === 'bottom-right' ||
-    clean === 'lower right' ||
-    clean === 'lower-right' ||
-    clean === 'se' ||
-    clean === 'southeast' ||
-    clean.startsWith('4.') ||
-    clean.startsWith('4-') ||
-    clean.startsWith('4 -') ||
-    clean.startsWith('4:') ||
-    clean.startsWith('iv.') ||
-    clean.startsWith('iv-') ||
-    clean.startsWith('iv -') ||
-    clean.startsWith('iv:') ||
-    clean.includes('system') ||
-    clean.includes('systems') ||
-    clean.includes('ecosystems & tech') ||
-    clean.includes('ecosystems and tech') ||
-    clean.includes('economic') ||
-    clean.includes('doughnut') ||
-    clean.includes('post-growth') ||
-    clean.includes('circular economy') ||
-    clean.includes('biomimicry')
+    clean === '4' || clean === '4.' || clean === '4)' || clean === 'q4' || clean === 'quad 4' || clean === 'quadrant 4' ||
+    clean === 'iv' || clean === 'iv.' || clean === 'iv)' || clean === 'quadrant iv' || clean === 'quad iv' ||
+    clean.startsWith('4.') || clean.startsWith('4 -') || clean.startsWith('4:') || clean.startsWith('4-') ||
+    clean === 'bottom right' || clean === 'bottom-right' || clean === 'lower right' || clean === 'lower-right' || clean === 'se' || clean === 'southeast'
   ) {
     return 'Systems';
+  }
+
+  // Inner: Q1, 1, I, Top-Left, NW
+  if (
+    clean === '1' || clean === '1.' || clean === '1)' || clean === 'q1' || clean === 'quad 1' || clean === 'quadrant 1' ||
+    clean === 'i' || clean === 'i.' || clean === 'i)' || clean === 'quadrant i' || clean === 'quad i' ||
+    clean.startsWith('1.') || clean.startsWith('1 -') || clean.startsWith('1:') || clean.startsWith('1-') ||
+    clean === 'top left' || clean === 'top-left' || clean === 'upper left' || clean === 'upper-left' || clean === 'nw' || clean === 'northwest'
+  ) {
+    return 'Inner';
+  }
+
+  // 3. Keyword / substring containment
+  if (clean.includes('social') || clean.includes('commons') || clean.includes('civic') || clean.includes('collective exterior')) {
+    return 'Social';
+  }
+  if (clean.includes('cultural') || clean.includes('culture') || clean.includes('mythos') || clean.includes('collective interior') || clean.includes('decolonial')) {
+    return 'Cultural';
+  }
+  if (clean.includes('system') || clean.includes('ecosystem') || clean.includes('economic') || clean.includes('individual exterior') || clean.includes('doughnut') || clean.includes('post-growth')) {
+    return 'Systems';
+  }
+  if (clean.includes('inner') || clean.includes('mind & self') || clean.includes('mind and self') || clean.includes('individual interior') || clean.includes('somatic') || clean.includes('contemplat')) {
+    return 'Inner';
   }
 
   return null;
@@ -1432,6 +1332,23 @@ function mapRowsToEntities(
     // =========================================================================
     const rawId = getVal('Org ID');
     const rawName = getVal('Name/Label');
+    const cleanRawName = String(rawName || '').trim();
+    const cleanRawId = String(rawId || '').trim();
+
+    // Skip empty trailing rows from spreadsheet edits/exports
+    if (!cleanRawName && !cleanRawId) {
+      const hasContent = Boolean(
+        getVal('Website URL') ||
+        getVal('Description') ||
+        getVal('Category') ||
+        getVal('Quadrant') ||
+        getVal('Archipelago')
+      );
+      if (!hasContent) {
+        return null as unknown as EcosystemEntity;
+      }
+    }
+
     const name = String(rawName || `Entity #${index + 1}`).trim();
     const baseId = String(rawId || `org-${index + 1}-${name.toLowerCase().replace(/[^a-z0-9]/g, '')}`).trim() || `entity-${index + 1}`;
     let id = baseId;
@@ -1456,16 +1373,36 @@ function mapRowsToEntities(
     const description = String(rawDesc || '').trim();
 
     // Column H: Archipelago (col 8)
-    let rawArchipelago = String(
-      getVal('Archipelago', 'Island/Cluster', 'Continent', 'Biome', 'Archipelagos', 'Island', 'h', 'col_8', 'column 8') || ''
-    ).trim();
-    if (!rawArchipelago) {
-      rawArchipelago = String(row['__col_8'] ?? row['Col_8'] ?? row['__col_H'] ?? row['H'] ?? '').trim();
+    // Sourced specifically from Column H (8th column).
+    // Organizations that don't have an archipelago in Column H MUST NOT be assigned to any archipelago.
+    let rawArchipelago = '';
+    if (row['__col_8'] !== undefined && row['__col_8'] !== null && String(row['__col_8']).trim() !== '') {
+      rawArchipelago = String(row['__col_8']).trim();
+    } else if (row['Col_8'] !== undefined && row['Col_8'] !== null && String(row['Col_8']).trim() !== '') {
+      rawArchipelago = String(row['Col_8']).trim();
+    } else if (row['__col_H'] !== undefined && row['__col_H'] !== null && String(row['__col_H']).trim() !== '') {
+      rawArchipelago = String(row['__col_H']).trim();
+    } else if (row['H'] !== undefined && row['H'] !== null && String(row['H']).trim() !== '') {
+      rawArchipelago = String(row['H']).trim();
+    } else {
+      rawArchipelago = String(
+        getVal('Archipelago', 'Island/Cluster', 'Continent', 'Archipelagos', 'Island', 'h', 'col_8', 'column 8') || ''
+      ).trim();
     }
+
     let continent = '';
     const archipelagoExtraTags: string[] = [];
 
-    if (rawArchipelago && rawArchipelago !== '-' && rawArchipelago.toLowerCase() !== 'none' && rawArchipelago.toLowerCase() !== 'n/a') {
+    if (
+      rawArchipelago &&
+      rawArchipelago !== '-' &&
+      rawArchipelago.toLowerCase() !== 'none' &&
+      rawArchipelago.toLowerCase() !== 'n/a' &&
+      rawArchipelago.toLowerCase() !== 'na' &&
+      rawArchipelago.toLowerCase() !== 'null' &&
+      rawArchipelago.toLowerCase() !== 'undefined' &&
+      rawArchipelago.toLowerCase() !== 'unassigned'
+    ) {
       const parts = rawArchipelago.split(/[,;|\n]+/).map(p => p.trim()).filter(Boolean);
       if (parts.length > 0) {
         continent = formatClusterWithNumber(parts[0]);
@@ -1504,28 +1441,35 @@ function mapRowsToEntities(
 
     // Column E: Quadrant (col 5)
     // Sourced specifically from Column E.
-    let rawQuadrant = getVal(
-      'Quadrant',
-      'quadrant',
-      'quadrants',
-      'quadrant / domain',
-      'domain / quadrant',
-      'e',
-      'col_5',
-      'col 5',
-      'column 5',
-      '__col_5',
-      'quadrant (e)',
-      '[e] quadrant',
-      'e - quadrant',
-      'e: quadrant',
-      'transformation quadrant',
-      'change quadrant',
-      'map quadrant'
-    );
-
-    if (rawQuadrant === undefined || rawQuadrant === null || String(rawQuadrant).trim() === '') {
-      rawQuadrant = row['__col_5'] ?? row['Col_5'] ?? row['__col_E'] ?? row['E'];
+    let rawQuadrant: any = undefined;
+    if (row['__col_5'] !== undefined && row['__col_5'] !== null && String(row['__col_5']).trim() !== '') {
+      rawQuadrant = String(row['__col_5']).trim();
+    } else if (row['Col_5'] !== undefined && row['Col_5'] !== null && String(row['Col_5']).trim() !== '') {
+      rawQuadrant = String(row['Col_5']).trim();
+    } else if (row['__col_E'] !== undefined && row['__col_E'] !== null && String(row['__col_E']).trim() !== '') {
+      rawQuadrant = String(row['__col_E']).trim();
+    } else if (row['E'] !== undefined && row['E'] !== null && String(row['E']).trim() !== '') {
+      rawQuadrant = String(row['E']).trim();
+    } else {
+      rawQuadrant = getVal(
+        'Quadrant',
+        'quadrant',
+        'quadrants',
+        'quadrant / domain',
+        'domain / quadrant',
+        'e',
+        'col_5',
+        'col 5',
+        'column 5',
+        '__col_5',
+        'quadrant (e)',
+        '[e] quadrant',
+        'e - quadrant',
+        'e: quadrant',
+        'transformation quadrant',
+        'change quadrant',
+        'map quadrant'
+      );
     }
 
     if (rawQuadrant === undefined || rawQuadrant === null || String(rawQuadrant).trim() === '') {
@@ -1991,7 +1935,7 @@ function mapRowsToEntities(
     };
   });
 
-  return ensureUniqueEntityIds(mapped);
+  return ensureUniqueEntityIds(mapped.filter((e): e is EcosystemEntity => Boolean(e)));
 }
 
 /**
@@ -2430,7 +2374,7 @@ export function formatEntityExportRows(entities: EcosystemEntity[]) {
     'Quadrant': ent.quadrant || ent.category || '',
     'Category': ent.spreadsheetCategory || ent.category || '',
     'Stream': ent.stream || (ent.streams && ent.streams.length > 0 ? ent.streams.join(', ') : '') || ent.categorizedFields?.['Overview']?.['Stream'] || '',
-    'Archipelago': [ent.continent ? formatClusterWithNumber(ent.continent) : suggestContinent(ent), ...getEntityOtherArchipelagos(ent)].filter(Boolean).join(', '),
+    'Archipelago': [ent.continent ? formatClusterWithNumber(ent.continent) : '', ...getEntityOtherArchipelagos(ent)].filter(Boolean).join(', '),
     'Layer of Response (Holistic Cultural Materialism)': ent.categorizedFields?.['Overview']?.['Layer of Response (Holistic Cultural Materialism)'] || ent.extraFields?.['Layer of Response (Holistic Cultural Materialism)'] || '',
     'Layer of Response (Gaia Education)': ent.categorizedFields?.['Overview']?.['Layer of Response (Gaia Education)'] || ent.extraFields?.['Layer of Response (Gaia Education)'] || '',
     'Area of Response (Life Itself)': ent.categorizedFields?.['Overview']?.['Area of Response (Life Itself)'] || ent.extraFields?.['Area of Response (Life Itself)'] || '',
@@ -2956,12 +2900,12 @@ export function getEntitySpreadsheetField(
  */
 export function splitRelationshipValues(raw: string): string[] {
   if (!raw) return [];
-  const trimmed = raw.trim();
+  const trimmed = raw.trim().replace(/\?+$/, '').trim();
   if (!trimmed) return [];
 
   // If it starts with a numbered bullet like "1) ...", "2) ...", "3) ...", split by bullet prefix
   if (/^\s*\d+[\).\-]/m.test(trimmed)) {
-    const parts = trimmed.split(/(?=(?:^|[\r\n\s]+)\d+[\).\-])/).map(s => s.trim()).filter(Boolean);
+    const parts = trimmed.split(/(?=(?:^|[\r\n\s]+)\d+[\).\-])/).map(s => s.trim().replace(/\?+$/, '').trim()).filter(Boolean);
     if (parts.length > 1) {
       return parts;
     }
@@ -2976,16 +2920,16 @@ export function splitRelationshipValues(raw: string): string[] {
     );
     return protectedStr
       .split(/[\r\n;]+/)
-      .map(s => s.replace(placeholder, 'Intending to collaborate with / occasionally collaborating with').trim())
+      .map(s => s.replace(placeholder, 'Intending to collaborate with / occasionally collaborating with').trim().replace(/\?+$/, '').trim())
       .filter(Boolean);
   }
 
   if (trimmed.includes('\n') || trimmed.includes(';')) {
-    return trimmed.split(/[\r\n;]+/).map(s => s.trim()).filter(Boolean);
+    return trimmed.split(/[\r\n;]+/).map(s => s.trim().replace(/\?+$/, '').trim()).filter(Boolean);
   }
 
   if (trimmed.includes(',') && !trimmed.includes('/')) {
-    return trimmed.split(',').map(s => s.trim()).filter(Boolean);
+    return trimmed.split(',').map(s => s.trim().replace(/\?+$/, '').trim()).filter(Boolean);
   }
 
   return [trimmed];

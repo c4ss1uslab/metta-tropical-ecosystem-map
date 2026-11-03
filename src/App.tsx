@@ -13,7 +13,6 @@ import {
   createPathFromControlPoints, 
   generateContinentLabelPath, 
   resolveEntityOverlaps, 
-  suggestContinent, 
   formatClusterWithNumber,
   isEntityDomainElevation, 
   getEntityIntersectionZone, 
@@ -214,12 +213,22 @@ export default function App() {
                 : (newX < 0 && newY > 0) ? 'Cultural'
                 : 'Systems';
 
+              const archOverride = ent.continent
+                ? (initialOverrides[ent.continent] ||
+                   initialOverrides[formatClusterWithNumber(ent.continent)] ||
+                   initialOverrides[normalizeArchipelagoBaseName(ent.continent)])
+                : undefined;
+
+              const effectiveCat: CategoryQuadrant = isEntityDomainElevation(ent)
+                ? (ent.category || 'Inner')
+                : (archOverride || (savedPos as any).quadrant || (savedPos as any).category || ent.category || newCat);
+
               return {
                 ...ent,
                 x: newX,
                 y: newY,
-                category: isEntityDomainElevation(ent) ? ent.category : newCat,
-                quadrant: isEntityDomainElevation(ent) ? ent.quadrant : newCat,
+                category: effectiveCat,
+                quadrant: effectiveCat,
                 isCustomPosition: true,
                 notes: savedPos.notes || ent.notes,
                 communityNotes: (savedPos as any).communityNotes || ent.communityNotes,
@@ -469,6 +478,19 @@ export default function App() {
   const [showContinents, setShowContinents] = useState(true);
   const [showRelationships, setShowRelationships] = useState(false);
   const [showEcotones, setShowEcotones] = useState(false);
+
+  // Automatically deselect archipelago if switching to layer 2 or 3
+  useEffect(() => {
+    const activeLayer = filterState.activeLayer ?? 1;
+    if (activeLayer === 2 || activeLayer === 3) {
+      if (selectedContinentName) {
+        setSelectedContinentName(null);
+      }
+      if (activeListScope?.type === 'continent') {
+        setActiveListScope(null);
+      }
+    }
+  }, [filterState.activeLayer, selectedContinentName, activeListScope]);
 
   // Page Views: 'map' | 'directory'
   const [currentView, setCurrentView] = useState<'map' | 'directory'>('map');
@@ -1594,13 +1616,25 @@ export default function App() {
           // Default all layer 1 active
           activeOurRels = [];
         }
+      } else if (currentLayer === 3) {
+        const rels3 = activeOurRels.filter(r => {
+          const m = r.match(/^(\d+)/);
+          return m ? parseInt(m[1], 10) >= 10 && parseInt(m[1], 10) <= 11 : false;
+        });
+        if (rels3.length > 0) {
+          activeOurRels = rels3;
+        } else if (!filterState.selectedOurRelationships?.includes('none') && filterState.selectedOurRelationship !== 'none') {
+          // Default all layer 3 active
+          activeOurRels = [];
+        }
       }
 
       if (activeOurRels.length > 0) {
         const isAllLayerRelsActive = 
           (currentLayer === 1 && activeOurRels.length >= 6) ||
           (currentLayer === 2 && activeOurRels.length >= 3) ||
-          (currentLayer === 'all' && activeOurRels.length >= 9);
+          (currentLayer === 3 && activeOurRels.length >= 2) ||
+          (currentLayer === 'all' && activeOurRels.length >= 11);
 
         if (!isAllLayerRelsActive) {
           const val = getEntitySpreadsheetField(ent, 'S2') || ent.ourRelationship;
@@ -1891,34 +1925,37 @@ export default function App() {
     const targetFocusArchipelago = selectedContinentName || (activeListScope?.type === 'continent' ? activeListScope.name : null);
     const activeLayer = filterState.activeLayer ?? 1;
 
+    // In Layer 2 and Layer 3: stop showing archipelagos completely
+    if (activeLayer === 2 || activeLayer === 3) {
+      return [];
+    }
+
     // Filter baseContinents according to activeLayer rule:
     // In Layer 1: archipelago ONLY appears if it has entities assigned to relationship levels 1-6!
     const layerScopedContinents = baseContinents
       .filter(cont => doesArchipelagoAppearInLayer(cont.name, entities, activeLayer))
       .map(cont => {
-        const layerEnts = getArchipelagoLayerEntities(cont.name, entities, activeLayer);
-        const layerCount = layerEnts.length;
+        // Count ONLY the entities currently being displayed in this archipelago in this layer (primary entities matching active filters)
+        const displayedEntities = filteredEntities.filter(e => isEntityPrimaryToArchipelago(e, cont.name));
+        const layerCount = displayedEntities.length;
 
-        if (layerCount !== cont.count) {
-          const subLabelPath = generateContinentLabelPath(
-            cont.centerX,
-            cont.centerY,
-            cont.minX,
-            cont.maxX,
-            cont.minY,
-            cont.maxY,
-            cont.controlPoints,
-            -22,
-            cont.subTitleCurvature !== undefined ? cont.subTitleCurvature : 0.7,
-            `${layerCount} ${layerCount === 1 ? 'entity' : 'entities'}`
-          );
-          return {
-            ...cont,
-            count: layerCount,
-            subLabelPath
-          };
-        }
-        return cont;
+        const subLabelPath = generateContinentLabelPath(
+          cont.centerX,
+          cont.centerY,
+          cont.minX,
+          cont.maxX,
+          cont.minY,
+          cont.maxY,
+          cont.controlPoints,
+          -22,
+          cont.subTitleCurvature !== undefined ? cont.subTitleCurvature : 0.7,
+          `${layerCount} ${layerCount === 1 ? 'entity' : 'entities'}`
+        );
+        return {
+          ...cont,
+          count: layerCount,
+          subLabelPath
+        };
       });
 
     if (!targetFocusArchipelago) {
@@ -1927,14 +1964,15 @@ export default function App() {
     const targetBase = normalizeArchipelagoBaseName(targetFocusArchipelago);
 
     return layerScopedContinents.map(cont => {
-      const isFocused = normalizeArchipelagoBaseName(cont.name) === targetBase;
+      const isFocused = normalizeArchipelagoBaseName(cont.name) === targetBase ||
+        formatClusterWithNumber(cont.name).toLowerCase() === formatClusterWithNumber(targetFocusArchipelago).toLowerCase();
       if (!isFocused) {
         return cont;
       }
 
-      // Count all entities appearing in this archipelago during focus (primary + guest / additional entities)
+      // Count all entities appearing in this archipelago during focus (primary + guest / additional entities being shown in this layer)
       const focusEntities = filteredEntities.filter(e => entityMatchesArchipelago(e, targetFocusArchipelago));
-      const focusedCount = focusEntities.length > 0 ? focusEntities.length : cont.count;
+      const focusedCount = focusEntities.length;
 
       const subLabelPath = generateContinentLabelPath(
         cont.centerX,
@@ -2181,7 +2219,7 @@ export default function App() {
     setEntities(prev => {
       const next = prev.map(ent => {
         if (isEntityDomainElevation(ent)) return ent;
-        const entContinent = ent.continent || suggestContinent(ent);
+        const entContinent = ent.continent || '';
         const isMember = (entContinent === continentName) ||
           (formatClusterWithNumber(entContinent) === continentName) ||
           (entContinent && normalizeArchipelagoBaseName(entContinent) === baseContName) ||
@@ -2866,9 +2904,7 @@ export default function App() {
     const oldQuadrant = cont?.category || 'Inner';
     if (oldQuadrant === newQuadrant) return;
 
-    // Translation delta so members & shapes move to the new quadrant's territory
-    const deltaX = QUADRANT_CENTERS[newQuadrant].x - QUADRANT_CENTERS[oldQuadrant].x;
-    const deltaY = QUADRANT_CENTERS[newQuadrant].y - QUADRANT_CENTERS[oldQuadrant].y;
+    pushHistorySnapshot(`Change quadrant of "${continentName}" to ${newQuadrant}`);
 
     const formatted = formatClusterWithNumber(continentName);
     const baseName = normalizeArchipelagoBaseName(continentName);
@@ -2879,7 +2915,8 @@ export default function App() {
       const next = {
         ...prev,
         [continentName]: { ...(prev[continentName] || {}), quadrant: newQuadrant },
-        [formatted]: { ...(prev[formatted] || {}), quadrant: newQuadrant }
+        [formatted]: { ...(prev[formatted] || {}), quadrant: newQuadrant },
+        [baseName]: { ...(prev[baseName] || {}), quadrant: newQuadrant }
       };
       if (cont && cont.name !== continentName) {
         next[cont.name] = { ...(prev[cont.name] || {}), quadrant: newQuadrant };
@@ -2892,28 +2929,10 @@ export default function App() {
       return next;
     });
 
-    // Shift custom shapes if present
-    let nextShapes: Record<string, [number, number][]> | null = null;
-    setCustomContinentShapes(prev => {
-      const base = prev[continentName] || (cont ? prev[cont.name] : null);
-      if (!base || base.length === 0) return prev;
-      const shifted: [number, number][] = base.map(([px, py]) => [Math.round(px + deltaX), Math.round(py + deltaY)]);
-      const next = { ...prev, [continentName]: shifted, [formatted]: shifted };
-      if (cont && cont.name !== continentName) {
-        next[cont.name] = shifted;
-      }
-      try {
-        localStorage.setItem(CONTINENTS_STORAGE_KEY, JSON.stringify(next));
-      } catch {}
-      nextShapes = next;
-      customContinentShapesRef.current = next;
-      return next;
-    });
-
-    // Update all member entities
+    // Update all member entities to new quadrant without modifying their map positions
     setEntities(prev => {
       const updated = prev.map(ent => {
-        const entCont = ent.continent || suggestContinent(ent);
+        const entCont = ent.continent || '';
         const isMember = (entCont === continentName) ||
           (formatClusterWithNumber(entCont) === formatClusterWithNumber(continentName)) ||
           (normalizeArchipelagoBaseName(entCont) === baseName) ||
@@ -2938,8 +2957,9 @@ export default function App() {
           category: newQuadrant,
           quadrant: newQuadrant,
           spreadsheetCategory: newQuadrant,
-          x: Math.round(ent.x + deltaX),
-          y: Math.round(ent.y + deltaY),
+          // Preserve existing (x, y) coordinates exactly - no recalculation
+          x: ent.x,
+          y: ent.y,
           isCustomPosition: true,
           categorizedFields: Object.keys(catFields).length > 0 ? catFields : ent.categorizedFields,
           extraFields: Object.keys(extFields).length > 0 ? extFields : ent.extraFields
@@ -2948,10 +2968,10 @@ export default function App() {
 
       hasUncommittedChangesRef.current = true;
       setHasUncommittedChanges(true);
-      saveToLocalStorage(updated, nextShapes || customContinentShapesRef.current, false, nextMeta);
+      saveToLocalStorage(updated, customContinentShapesRef.current, false, nextMeta);
       return updated;
     });
-  }, [continents, saveToLocalStorage]);
+  }, [continents, saveToLocalStorage, pushHistorySnapshot]);
 
   // Rename an archipelago
   const handleRenameContinent = useCallback((oldName: string, newName: string) => {
@@ -2984,7 +3004,7 @@ export default function App() {
     // Update member entities
     setEntities(prev => {
       const updated = prev.map(ent => {
-        const entCont = ent.continent || suggestContinent(ent);
+        const entCont = ent.continent || '';
         const isMember = (entCont === oldName) ||
           (formatClusterWithNumber(entCont) === formatClusterWithNumber(oldName)) ||
           entityMatchesArchipelago(ent, oldName);
@@ -3493,6 +3513,7 @@ export default function App() {
         hasUncommittedChanges={hasUncommittedChanges}
         onDismissChanges={() => setDismissModalOpen(true)}
         onCommitChanges={() => triggerCloudCommit()}
+        activeLayer={filterState.activeLayer ?? 1}
         activeListScope={activeListScope}
         onSelectEntityTypeList={handleSelectEntityTypeList}
         onSelectEntity={(entity) => {
