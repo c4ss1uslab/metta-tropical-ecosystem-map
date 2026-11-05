@@ -4,10 +4,10 @@ import {
 } from 'lucide-react';
 import { EcosystemEntity, CategoryQuadrant, FieldCluster, MapViewport, ContinentInfo, EcotoneCorridorInfo, getEntityCompleteness, DATA_COMPLETENESS_CONFIG, getCompletenessConfig, LayerQuadrantSizes, LayerQuadrantConfig, DEFAULT_LAYER_QUADRANT_SIZES, getQuadrantSizesForLayer } from '../types';
 import { QUADRANT_CENTERS, generateContinentLabelPath, getContinentLabelCenter, isEntityDomainElevation, getEntityIntersectionZone, getEntityQuadrantGradient, INTERSECTION_ZONES, calculateEcotoneCorridors, getEntityClusterWithNumber, formatClusterWithNumber, normalizeArchipelagoBaseName, isEntityPrimaryToArchipelago, entityMatchesArchipelago, buildPrimaryArchipelagoCounter } from '../utils/layoutGenerator';
-import { calculateAutoFitQuadrantSizes, doesArchipelagoAppearInLayer } from '../utils/layerClassifier';
+import { calculateAutoFitQuadrantSizes, doesArchipelagoAppearInLayer, getEntityRelationshipNumber } from '../utils/layerClassifier';
 import { ChangelogWidget } from './ChangelogWidget';
 import { getConnectedEntityIds } from '../utils/socialMedia';
-import { areEntitiesDirectlyLinked, ensureUniqueEntityIds } from '../utils/excelParser';
+import { areEntitiesDirectlyLinked, ensureUniqueEntityIds, getEntitySpreadsheetField } from '../utils/excelParser';
 
 const sanitizeId = (str: string) => str.replace(/[^a-zA-Z0-9_-]/g, '_');
 
@@ -1411,7 +1411,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
           }}
         >
           <div className="font-editorial text-2xl font-bold text-[#5B21B6]/70 uppercase tracking-wider">
-            I. INNER CHANGE
+            I. SPIRITUAL CHANGE
           </div>
           <div className="font-technical text-xs text-[#5B21B6]/60">
             Self • Contemplation • Somatics • Trauma Healing
@@ -2569,6 +2569,11 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
           const dqDotBorder = dcConfig.dotBorder;
           const dqTooltip = `Data Completeness: ${dcStatus} (${dcConfig.description})`;
 
+          // Our Relationship level (1-11) badge
+          const relationshipNumber = getEntityRelationshipNumber(entity);
+          const relationshipRaw = (getEntitySpreadsheetField(entity, 'Our Relationship') || entity.ourRelationship || '').toString().trim();
+          const relationshipTooltip = `Our Relationship: ${relationshipRaw || relationshipNumber}`;
+
           // Category ring color
           const ringColor = 
             entity.category === 'Inner' ? '#5B21B6' :
@@ -2740,6 +2745,20 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
                     title="Featured Entity"
                   >
                     <Star className="w-2.5 h-2.5 fill-[#111827] text-[#111827]" />
+                  </span>
+                )}
+
+                {/* Our Relationship Level Badge (Bottom Left) */}
+                {relationshipNumber !== null && (
+                  <span
+                    className="absolute -bottom-1.5 -left-1.5 min-w-[13px] h-[13px] px-[2px] rounded-full z-30 flex items-center justify-center bg-white text-[#111827] font-technical text-[8px] font-bold leading-none select-none pointer-events-auto transition-transform hover:scale-125"
+                    style={{
+                      border: '1.5px solid #111827',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.25)'
+                    }}
+                    title={relationshipTooltip}
+                  >
+                    {relationshipNumber}
                   </span>
                 )}
 

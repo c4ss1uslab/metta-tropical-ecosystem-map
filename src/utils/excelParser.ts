@@ -1437,7 +1437,7 @@ function mapRowsToEntities(
     // =========================================================================
     const rawId = getVal('Org ID');
     const rawName = getVal('Name/Label');
-    const cleanRawName = String(rawName || '').trim();
+    const cleanRawName = stripMarkdownLinks(String(rawName || '')).trim();
     const cleanRawId = String(rawId || '').trim();
 
     // Skip empty trailing rows from spreadsheet edits/exports
@@ -1454,8 +1454,10 @@ function mapRowsToEntities(
       }
     }
 
-    const name = String(rawName || `Entity #${index + 1}`).trim();
-    const baseId = String(rawId || `org-${index + 1}-${name.toLowerCase().replace(/[^a-z0-9]/g, '')}`).trim() || `entity-${index + 1}`;
+    const name = cleanRawName || `Entity #${index + 1}`;
+    // Fallback IDs keep using the raw cell text so previously generated IDs stay stable
+    const idSourceName = String(rawName || `Entity #${index + 1}`).trim();
+    const baseId = String(rawId || `org-${index + 1}-${idSourceName.toLowerCase().replace(/[^a-z0-9]/g, '')}`).trim() || `entity-${index + 1}`;
     let id = baseId;
     if (seenRowIds.has(id)) {
       let counter = 2;
@@ -2364,6 +2366,15 @@ export function getEntityCategorizedData(entity: EcosystemEntity): Record<string
  * sanitizes website URLs and logo/favicon links, recovers societal sector from mis-mapped notes,
  * and fixes City/State conflicts with Country.
  */
+/**
+ * Strips Markdown link syntax that spreadsheet exports wrap around auto-linked
+ * text (e.g. "[Cidades.co](http://cidades.co/)" -> "Cidades.co").
+ */
+export function stripMarkdownLinks(value: string): string {
+  if (!value || typeof value !== 'string') return value;
+  return value.replace(/\[([^\]]*)\]\((?:https?:\/\/|www\.)[^)\s]*\)/g, '$1');
+}
+
 export function sanitizeEntityObsoleteFields(entity: EcosystemEntity): EcosystemEntity {
   const obsoleteSet = new Set(OBSOLETE_FABRICATED_FIELDS.map(s => s.toLowerCase().trim()));
 
@@ -2404,7 +2415,9 @@ export function sanitizeEntityObsoleteFields(entity: EcosystemEntity): Ecosystem
       Object.entries(fields).forEach(([k, v]) => {
         if (!obsoleteSet.has(k.toLowerCase().trim())) {
           if (typeof v === 'string') {
-            if (k === 'Website URL' || k === 'Website') {
+            if (k === 'Name/Label') {
+              cleanFields[k] = stripMarkdownLinks(v);
+            } else if (k === 'Website URL' || k === 'Website') {
               cleanFields[k] = cleanWebsiteUrl(v) || v;
             } else if (k === 'Favicon' || k === 'Logo') {
               cleanFields[k] = cleanImageUrl(v) || v;
@@ -2435,7 +2448,9 @@ export function sanitizeEntityObsoleteFields(entity: EcosystemEntity): Ecosystem
     Object.entries(entity.extraFields).forEach(([k, v]) => {
       if (!obsoleteSet.has(k.toLowerCase().trim())) {
         if (typeof v === 'string') {
-          if (k === 'Website URL' || k === 'Website') {
+          if (k === 'Name/Label') {
+            updatedExtra![k] = stripMarkdownLinks(v);
+          } else if (k === 'Website URL' || k === 'Website') {
             updatedExtra![k] = cleanWebsiteUrl(v) || v;
           } else if (k === 'Favicon' || k === 'Logo') {
             updatedExtra![k] = cleanImageUrl(v) || v;
@@ -2454,6 +2469,7 @@ export function sanitizeEntityObsoleteFields(entity: EcosystemEntity): Ecosystem
 
   return {
     ...entity,
+    name: typeof entity.name === 'string' ? stripMarkdownLinks(entity.name) : entity.name,
     website: cleanWeb,
     logo: cleanLogo,
     favicon: cleanFavicon,

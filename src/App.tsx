@@ -57,12 +57,15 @@ import {
   calculateAutoFitQuadrantSizes, 
   getLayer1Relationships, 
   getLayer2Relationships,
+  getLayer3Relationships,
   doesArchipelagoAppearInLayer,
   getArchipelagoLayerEntities,
   isEntityInLayer
 } from './utils/layerClassifier';
+import { readDeepLink, writeDeepLink, slugifyEntityName, DIRECTORY_TOKEN, SUBMIT_TOKEN } from './utils/deepLinks';
 
 const LOCAL_STORAGE_KEY = 'metta_ecosystem_custom_positions_v3';
+
 const CONTINENTS_STORAGE_KEY = 'metta_ecosystem_continents_v3';
 const FULL_DATASET_STORAGE_KEY = 'metta_ecosystem_full_dataset_v3';
 const UNCOMMITTED_CHANGES_KEY = 'metta_has_uncommitted_cloud_changes';
@@ -2874,7 +2877,15 @@ export default function App() {
         setActiveListScope(null);
       }
     }
-    if (layer === 2) {
+    if (layer === 3) {
+      const rels3 = getLayer3Relationships(entities);
+      setFilterState(prev => ({
+        ...prev,
+        activeLayer: 3,
+        selectedOurRelationships: rels3,
+        selectedOurRelationship: rels3.join(', ')
+      }));
+    } else if (layer === 2) {
       const rels2 = getLayer2Relationships(entities);
       setFilterState(prev => ({
         ...prev,
@@ -2891,7 +2902,7 @@ export default function App() {
         selectedOurRelationship: rels1.join(', ')
       }));
     } else if (layer === 'all') {
-      const allRels = [...getLayer1Relationships(entities), ...getLayer2Relationships(entities)];
+      const allRels = [...getLayer1Relationships(entities), ...getLayer2Relationships(entities), ...getLayer3Relationships(entities)];
       setFilterState(prev => ({
         ...prev,
         activeLayer: 'all',
@@ -2905,6 +2916,100 @@ export default function App() {
       }));
     }
   }, [entities, selectedContinentName, activeListScope]);
+
+  // Deep links (see utils/deepLinks.ts): /layer-N opens a map layer,
+  // /<entity-name-slug> opens that entity's full profile in the directory.
+  const handleSelectLayerRef = useRef(handleSelectLayer);
+  handleSelectLayerRef.current = handleSelectLayer;
+  // Slug of the entity whose profile the URL points at; `resolved` is false while
+  // we're still waiting for data that contains it (e.g. the cloud dataset).
+  const entityDeepLinkRef = useRef<{ slug: string; resolved: boolean } | null>(null);
+
+  const resolveEntityDeepLink = useCallback((list: EcosystemEntity[]) => {
+    const link = entityDeepLinkRef.current;
+    if (!link) return;
+    const match = list.find(e => slugifyEntityName(e.name) === link.slug);
+    if (!match) return;
+    if (!link.resolved) {
+      link.resolved = true;
+      setCurrentView('directory');
+      setSelectedEntity(match);
+    } else {
+      // Fresh data arrived (e.g. cloud sync): keep the open profile up to date
+      setSelectedEntity(prev => (prev && prev.id === match.id && prev !== match ? match : prev));
+    }
+  }, []);
+
+  useEffect(() => {
+    const applyDeepLinkFromUrl = () => {
+      const link = readDeepLink();
+      if (!link) return;
+      if (link.kind === 'layer') {
+        handleSelectLayerRef.current(link.layer);
+      } else if (link.kind === 'directory') {
+        setSelectedEntity(null);
+        setCurrentView('directory');
+      } else if (link.kind === 'submit') {
+        // The submission form lives on the map view
+        setCurrentView('map');
+        setSubmitEntityModalOpen(true);
+      } else {
+        entityDeepLinkRef.current = { slug: link.slug, resolved: false };
+        resolveEntityDeepLink(entitiesRef.current);
+      }
+    };
+    applyDeepLinkFromUrl();
+    window.addEventListener('hashchange', applyDeepLinkFromUrl);
+    window.addEventListener('popstate', applyDeepLinkFromUrl);
+    return () => {
+      window.removeEventListener('hashchange', applyDeepLinkFromUrl);
+      window.removeEventListener('popstate', applyDeepLinkFromUrl);
+    };
+  }, [resolveEntityDeepLink]);
+
+  // Resolve a pending entity link (or refresh the open profile) when data changes
+  useEffect(() => {
+    resolveEntityDeepLink(entities);
+  }, [entities, resolveEntityDeepLink]);
+
+  // Keep the address bar in sync with the open page: entity profile, directory or submit form
+  const skipInitialPageSyncRef = useRef(true);
+  useEffect(() => {
+    if (skipInitialPageSyncRef.current) {
+      // First render hasn't applied the incoming link yet; don't overwrite it
+      skipInitialPageSyncRef.current = false;
+      return;
+    }
+    const link = entityDeepLinkRef.current;
+    if (link && !link.resolved) {
+      // Still waiting on an incoming link; don't overwrite it unless the user picked something else
+      if (!selectedEntity) return;
+      entityDeepLinkRef.current = null;
+    }
+    const slug = currentView === 'directory' && selectedEntity ? slugifyEntityName(selectedEntity.name) : null;
+    entityDeepLinkRef.current = slug ? { slug, resolved: true } : null;
+    if (slug) {
+      writeDeepLink(slug);
+    } else if (currentView === 'directory') {
+      writeDeepLink(DIRECTORY_TOKEN);
+    } else if (submitEntityModalOpen) {
+      writeDeepLink(SUBMIT_TOKEN);
+    } else if (readDeepLink()?.kind !== 'layer') {
+      // Back on the plain map: drop page links but keep a layer link as-is
+      writeDeepLink(null);
+    }
+  }, [currentView, selectedEntity, submitEntityModalOpen]);
+
+  // Reflect layer switches back into an existing layer deep link
+  const skipInitialLayerSyncRef = useRef(true);
+  useEffect(() => {
+    if (skipInitialLayerSyncRef.current) {
+      // First render still has the default layer; don't overwrite the incoming link
+      skipInitialLayerSyncRef.current = false;
+      return;
+    }
+    if (readDeepLink()?.kind === 'layer') writeDeepLink(`layer-${filterState.activeLayer ?? 1}`);
+  }, [filterState.activeLayer]);
 
   // Fly camera to quadrant center calculated with attributed layer quadrant sizes
   const handleFlyToQuadrant = useCallback((category: CategoryQuadrant) => {

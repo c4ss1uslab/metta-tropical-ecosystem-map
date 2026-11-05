@@ -30,7 +30,7 @@ export const DiscoveryModeModal: React.FC<DiscoveryModeModalProps> = ({
   const questSteps: QuestStep[] = [
     {
       id: 'q1',
-      quadrant: 'Inner Change',
+      quadrant: 'Spiritual Change',
       title: 'Quest I: The Inner Sanctuary',
       subtitle: 'Contemplative Science & Trauma Integration',
       entityName: 'Mind & Life Institute',

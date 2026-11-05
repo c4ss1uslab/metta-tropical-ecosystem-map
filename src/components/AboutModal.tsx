@@ -72,7 +72,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({
               <div className="p-3 bg-[#FAF8F5] border border-[#E5E7EB] rounded-[4px]">
                 <div className="flex items-center gap-1.5 mb-1">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#5B21B6]" />
-                  <span className="font-editorial text-xs font-semibold text-[#111827]">Inner Change</span>
+                  <span className="font-editorial text-xs font-semibold text-[#111827]">Spiritual Change</span>
                 </div>
                 <p className="text-[11px] text-[#6B7280]">
                   Contemplative science, psychological development, somatic awareness, and trauma healing building individual groundedness.

@@ -7318,7 +7318,7 @@ export const INITIAL_ENTITIES: EcosystemEntity[] = [
         "Filled Fields": "13",
         "Category": "Social",
         "Org ID": "60",
-        "Name/Label": "[Sthorm.io](http://sthorm.io/)",
+        "Name/Label": "Sthorm.io",
         "Stream": "Society"
       },
       "Logistic Info": {
@@ -7342,7 +7342,7 @@ export const INITIAL_ENTITIES: EcosystemEntity[] = [
     "favicon": "https://www.google.com/s2/favicons?domain_url=https://www.sthorm.io///&sz=256",
     "language": "English, Portuguese",
     "country": "Brasil",
-    "name": "[Sthorm.io](http://sthorm.io/)",
+    "name": "Sthorm.io",
     "quadrant": "Social",
     "website": "https://www.sthorm.io/",
     "approach": [
@@ -7360,7 +7360,7 @@ export const INITIAL_ENTITIES: EcosystemEntity[] = [
       "Language(s)": "English, Portuguese",
       "Description": "At the intersection of the ESG framework and the open source movement, we combine technologies to address pressing ecological and social risks.",
       "Social Profiles": "https://www.instagram.com/sthorm.io/; https://x.com/sthorm_official/; https://www.linkedin.com/company/sthorm/",
-      "Name/Label": "[Sthorm.io](http://sthorm.io/)",
+      "Name/Label": "Sthorm.io",
       "Approach": "ESG, Regenerative Finance, Creative Economy, Innovation, Movement Building",
       "Org ID": "60",
       "Stream": "Society",
@@ -19922,7 +19922,7 @@ export const INITIAL_ENTITIES: EcosystemEntity[] = [
       "Org ID": "177",
       "Stream": "Soil",
       "Approach": "Consulting, Civic Engagement, Local Community Building, Social Innovation, Urban Planning, Facilitation",
-      "Name/Label": "[Cidades.co](http://cidades.co/)",
+      "Name/Label": "Cidades.co",
       "Language(s)": "Portuguese",
       "Filled Fields": "11",
       "Social Profiles": "https://www.facebook.com/cidades.co1/; https://www.instagram.com/cidades.co/; https://www.youtube.com/channel/UCY5cQjhFnvSgzccnlDAfGsg/; https://www.linkedin.com/company/15797517/",
@@ -19949,7 +19949,7 @@ export const INITIAL_ENTITIES: EcosystemEntity[] = [
       "facebook": "https://www.facebook.com/cidades.co1/"
     },
     "fields": [],
-    "name": "[Cidades.co](http://cidades.co/)",
+    "name": "Cidades.co",
     "dataCompleteness": "Top 75%",
     "x": -1085,
     "id": "177",
@@ -19957,7 +19957,7 @@ export const INITIAL_ENTITIES: EcosystemEntity[] = [
     "categorizedFields": {
       "Overview": {
         "Approach": "Consulting, Civic Engagement, Local Community Building, Social Innovation, Urban Planning, Facilitation",
-        "Name/Label": "[Cidades.co](http://cidades.co/)",
+        "Name/Label": "Cidades.co",
         "Our Relationship": "9) Aware of",
         "Data Completeness": "Top 75%",
         "Entity Type": "Organization",
@@ -34441,7 +34441,7 @@ export const INITIAL_ENTITIES: EcosystemEntity[] = [
     "maturityLevel": "Mature",
     "featured": false,
     "id": "333",
-    "name": "[Actualized.org](http://actualized.org/)",
+    "name": "Actualized.org",
     "dataCompleteness": "Top 75%",
     "language": "English",
     "socialMedia": {
@@ -34470,7 +34470,7 @@ export const INITIAL_ENTITIES: EcosystemEntity[] = [
       "Entity Type": "Organization",
       "Our Relationship": "8) Following distantly",
       "Language(s)": "English",
-      "Name/Label": "[Actualized.org](http://actualized.org/)",
+      "Name/Label": "Actualized.org",
       "Filled Fields": "11",
       "Category": "Inner",
       "Maturity Level": "Mature",
@@ -34489,7 +34489,7 @@ export const INITIAL_ENTITIES: EcosystemEntity[] = [
         "Org ID": "333",
         "Stream": "Soul",
         "Our Relationship": "8) Following distantly",
-        "Name/Label": "[Actualized.org](http://actualized.org/)",
+        "Name/Label": "Actualized.org",
         "Entity Type": "Organization",
         "Quadrant": "Inner",
         "Approach": "Mainstream Media, YouTube Channel, Spirituality, Metamodern Education, Sensemaking",

@@ -1073,7 +1073,7 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({
   );
 
   const quadrantColors: Record<CategoryQuadrant, { bg: string; text: string; dot: string; label: string }> = {
-    Inner: { bg: '#F5F3FF', text: '#5B21B6', dot: '#5B21B6', label: 'Inner Change' },
+    Inner: { bg: '#F5F3FF', text: '#5B21B6', dot: '#5B21B6', label: 'Spiritual Change' },
     Social: { bg: '#F3F4F6', text: '#111827', dot: '#111827', label: 'Social Change' },
     Cultural: { bg: '#F7F8F2', text: '#4D5734', dot: '#7D8764', label: 'Cultural Change' },
     Systems: { bg: '#F0F9FF', text: '#0369A1', dot: '#0284C7', label: 'Systems Change' },

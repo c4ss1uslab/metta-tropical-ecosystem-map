@@ -267,7 +267,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
 
   // Category Quadrant info
   const categoriesList: { key: CategoryQuadrant; label: string; color: string; desc: string }[] = [
-    { key: 'Inner', label: 'Inner Change', color: '#5B21B6', desc: 'Upper Left • Self & Contemplation' },
+    { key: 'Inner', label: 'Spiritual Change', color: '#5B21B6', desc: 'Upper Left • Self & Contemplation' },
     { key: 'Social', label: 'Social Change', color: '#111827', desc: 'Upper Right • Civic & Commons' },
     { key: 'Cultural', label: 'Cultural Change', color: '#7D8764', desc: 'Bottom Left • Mythos & Narrative' },
     { key: 'Systems', label: 'Systems Change', color: '#0284C7', desc: 'Bottom Right • Ecosystems & Infrastructure' }

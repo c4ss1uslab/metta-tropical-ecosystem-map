@@ -33,6 +33,38 @@ export const DEFAULT_LAYER_3_RELATIONSHIPS = [
 ];
 
 /**
+ * Returns the numeric "Our Relationship" level (1-11) for an entity, e.g.
+ * "1) Core Reference" -> 1. Falls back to matching the default level labels
+ * when the value has no numeric prefix. Returns null when unknown.
+ */
+export function getEntityRelationshipNumber(entity: EcosystemEntity): number | null {
+  if (!entity) return null;
+  const raw =
+    getEntitySpreadsheetField(entity, 'S2') ||
+    getEntitySpreadsheetField(entity, 'U2') ||
+    getEntitySpreadsheetField(entity, 'Our Relationship') ||
+    entity.ourRelationship;
+  if (!raw || typeof raw !== 'string') return null;
+  const str = raw.trim().toLowerCase();
+  if (!str) return null;
+
+  const numMatch = str.match(/^(\d{1,2})(?:[\).:\-\s]|$)/) || str.match(/(?:^|[\r\n;,]|\s)(\d{1,2})[\).:\-\s]/);
+  if (numMatch) {
+    const num = parseInt(numMatch[1], 10);
+    if (num >= 1 && num <= 11) return num;
+  }
+
+  const defaults = [...DEFAULT_LAYER_1_RELATIONSHIPS, ...DEFAULT_LAYER_2_RELATIONSHIPS, ...DEFAULT_LAYER_3_RELATIONSHIPS];
+  for (const label of defaults) {
+    const m = label.match(/^(\d{1,2})\)\s*(.+)$/);
+    if (!m) continue;
+    const parts = m[2].toLowerCase().split('/').map(p => p.trim()).filter(Boolean);
+    if (parts.some(p => str === p || str.startsWith(p))) return parseInt(m[1], 10);
+  }
+  return null;
+}
+
+/**
  * Extracts distinct relationships for Layer 1 (1 to 6) from entities, with default fallback
  */
 export function getLayer1Relationships(entities?: EcosystemEntity[], ourRelationshipsList?: string[]): string[] {

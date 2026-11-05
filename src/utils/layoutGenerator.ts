@@ -4,7 +4,7 @@ export const QUADRANT_CENTERS: Record<CategoryQuadrant, { x: number; y: number; 
   Inner: { 
     x: -500, 
     y: -500, 
-    label: 'INNER CHANGE (Mind & Self)', 
+    label: 'SPIRITUAL CHANGE (Mind & Self)', 
     color: '#5B21B6',
     darkColor: '#3B0764' // Deep Imperial Purple
   },
