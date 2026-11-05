@@ -2029,13 +2029,13 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
               <div className="flex items-center justify-between">
                 <span className="font-technical text-[11px] uppercase font-bold text-[#111827] tracking-wider flex items-center gap-1.5">
                   <Layers className="w-3.5 h-3.5" style={{ color: badgeBg }} />
-                  {continentTerm} Quadrant
+                  {`${continentTerm} Quadrant`}
                 </span>
                 <span
                   className="px-2 py-0.5 text-[9.5px] font-technical uppercase font-bold text-white rounded-[2px] shadow-2xs"
                   style={{ backgroundColor: badgeBg }}
                 >
-                  {currentQuadrant} Quadrant
+                  {`${currentQuadrant} Quadrant`}
                 </span>
               </div>
 
@@ -2946,7 +2946,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                                   </span>
                                 </div>
                                 <div className="flex items-center space-x-2 text-[10px] text-[#6B7280] font-technical mt-0.5">
-                                  <span>{cand.category} Quadrant</span>
+                                  <span>{`${cand.category} Quadrant`}</span>
                                   {cand.continent && <span>• Current: {cand.continent}</span>}
                                 </div>
                               </div>
@@ -4082,7 +4082,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                       className="px-2 py-0.5 text-[10px] font-technical uppercase font-semibold text-white rounded-[2px]"
                       style={{ backgroundColor: categoryColors[entity.quadrant] || '#111827' }}
                     >
-                      {entity.quadrant} Quadrant
+                      {`${entity.quadrant} Quadrant`}
                     </span>
                   ) : (
                     <span
@@ -4503,7 +4503,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                       }}
                       className="font-technical text-[10px] text-[#5B21B6] hover:underline font-semibold cursor-pointer"
                     >
-                      View {activeLayer === 2 || activeLayer === 3 ? 'Field' : 'Archipelago'} Overview →
+                      {`View ${activeLayer === 2 || activeLayer === 3 ? 'Field' : 'Archipelago'} Overview →`}
                     </button>
                   )}
                 </>
@@ -5167,7 +5167,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                           className="px-2.5 py-0.5 text-[10px] font-technical uppercase font-semibold text-white rounded-[2px] shadow-2xs ml-[5px]"
                           style={{ backgroundColor: categoryColors[modalEntity.category] || '#111827', marginLeft: '5px' }}
                         >
-                          {modalEntity.category} Quadrant
+                          {`${modalEntity.category} Quadrant`}
                         </span>
                         <span className="px-2.5 py-0.5 text-[10px] font-technical uppercase font-medium bg-white border border-[#E5E7EB] text-[#111827] rounded-[2px]">
                           {modalEntity.type}
@@ -6195,7 +6195,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                               }}
                               className="font-technical text-[10px] text-[#5B21B6] hover:underline font-semibold cursor-pointer"
                             >
-                              View {activeLayer === 2 || activeLayer === 3 ? 'Field' : 'Archipelago'} Overview →
+                              {`View ${activeLayer === 2 || activeLayer === 3 ? 'Field' : 'Archipelago'} Overview →`}
                             </button>
                           )}
                         </div>

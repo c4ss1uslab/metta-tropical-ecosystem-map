@@ -1011,11 +1011,26 @@ export function calculateArchipelagoCenterPositions(
  * E.g. "Regenerative Education" -> "22. Regenerative Education"
  * E.g. "Wisdom Traditions" -> "1. Wisdom Traditions"
  */
-export function formatClusterWithNumber(rawCluster: string): string {
-  if (!rawCluster) return '';
-  const trimmed = String(rawCluster).trim();
-  if (!trimmed) return '';
+// Pure string -> string memoization. These helpers are called for every (entity × archipelago/field)
+// pair on every render, so caching them keeps the viewer cheap. Caches are bounded to avoid unbounded growth.
+const STRING_CACHE_LIMIT = 20000;
+const formatClusterCache = new Map<string, string>();
+const normalizeBaseCache = new Map<string, string>();
+let canonicalBaseIndex: Map<string, string> | null = null;
 
+function getCanonicalBaseIndex(): Map<string, string> {
+  if (canonicalBaseIndex) return canonicalBaseIndex;
+  const index = new Map<string, string>();
+  // Preserve first-match semantics of the original Object.entries() scan
+  for (const [key, val] of Object.entries(CANONICAL_CLUSTER_MAP)) {
+    const keyBase = normalizeArchipelagoBaseName(key);
+    if (!index.has(keyBase)) index.set(keyBase, val);
+  }
+  canonicalBaseIndex = index;
+  return index;
+}
+
+function computeFormatClusterWithNumber(trimmed: string): string {
   const cleanLower = trimmed.toLowerCase();
 
   // 1. Exact match in canonical lookup
@@ -1025,11 +1040,9 @@ export function formatClusterWithNumber(rawCluster: string): string {
 
   // 2. Exact base name match in canonical lookup (e.g. "depth psychological education" or "7. depth psychological education" -> "9. Depth Psychological Education")
   const cleanBase = normalizeArchipelagoBaseName(trimmed);
-  for (const [key, val] of Object.entries(CANONICAL_CLUSTER_MAP)) {
-    const keyBase = normalizeArchipelagoBaseName(key);
-    if (keyBase === cleanBase && cleanBase.length > 3) {
-      return val;
-    }
+  if (cleanBase.length > 3) {
+    const canonical = getCanonicalBaseIndex().get(cleanBase);
+    if (canonical) return canonical;
   }
 
   // 3. If it already starts with a number like "22. Regenerative Education" or "1. ..." or "22) ..."
@@ -1045,6 +1058,19 @@ export function formatClusterWithNumber(rawCluster: string): string {
   }
   const stableNum = (Math.abs(hash) % 30) + 31; // numbers 31 to 60
   return `${stableNum}. ${trimmed}`;
+}
+
+export function formatClusterWithNumber(rawCluster: string): string {
+  if (!rawCluster) return '';
+  const key = String(rawCluster);
+  const cached = formatClusterCache.get(key);
+  if (cached !== undefined) return cached;
+
+  const trimmed = key.trim();
+  const result = trimmed ? computeFormatClusterWithNumber(trimmed) : '';
+  if (formatClusterCache.size >= STRING_CACHE_LIMIT) formatClusterCache.clear();
+  formatClusterCache.set(key, result);
+  return result;
 }
 
 /**
@@ -1084,11 +1110,17 @@ export function getEntityClusterWithNumber(entity: EcosystemEntity, allContinent
  */
 export function normalizeArchipelagoBaseName(str?: string): string {
   if (!str) return '';
-  return String(str)
+  const key = String(str);
+  const cached = normalizeBaseCache.get(key);
+  if (cached !== undefined) return cached;
+  const result = key
     .trim()
     .toLowerCase()
     .replace(/^(\d+)[\.\)]\s*/, '')
     .trim();
+  if (normalizeBaseCache.size >= STRING_CACHE_LIMIT) normalizeBaseCache.clear();
+  normalizeBaseCache.set(key, result);
+  return result;
 }
 
 /**
@@ -1213,6 +1245,34 @@ export function isEntityPrimaryToArchipelago(entity: EcosystemEntity, archipelag
   return primaryBase === targetBase ||
     primary.toLowerCase().trim() === archipelagoName.toLowerCase().trim() ||
     formatClusterWithNumber(primary).toLowerCase().trim() === formatClusterWithNumber(archipelagoName).toLowerCase().trim();
+}
+
+/**
+ * Builds an O(1) lookup equivalent to `entities.filter(e => isEntityPrimaryToArchipelago(e, name)).length`,
+ * computed in a single pass over entities (instead of one full pass per archipelago / field).
+ * isEntityPrimaryToArchipelago matches when base names OR formatted names are equal (raw equality implies
+ * base equality), so the count is |base matches| + |formatted matches| - |both|.
+ */
+export function buildPrimaryArchipelagoCounter(entities: EcosystemEntity[]): (archipelagoName: string) => number {
+  const byBase = new Map<string, number>();
+  const byFormatted = new Map<string, number>();
+  const byBoth = new Map<string, number>();
+  for (const e of entities) {
+    const primary = e?.continent;
+    if (!primary) continue;
+    const base = normalizeArchipelagoBaseName(primary);
+    const formatted = formatClusterWithNumber(primary).toLowerCase().trim();
+    byBase.set(base, (byBase.get(base) || 0) + 1);
+    byFormatted.set(formatted, (byFormatted.get(formatted) || 0) + 1);
+    const both = `${base}\u0000${formatted}`;
+    byBoth.set(both, (byBoth.get(both) || 0) + 1);
+  }
+  return (archipelagoName: string) => {
+    if (!archipelagoName) return 0;
+    const base = normalizeArchipelagoBaseName(archipelagoName);
+    const formatted = formatClusterWithNumber(archipelagoName).toLowerCase().trim();
+    return (byBase.get(base) || 0) + (byFormatted.get(formatted) || 0) - (byBoth.get(`${base}\u0000${formatted}`) || 0);
+  };
 }
 
 // Minimum clearances between entity pin centers ensuring cards (up to 185px wide and 80px tall)

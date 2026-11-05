@@ -5,6 +5,7 @@ import {
   SlidersHorizontal, ChevronLeft, ChevronRight, Columns3, GripVertical, ChevronUp, ChevronDown,
   Eye, EyeOff, Sparkles, Filter, X, FileSpreadsheet, FileText, FileJson
 } from 'lucide-react';
+import { LanguageToggle } from './LanguageToggle';
 import { 
   EcosystemEntity, CategoryQuadrant, EntityType, DataQualityStatus, DataCompletenessLevel,
   DATA_COMPLETENESS_LEVELS, DATA_COMPLETENESS_CONFIG, getEntityCompleteness, getCompletenessConfig,
@@ -1497,6 +1498,9 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({
           </div>
         </>
       )}
+
+      {/* Language Switch (EN / PT-BR): right-most button of the top menu */}
+      <LanguageToggle />
     </div>
   </header>
 

@@ -3086,7 +3086,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                                 </div>
 
                                 <div className="flex items-center space-x-2 font-technical text-[10px] text-[#8C877F]">
-                                  <span>{cont.category} Quadrant</span>
+                                  <span>{`${cont.category} Quadrant`}</span>
                                   <span>•</span>
                                   <span className="font-semibold text-[#111827]">{cont.count} entities</span>
                                 </div>
@@ -3187,7 +3187,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                                     </div>
 
                                     <div className="flex items-center space-x-2 font-technical text-[10px] text-[#8C877F]">
-                                      <span>{cont.category} Quadrant</span>
+                                      <span>{`${cont.category} Quadrant`}</span>
                                       <span>•</span>
                                       <span className="font-semibold text-[#111827]">{cont.count} entities</span>
                                     </div>

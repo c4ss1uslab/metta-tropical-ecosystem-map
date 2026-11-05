@@ -3,6 +3,7 @@ import { Search, Globe, RefreshCw, Network, ChevronDown, X, MapPin, Building2, U
 import { EcosystemEntity, EntityType, SidebarListScope } from '../types';
 import { ExportFormat } from '../utils/excelParser';
 import { getPendingContributionsCount, subscribeToPipelineUpdates } from '../utils/contributionPipeline';
+import { LanguageToggle } from './LanguageToggle';
 
 interface HeaderProps {
   entities: EcosystemEntity[];
@@ -694,6 +695,9 @@ export const Header: React.FC<HeaderProps> = ({
         >
           <Search className="w-3.5 h-3.5" />
         </button>
+
+        {/* Language Switch (EN / PT-BR): always the right-most button of the top menu */}
+        <LanguageToggle />
       </div>
 
       {/* Mobile Search Bar Dropdown */}

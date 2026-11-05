@@ -7,12 +7,29 @@ export const CHANGELOG_COMMITTED_KEY = 'metta_map_changelog_committed_baseline_v
 export const CHANGELOG_FIRESTORE_DOC = 'changelog_config';
 
 export const DEFAULT_CHANGELOG_CONFIG: ChangelogConfig = {
-  appVersion: '1.2.7',
+  appVersion: '1.3.0',
   githubRepo: 'metta-earth/metta-ecosystem-map',
   githubBranch: 'main',
   lastSyncedAt: new Date().toISOString(),
   deletedEntryIds: [],
   entries: [
+    {
+      id: 'release-1-3-0',
+      version: '1.3.0',
+      date: '2026-11-05',
+      title: 'Brazilian Portuguese (pt-BR) Version of the Map',
+      description: 'The whole map can now be switched to Brazilian Portuguese from the EN / PT-BR button at the far right of the top menu.',
+      changes: [
+        'Added EN / PT-BR language switch as the right-most button of the top menu (map and directory views), remembered per browser',
+        'Translated the entire interface into Brazilian Portuguese with a reviewed dictionary of over 1,800 interface strings',
+        'Ecosystem data (descriptions, tags, locations, archipelagos, column notes, changelog) is translated with Gemini and stored as a pt-BR translation memory in Cloud Firestore',
+        'Every data upload and cloud commit now diffs the new data against the existing translations and only translates new or changed text, removing translations of text that no longer exists',
+        'Organization and people names are never translated'
+      ],
+      tag: 'feature',
+      author: 'Claude Code',
+      source: 'manual'
+    },
     {
       id: 'release-1-2-7',
       version: '1.2.7',

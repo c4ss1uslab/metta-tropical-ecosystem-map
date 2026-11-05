@@ -3,7 +3,7 @@ import {
   ZoomIn, ZoomOut, Maximize2, Move, Eye, Shield, Sparkles, Navigation, Globe, Map as MapIcon, RotateCcw, RotateCw, Plus, Trash2, Mountain, Layers, Network, Star, Save, Unlock, X, Sliders, Wand2, ChevronUp, ChevronDown, Undo2, Redo2
 } from 'lucide-react';
 import { EcosystemEntity, CategoryQuadrant, FieldCluster, MapViewport, ContinentInfo, EcotoneCorridorInfo, getEntityCompleteness, DATA_COMPLETENESS_CONFIG, getCompletenessConfig, LayerQuadrantSizes, LayerQuadrantConfig, DEFAULT_LAYER_QUADRANT_SIZES, getQuadrantSizesForLayer } from '../types';
-import { QUADRANT_CENTERS, generateContinentLabelPath, getContinentLabelCenter, isEntityDomainElevation, getEntityIntersectionZone, getEntityQuadrantGradient, INTERSECTION_ZONES, calculateEcotoneCorridors, getEntityClusterWithNumber, formatClusterWithNumber, normalizeArchipelagoBaseName, isEntityPrimaryToArchipelago, entityMatchesArchipelago } from '../utils/layoutGenerator';
+import { QUADRANT_CENTERS, generateContinentLabelPath, getContinentLabelCenter, isEntityDomainElevation, getEntityIntersectionZone, getEntityQuadrantGradient, INTERSECTION_ZONES, calculateEcotoneCorridors, getEntityClusterWithNumber, formatClusterWithNumber, normalizeArchipelagoBaseName, isEntityPrimaryToArchipelago, entityMatchesArchipelago, buildPrimaryArchipelagoCounter } from '../utils/layoutGenerator';
 import { calculateAutoFitQuadrantSizes, doesArchipelagoAppearInLayer } from '../utils/layerClassifier';
 import { ChangelogWidget } from './ChangelogWidget';
 import { getConnectedEntityIds } from '../utils/socialMedia';
@@ -1196,6 +1196,45 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
     });
   }, [continents, hiddenContinents, activeLayer, entities, isFieldLayer]);
 
+  // Per-landmass selection state, displayed entity count and curved label paths.
+  // Memoized so that pan / zoom / hover re-renders don't redo O(landmasses × entities) matching work.
+  const continentRenderData = useMemo(() => {
+    const selectedBase = selectedContinentName ? normalizeArchipelagoBaseName(selectedContinentName) : '';
+    const selectedFormatted = selectedContinentName ? formatClusterWithNumber(selectedContinentName).toLowerCase() : '';
+
+    const countPrimary = buildPrimaryArchipelagoCounter(visibleEntities);
+    const data = new Map<string, { isSelected: boolean; displayCount: number; labelPathD: string; subLabelPathD: string }>();
+    visibleContinentsList.forEach(cont => {
+      const isSelected = selectedContinentName === cont.name ||
+        Boolean(selectedContinentName && (
+          selectedBase === normalizeArchipelagoBaseName(cont.name) ||
+          selectedFormatted === formatClusterWithNumber(cont.name).toLowerCase()
+        ));
+
+      // When selected/focused: count all visible entities matching archipelago (primary + secondary/affiliated).
+      // When not selected: count only visible entities that are primary to this archipelago (actually displayed in its territory).
+      const displayCount = isSelected
+        ? visibleEntities.reduce((n, e) => (entityMatchesArchipelago(e, cont.name) ? n + 1 : n), 0)
+        : countPrimary(cont.name);
+
+      const titleCurv = cont.titleCurvature !== undefined ? cont.titleCurvature : 0.7;
+      const subTitleCurv = cont.subTitleCurvature !== undefined ? cont.subTitleCurvature : 0.7;
+
+      const labelPathD = generateContinentLabelPath(
+        cont.centerX, cont.centerY, cont.minX, cont.maxX, cont.minY, cont.maxY,
+        cont.controlPoints, 0, titleCurv, cont.name
+      );
+      const subLabelPathD = generateContinentLabelPath(
+        cont.centerX, cont.centerY, cont.minX, cont.maxX, cont.minY, cont.maxY,
+        cont.controlPoints, -22, subTitleCurv,
+        `${displayCount} ${displayCount === 1 ? 'entity' : 'entities'}`
+      );
+
+      data.set(cont.name, { isSelected, displayCount, labelPathD, subLabelPathD });
+    });
+    return data;
+  }, [visibleContinentsList, visibleEntities, selectedContinentName]);
+
   // Calculate connection lines for selected or hovered entity or all relationships across all quadrants
   const activeFocusEntity = focusedEntity || hoveredEntity || selectedEntity;
   const connectionLines = useMemo(() => {
@@ -1710,46 +1749,9 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
               const contKey = `${cont.category}-${cont.name}-${contIdx}`;
               const pathId = `continent-label-path-${sanitizeId(cont.category)}-${sanitizeId(cont.name)}`;
               const subPathId = `continent-sublabel-path-${sanitizeId(cont.category)}-${sanitizeId(cont.name)}`;
-              const titleCurv = cont.titleCurvature !== undefined ? cont.titleCurvature : 0.7;
-              const subTitleCurv = cont.subTitleCurvature !== undefined ? cont.subTitleCurvature : 0.7;
-
-              const isSelected = selectedContinentName === cont.name ||
-                Boolean(selectedContinentName && (
-                  normalizeArchipelagoBaseName(selectedContinentName) === normalizeArchipelagoBaseName(cont.name) ||
-                  formatClusterWithNumber(selectedContinentName).toLowerCase() === formatClusterWithNumber(cont.name).toLowerCase()
-                ));
-
-              // When selected/focused: count all visible entities matching archipelago (primary + secondary/affiliated).
-              // When not selected: count only visible entities that are primary to this archipelago (actually displayed in its territory).
-              const currentDisplayCount = isSelected
-                ? visibleEntities.filter(e => entityMatchesArchipelago(e, cont.name)).length
-                : visibleEntities.filter(e => isEntityPrimaryToArchipelago(e, cont.name)).length;
-
-              const labelPathD = generateContinentLabelPath(
-                cont.centerX,
-                cont.centerY,
-                cont.minX,
-                cont.maxX,
-                cont.minY,
-                cont.maxY,
-                cont.controlPoints,
-                0,
-                titleCurv,
-                cont.name
-              );
-
-              const subLabelPathD = generateContinentLabelPath(
-                cont.centerX,
-                cont.centerY,
-                cont.minX,
-                cont.maxX,
-                cont.minY,
-                cont.maxY,
-                cont.controlPoints,
-                -22,
-                subTitleCurv,
-                `${currentDisplayCount} ${currentDisplayCount === 1 ? 'entity' : 'entities'}`
-              );
+              const renderData = continentRenderData.get(cont.name);
+              if (!renderData) return null;
+              const { labelPathD, subLabelPathD } = renderData;
 
               return (
                 <React.Fragment key={`def-paths-${contKey}`}>
@@ -1838,14 +1840,9 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
               if (!cont.pathData) return null;
               const contKey = `${cont.category}-${cont.name}-${contIdx}`;
               const isHovered = editMode && hoveredContinent === cont.name;
-              const isSelected = selectedContinentName === cont.name ||
-                Boolean(selectedContinentName && (
-                  normalizeArchipelagoBaseName(selectedContinentName) === normalizeArchipelagoBaseName(cont.name) ||
-                  formatClusterWithNumber(selectedContinentName).toLowerCase() === formatClusterWithNumber(cont.name).toLowerCase()
-                ));
-              const displayCount = isSelected
-                ? visibleEntities.filter(e => entityMatchesArchipelago(e, cont.name)).length
-                : visibleEntities.filter(e => isEntityPrimaryToArchipelago(e, cont.name)).length;
+              const renderData = continentRenderData.get(cont.name);
+              const isSelected = renderData?.isSelected ?? false;
+              const displayCount = renderData?.displayCount ?? 0;
               const isBeingMoved = draggingContinentName === cont.name;
               const dragTransform = isBeingMoved && continentDragDelta
                 ? `translate(${continentDragDelta.dx}, ${continentDragDelta.dy})`

@@ -10,7 +10,7 @@ Whenever any code change, feature, fix, or update is made to this project and a 
      - `title`: Concise, descriptive headline of the enhancement.
      - `description`: Optional overview of the changes.
      - `tag`: One of `'feature' | 'fix' | 'update' | 'release' | 'ecosystem' | 'ui'`.
-     - `author`: `'AI Studio Assistant'` (or contributor name).
+     - `author`: `'Metta Tropical Cartography Team'` (or contributor name).
      - `changes`: An array of clear bullet points detailing all changes made.
      - `source`: `'manual'`.
 

@@ -25,7 +25,8 @@ import {
   calculateExpandedContinentHull,
   fitContinentTightlyAroundEntities,
   organizeLayerEntitiesByTags,
-  generateFieldContinentsFromEntities
+  generateFieldContinentsFromEntities,
+  buildPrimaryArchipelagoCounter
 } from './utils/layoutGenerator';
 import { exportEntities, ExportFormat, sanitizeEntityObsoleteFields, getEntitySpreadsheetField, splitLanguageValues, entityMatchesRelationship, ensureUniqueEntityIds, getSocialMediaReachTier } from './utils/excelParser';
 import { sanitizeEntitySocialProfiles } from './utils/socialMedia';
@@ -41,6 +42,9 @@ import { ReviewPipelineModal } from './components/ReviewPipelineModal';
 import { DismissChangesModal } from './components/DismissChangesModal';
 import { PositionSnapshotModal } from './components/PositionSnapshotModal';
 import { SubmitEntityModal } from './components/SubmitEntityModal';
+import { TranslationSyncToast } from './components/TranslationSyncToast';
+import { syncDataTranslations } from './i18n/syncDataTranslations';
+import { setProtectedStrings } from './i18n/domTranslator';
 import { 
   persistPublishedDatasetToFirestore, 
   fetchPublishedDatasetFromFirestore, 
@@ -277,6 +281,11 @@ export default function App() {
 
     return ensureUniqueEntityIds(layouted);
   });
+
+  // pt-BR translator: entity names are proper nouns and must never be translated
+  useEffect(() => {
+    setProtectedStrings(entities.map(e => e.name));
+  }, [entities]);
 
   // Calculate field clusters, continents, and layout geometry
   const { fieldClusters, continents: rawContinents } = useMemo(() => {
@@ -690,6 +699,9 @@ export default function App() {
         } catch {}
 
         setCloudSyncStatus({ state: 'saved', message: 'All changes committed to cloud' });
+
+        // Keep pt-BR translations in sync with the committed data (only new/changed text is translated)
+        syncDataTranslations(dataset, metadata).catch(e => console.warn('pt-BR translation sync failed:', e));
         setTimeout(() => {
           setCloudSyncStatus(prev => prev.state === 'saved' ? { state: 'idle' } : prev);
         }, 4000);
@@ -1943,6 +1955,57 @@ export default function App() {
     return ensureUniqueEntityIds(matched);
   }, [entities, filterState, activeListScope, selectedContinentName, baseContinents]);
 
+  // Field landmass geometry for Layer 2 / Layer 3 (hulls, organic paths, custom shapes, unique names).
+  // Kept separate from the continents memo so selection / filter changes never regenerate geometry.
+  const fieldLayerGeometry = useMemo<ContinentInfo[]>(() => {
+    const activeLayer = filterState.activeLayer ?? 1;
+    if (activeLayer !== 2 && activeLayer !== 3) return [];
+
+    const storedFields = layerFieldContinents[activeLayer];
+    const rawFieldsForLayer = (storedFields && storedFields.length > 0)
+      ? storedFields
+      : generateFieldContinentsFromEntities(entities, activeLayer);
+
+    if (!rawFieldsForLayer || rawFieldsForLayer.length === 0) return [];
+
+    // Heal and ensure 100% strictly unique names across fieldsForLayer
+    const seenNames = new Set<string>();
+    return rawFieldsForLayer.map(rawCont => {
+      let uniqueName = rawCont.name;
+      if (seenNames.has(uniqueName)) {
+        uniqueName = `${rawCont.category} ${rawCont.name}`;
+      }
+      let counter = 2;
+      while (seenNames.has(uniqueName)) {
+        uniqueName = `${rawCont.category} ${rawCont.name} ${counter}`;
+        counter++;
+      }
+      seenNames.add(uniqueName);
+      const cont = uniqueName === rawCont.name ? rawCont : { ...rawCont, name: uniqueName };
+
+      const customPoints = customContinentShapes[cont.name];
+      if (!customPoints || customPoints.length < 3) return cont;
+
+      let cMinX = Infinity, cMaxX = -Infinity, cMinY = Infinity, cMaxY = -Infinity;
+      customPoints.forEach(([px, py]) => {
+        cMinX = Math.min(cMinX, px);
+        cMaxX = Math.max(cMaxX, px);
+        cMinY = Math.min(cMinY, py);
+        cMaxY = Math.max(cMaxY, py);
+      });
+      return {
+        ...cont,
+        controlPoints: customPoints,
+        pathData: createPathFromControlPoints(customPoints),
+        minX: cMinX - 50,
+        maxX: cMaxX + 50,
+        minY: cMinY - 50,
+        maxY: cMaxY + 50,
+        isCustomShape: true
+      };
+    });
+  }, [filterState.activeLayer, layerFieldContinents, entities, customContinentShapes]);
+
   // Layer-filtered and dynamic focus continents:
   // In Layer 1 (default): archipelagos appear ONLY if they have assigned entities in relationship levels 1-6!
   // In Layer 2: archipelagos appear ONLY if they have assigned entities in relationship levels 7-9!
@@ -1952,99 +2015,40 @@ export default function App() {
     const targetFocusArchipelago = selectedContinentName || (activeListScope?.type === 'continent' ? activeListScope.name : null);
     const activeLayer = filterState.activeLayer ?? 1;
 
-    // In Layer 2 and Layer 3: show Field clusters (named "fields", looking just like archipelagos)
+    // In Layer 2 and Layer 3: show Field clusters (named "fields", looking just like archipelagos).
+    // Heavy geometry is precomputed in fieldLayerGeometry; here we only refresh counts & sub-labels.
     if (activeLayer === 2 || activeLayer === 3) {
-      const storedFields = layerFieldContinents[activeLayer];
-      const rawFieldsForLayer = (storedFields && storedFields.length > 0)
-        ? storedFields
-        : generateFieldContinentsFromEntities(entities, activeLayer);
+      if (fieldLayerGeometry.length === 0) return [];
 
-      if (!rawFieldsForLayer || rawFieldsForLayer.length === 0) {
-        return [];
-      }
+      // Single pass over filtered entities (same semantics as isEntityPrimaryToArchipelago)
+      const countPrimary = buildPrimaryArchipelagoCounter(filteredEntities);
 
-      // Heal and ensure 100% strictly unique names across fieldsForLayer
-      const seenNames = new Set<string>();
-      const fieldsForLayer = rawFieldsForLayer.map(cont => {
-        let uniqueName = cont.name;
-        if (seenNames.has(uniqueName)) {
-          uniqueName = `${cont.category} ${cont.name}`;
-        }
-        let counter = 2;
-        while (seenNames.has(uniqueName)) {
-          uniqueName = `${cont.category} ${cont.name} ${counter}`;
-          counter++;
-        }
-        seenNames.add(uniqueName);
-        return uniqueName === cont.name ? cont : { ...cont, name: uniqueName };
-      });
-
-      return fieldsForLayer.map(cont => {
-        const customPoints = customContinentShapes[cont.name];
-        let pathData = cont.pathData;
-        let controlPoints = cont.controlPoints;
-        let minX = cont.minX;
-        let maxX = cont.maxX;
-        let minY = cont.minY;
-        let maxY = cont.maxY;
-        let isCustomShape = cont.isCustomShape;
-
-        if (customPoints && customPoints.length >= 3) {
-          controlPoints = customPoints;
-          pathData = createPathFromControlPoints(customPoints);
-          let cMinX = Infinity, cMaxX = -Infinity, cMinY = Infinity, cMaxY = -Infinity;
-          customPoints.forEach(([px, py]) => {
-            cMinX = Math.min(cMinX, px);
-            cMaxX = Math.max(cMaxX, px);
-            cMinY = Math.min(cMinY, py);
-            cMaxY = Math.max(cMaxY, py);
-          });
-          minX = cMinX - 50;
-          maxX = cMaxX + 50;
-          minY = cMinY - 50;
-          maxY = cMaxY + 50;
-          isCustomShape = true;
-        }
-
-        const displayedEntities = filteredEntities.filter(e => isEntityPrimaryToArchipelago(e, cont.name));
-        const layerCount = displayedEntities.length;
-
+      return fieldLayerGeometry.map(cont => {
+        const layerCount = countPrimary(cont.name);
         const subLabelPath = generateContinentLabelPath(
           cont.centerX,
           cont.centerY,
-          minX,
-          maxX,
-          minY,
-          maxY,
-          controlPoints,
+          cont.minX,
+          cont.maxX,
+          cont.minY,
+          cont.maxY,
+          cont.controlPoints,
           -22,
           cont.subTitleCurvature !== undefined ? cont.subTitleCurvature : 0.7,
           `${layerCount} ${layerCount === 1 ? 'entity' : 'entities'}`
         );
-
-        return {
-          ...cont,
-          controlPoints,
-          pathData,
-          minX,
-          maxX,
-          minY,
-          maxY,
-          isCustomShape,
-          count: layerCount,
-          subLabelPath
-        };
+        return { ...cont, count: layerCount, subLabelPath };
       });
     }
 
     // Filter baseContinents according to activeLayer rule:
     // In Layer 1: archipelago ONLY appears if it has entities assigned to relationship levels 1-6!
+    const countPrimary = buildPrimaryArchipelagoCounter(filteredEntities);
     const layerScopedContinents = baseContinents
       .filter(cont => doesArchipelagoAppearInLayer(cont.name, entities, activeLayer))
       .map(cont => {
         // Count ONLY the entities currently being displayed in this archipelago in this layer (primary entities matching active filters)
-        const displayedEntities = filteredEntities.filter(e => isEntityPrimaryToArchipelago(e, cont.name));
-        const layerCount = displayedEntities.length;
+        const layerCount = countPrimary(cont.name);
 
         const subLabelPath = generateContinentLabelPath(
           cont.centerX,
@@ -2137,7 +2141,7 @@ export default function App() {
         subLabelPath
       };
     });
-  }, [baseContinents, selectedContinentName, activeListScope, filteredEntities, editMode, entities, filterState.activeLayer, layerFieldContinents, customContinentShapes]);
+  }, [baseContinents, selectedContinentName, activeListScope, filteredEntities, editMode, entities, filterState.activeLayer, fieldLayerGeometry]);
 
   // Check if an archipelago is currently focused (selected without an individual entity)
   const targetFocusArchipelagoName = selectedContinentName || (activeListScope?.type === 'continent' ? activeListScope.name : null);
@@ -3504,6 +3508,10 @@ export default function App() {
       console.warn('Failed to persist synced dataset to Firestore:', e);
     });
 
+    // Sync step: diff the new data against the already-translated pt-BR memory and
+    // translate only the additions/changes with Gemini (stale translations are pruned).
+    syncDataTranslations(uniqueFinal, currentMeta).catch(e => console.warn('pt-BR translation sync failed:', e));
+
     if (result.mode === 'replace') {
       const removedCount = result.removed?.length || 0;
       setSyncSuccessToast({
@@ -4008,6 +4016,9 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* pt-BR translation sync progress (runs after data uploads / cloud commits) */}
+      <TranslationSyncToast />
 
       {/* Sync Success Notification Toast */}
       {syncSuccessToast && (
