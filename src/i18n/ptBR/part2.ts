@@ -198,7 +198,7 @@ export const PART2: Record<string, string> = {
   "Critiques Offered / Received": "Críticas feitas / recebidas",
   "Cultural": "Cultural",
   "Cultural & Systems Transformation": "Cultural e Sistêmica",
-  "Cultural Change": "Mudança cultural",
+  "Cultural Change": "Mudança Cultural",
   "Cultural Quadrant": "Quadrante Cultural",
   "Cultural Quadrant (Bottom Left): Shared narratives, arts, traditions, heritage, lineages & philosophy.": "Quadrante Cultural (inferior esquerdo): narrativas compartilhadas, artes, tradições, patrimônio, linhagens e filosofia.",
   "Cultural ∩ Systems Intersection Corridor": "Corredor de interseção Cultural ∩ Sistemas",

@@ -1255,7 +1255,7 @@ const CategorizedFieldsSection: React.FC<CategorizedFieldsSectionProps> = ({
                                 title={`Click to show all ${catValue} quadrant entities on map and right sidebar`}
                               >
                                 <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: catColor.dot }} />
-                                <span className="select-text">{catValue} Change</span>
+                                <span className="select-text">{`${catValue} Change`}</span>
                                 <span className="text-[10px] opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">→</span>
                               </button>
                             );
@@ -4428,7 +4428,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                               className="w-1.5 h-1.5 rounded-full inline-block"
                               style={{ backgroundColor: categoryColors[cat] || '#8C877F' }}
                             />
-                            <span>{cat} Change</span>
+                            <span>{`${cat} Change`}</span>
                           </span>
                         ))
                       ) : (
@@ -5579,7 +5579,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                                           className="w-1.5 h-1.5 rounded-full inline-block"
                                           style={{ backgroundColor: categoryColors[cat] || '#8C877F' }}
                                         />
-                                        <span>{cat} Change</span>
+                                        <span>{`${cat} Change`}</span>
                                       </span>
                                     ))
                                   ) : (

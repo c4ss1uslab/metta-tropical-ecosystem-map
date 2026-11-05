@@ -180,8 +180,13 @@ export function getAllColumnComments(): Record<string, string> {
 
 /**
  * Registers comments extracted from a spreadsheet file into memory and localStorage.
+ * With `replace`, the given set replaces everything registered before (used for a
+ * fresh spreadsheet upload and for the published dataset, which are complete sets).
  */
-export function registerColumnComments(comments: Record<string, string>): void {
+export function registerColumnComments(
+  comments: Record<string, string>,
+  options: { replace?: boolean } = {}
+): void {
   if (!comments || typeof comments !== 'object') return;
   const cleaned: Record<string, string> = {};
   for (const [k, v] of Object.entries(comments)) {
@@ -189,10 +194,9 @@ export function registerColumnComments(comments: Record<string, string>): void {
     if (cv) cleaned[k] = cv;
   }
 
-  dynamicSpreadsheetComments = {
-    ...dynamicSpreadsheetComments,
-    ...cleaned
-  };
+  dynamicSpreadsheetComments = options.replace
+    ? cleaned
+    : { ...dynamicSpreadsheetComments, ...cleaned };
   try {
     if (typeof window !== 'undefined') {
       localStorage.setItem(SPREADSHEET_COMMENTS_STORAGE_KEY, JSON.stringify(dynamicSpreadsheetComments));

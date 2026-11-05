@@ -3121,7 +3121,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
                 return (
                   <div key={q} className="bg-black/20 p-1.5 rounded-[3px] space-y-1">
                     <div className="flex items-center justify-between font-editorial font-bold" style={{ color: colors[q] }}>
-                      <span>{q} Change</span>
+                      <span>{`${q} Change`}</span>
                       <span className="font-mono text-[10px]">
                         {currentQuadrantSizes[q].width} × {currentQuadrantSizes[q].height}
                       </span>

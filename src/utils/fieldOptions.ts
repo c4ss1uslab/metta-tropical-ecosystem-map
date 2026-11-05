@@ -202,3 +202,138 @@ export const INTELLECTUAL_LINEAGE_OPTIONS: FieldOption[] = plain([
   'Imaginative Literature', 'Democratization', 'Network Theory', 'Buddhism', 'Neuro-Anthropology',
   'Feminism', 'Critical Race Theory', 'Critical Gender Theory'
 ]);
+
+// BV2 — Inner Work Modalities (Conscious Change Collective); free entry allowed
+// (replaces the comment's "Other" option).
+export const INNER_WORK_MODALITIES_OPTIONS: FieldOption[] = plain([
+  'Compassion & Social Change Practices (e.g., Restorative Justice Circles, Non-violent communications, Social Justice Meditation)',
+  'Contemplative Arts (e.g., mandalas, sacred music)',
+  'Contemplative Movement & Somatic Practices (e.g., Qi Gong, Aikido, dance, labyrinth walking)',
+  'Contemplative Practices Based in Cultural Traditions',
+  'Meditation & Mindfulness (e.g., Mindfulness Based Stress Reduction, Vipassana)',
+  'Nature-Based Practices (e.g., Forest Bathing, Ecotherapy)',
+  'Prayer & Spiritual Contemplation (e.g., Centering Prayer, Lectio Divina)',
+  'Reflection & Inquiry (e.g., journaling, visualization)',
+  'Yoga & Body-Centered Contemplative Practices (e.g., Hatha Yoga, Breathwork, Bodyscan)'
+]);
+
+// T2 — Community Served (Conscious Change Collective); free entry allowed
+// (replaces the comment's "Other" option).
+export const COMMUNITY_SERVED_OPTIONS: FieldOption[] = plain([
+  'Children',
+  'Youth, Adolescents, Students',
+  'Young Adults',
+  'Seniors/Elders',
+  'Foster Children/Foster Families',
+  'Families',
+  'Low-Income Individuals/Families',
+  'Unhoused, People Experiencing Homelessness',
+  'People Experiencing Hunger or Malnutrition',
+  'Unemployed/Underemployed',
+  'Labor Unions',
+  'People with Disabilities',
+  'Indigenous Peoples',
+  'BIPOC, Racial/Ethnic Minorities',
+  'Immigrants, Refugees, Undocumented Individuals, and/or Asylum Seekers',
+  'Underserved or Marginalized Communities',
+  'Women and/or Girls',
+  'Men and/or Boys',
+  'LGBTQIA2S+, Nonbinary, Trans, Genderqueer Individuals / Communities',
+  'Domestic and/or Interpersonal Violence, Child Abuse and/or Elder Abuse Survivors',
+  'Survivors of Trafficking',
+  'Survivors of War',
+  'Survivors of Natural Disasters',
+  'People/Communities Affected by Climate Change',
+  'Farm Workers, Agriculture or Food Systems Organizations',
+  'People with Chronic Illnesses',
+  'People with Mental Health Issues and/or Trauma',
+  'Substance Use Recovery Communities',
+  'First Responders',
+  'Healthcare Providers, Caregivers',
+  'Mental Health Professionals',
+  'Social Workers',
+  'Law Enforcement',
+  'Military/Veterans',
+  'Incarcerated, Formerly Incarcerated or Justice Systems Impacted Individuals',
+  'Educators, Researchers, Scientists',
+  'Community-Based Organizations, NGOs',
+  'Change Leaders, Social Entrepreneurs',
+  'Organizers, Activists',
+  'Religious Communities/Leaders',
+  'Businesses',
+  'Elected Officials, Policy Makers, Civil Servants',
+  'Philanthropists',
+  'Artists, Musicians, Creatives',
+  'Wildlife, Oceans, Forests, Natural World',
+  'Everyone, no special population focus'
+]);
+
+// Societal Sector — Catalist encyclopedic table of sectors (9 categories, 48 sectors).
+export const SOCIETAL_SECTOR_OPTIONS: FieldOption[] = [
+  ...plain([
+    'Idea (Innovation Invention & Ideation)',
+    'Tech (Technology Culture & Society)',
+    'STEM (Science Tech Engineering & Math)',
+    'Travel (Transportation Travel & Mobility)',
+    'Code (Software Internet & Automation)',
+    'DWEB (Decentralized Web)',
+    'Make (Creation Making Manufacturing)',
+    'Energy (Energy & Industry)'
+  ], 'Technological'),
+  ...plain([
+    'Habitat (Food Habitat & Biodiversity)',
+    'Sustain (Sustainability)',
+    'Climate (Climate Environment & Resiliency)',
+    'Steward (Land Air and Ocean Stewardship)'
+  ], 'Ecological'),
+  ...plain([
+    'Regen (Regenerative Economy & Systems)',
+    'Circular (Circular Economy)',
+    'Coop (Cooperative Economics)',
+    'Innovate (Social Entrepreneurship & Innovation)',
+    'Planning (City Planning & Architecture)'
+  ], 'Relational'),
+  ...plain([
+    'Business (Business)',
+    'Work (Economics & Jobs)',
+    'Security (Peace, Law & Safety)',
+    'Finance (Currencies & Funding)'
+  ], 'Economic'),
+  ...plain([
+    'Justice (Social Justice Equality & Impact)',
+    'Policy (Politics & Policy)',
+    'Support (Mutual Aid & Volunteering)',
+    'Diversity (Diversity & Inclusion)',
+    'Educate (Education & Learning)',
+    'Govern (Governance & Institutions)',
+    'Activism (Activism & Community Organizing)',
+    'Housing (Anthropology, Housing & Shelter)'
+  ], 'Social'),
+  ...plain([
+    'Community (Community & Relationships)',
+    'Media (Communications & Media)',
+    'Connect (Networks & Connectivity)',
+    'Collab (Collective Action & Collaboration)'
+  ], 'Collaboration'),
+  ...plain([
+    'Write (Creativity Expression & Language)',
+    'Music (Music & Dancing)',
+    'Film (Storytelling & Film)',
+    'Play (Sports Play & Entertainment)'
+  ], 'Cultural'),
+  ...plain([
+    'Fufill (Fufillment Meaning & Purpose)',
+    'Health (Healthcare & Medicine)',
+    'Mental (Mental Health & Emotions)',
+    'Food (Food Diet & Veganism)',
+    'Disease (Viruses & Disease)'
+  ], 'Wellness'),
+  ...plain([
+    'Design (Design)',
+    'Wisdom (Knowledge Wisdom & Intelligence)',
+    'Systems (Systems Design & Thinking)',
+    'Sense (Sensemaking & Rationality)',
+    'Develop (Personal Development)',
+    'Spirit (Spirituality & Religion)'
+  ], 'World')
+];

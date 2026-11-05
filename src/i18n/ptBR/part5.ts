@@ -66,7 +66,7 @@ export const PART5: Record<string, string> = {
   "Sync latest changes from GitHub repository": "Sincronizar as alterações mais recentes do repositório no GitHub",
   "Systemic Transition": "Transição sistêmica",
   "Systems": "Sistemas",
-  "Systems Change": "Mudança sistêmica",
+  "Systems Change": "Mudança Sistêmica",
   "Systems Quadrant": "Quadrante Sistemas",
   "Systems Quadrant (Bottom Right): Infrastructure, finance, economics, policy, ecology, tech & institutions.": "Quadrante Sistemas (inferior direito): infraestrutura, finanças, economia, políticas públicas, ecologia, tecnologia e instituições.",
   "TRANSDISCIPLINARY NEXUS": "NEXO TRANSDISCIPLINAR",

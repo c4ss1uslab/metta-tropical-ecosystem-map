@@ -391,7 +391,7 @@ export async function fetchPublishedDatasetFromFirestore(): Promise<{
 
         if (data.columnComments && typeof data.columnComments === 'object') {
           columnComments = data.columnComments as Record<string, string>;
-          registerColumnComments(columnComments);
+          registerColumnComments(columnComments, { replace: true });
         }
         if (Array.isArray(data.parsingRules) && data.parsingRules.length > 0) {
           saveStoredParsingRules(data.parsingRules);
@@ -452,7 +452,7 @@ export function subscribeToPublishedDataset(
         if (docSnap.exists()) {
           const data = docSnap.data();
           if (data && data.columnComments && typeof data.columnComments === 'object') {
-            registerColumnComments(data.columnComments as Record<string, string>);
+            registerColumnComments(data.columnComments as Record<string, string>, { replace: true });
           }
           if (data && Array.isArray(data.parsingRules) && data.parsingRules.length > 0) {
             saveStoredParsingRules(data.parsingRules);

@@ -211,7 +211,7 @@ export const PART3: Record<string, string> = {
   "Initial Metta Ecosystem Map Genesis": "Gênese do Mapa do Ecossistema Metta",
   "Innate and Applied Metamodernism (IAM) theory of change framework — understanding evolution across inner psychological, cultural, and outer systemic dimensions.": "Referencial de teoria da mudança do Metamodernismo Inato e Aplicado (IAM) — compreender a evolução nas dimensões psicológica interior, cultural e sistêmica exterior.",
   "Inner": "Interior",
-  "Inner Change": "Mudança interior",
+  "Inner Change": "Mudança Espiritual",
   "Inner Development Goals (IDGs) and transformative cognitive, emotional, and relational capacities fostered (e.g. Being, Thinking, Relating, Collaborating, Acting).": "Inner Development Goals (IDGs) e capacidades transformadoras cognitivas, emocionais e relacionais cultivadas (ex.: Ser, Pensar, Relacionar-se, Colaborar, Agir).",
   "Inner Quadrant": "Quadrante Interior",
   "Inner Quadrant (Top Left): Mindset, worldview, inner development, somatics & consciousness.": "Quadrante Interior (superior esquerdo): mentalidade, visão de mundo, desenvolvimento interior, somática e consciência.",

@@ -419,7 +419,7 @@ export const PART4: Record<string, string> = {
   "Snapshot successfully applied and committed to cloud!": "Snapshot aplicado e salvo na nuvem com sucesso!",
   "Snapshots can be restored anytime or transferred across environments": "Os snapshots podem ser restaurados a qualquer momento ou transferidos entre ambientes",
   "Social": "Social",
-  "Social Change": "Mudança social",
+  "Social Change": "Mudança Social",
   "Social Media Profiles": "Perfis nas redes sociais",
   "Social Media Reach": "Alcance nas redes sociais",
   "Social Profile": "Perfil social",

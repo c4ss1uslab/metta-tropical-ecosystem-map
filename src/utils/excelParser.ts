@@ -936,6 +936,10 @@ async function parseXlsxFile(
 
   const rawHeaders: Record<number, string> = {};
   const extractedComments: Record<string, string> = {};
+  // Field-name keys resolved only from the schema's column letter/position. The
+  // live spreadsheet's columns can drift from the schema letters, so these are
+  // fallbacks: keys resolved from a column's actual header text always win.
+  const positionalFieldComments: Record<string, string> = {};
   const targetHeaderRow = worksheet.getRow(headerRowIndex);
   targetHeaderRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
     const headerName = cell.value !== null && cell.value !== undefined ? cleanHeaderString(String(cell.value)) : `Col_${colNumber}`;
@@ -948,7 +952,11 @@ async function parseXlsxFile(
   for (let colNum = 1; colNum <= totalCols; colNum++) {
     const colLetter = colNumberToLetter(colNum);
     const headerName = rawHeaders[colNum] || '';
-    const colDef = SPREADSHEET_COLUMNS.find(c => c.letter === colLetter || c.index === colNum) || (headerName ? findColumnDef(headerName) : undefined);
+    // Identify the column by its header text first; fall back to the schema's letter/position.
+    const hasRealHeader = !!headerName && !/^col_\d+$/i.test(headerName);
+    const headerColDef = hasRealHeader ? findColumnDef(headerName) : undefined;
+    const colDef = headerColDef || SPREADSHEET_COLUMNS.find(c => c.letter === colLetter || c.index === colNum);
+    const fieldTarget = headerColDef || !hasRealHeader ? extractedComments : positionalFieldComments;
 
     // Check cells across row 2 (where cell comments like BA2 reside), row 1, headerRowIndex, and rows up to dataStartRow
     let commentText = '';
@@ -1013,20 +1021,23 @@ async function parseXlsxFile(
       }
 
       if (colDef) {
-        extractedComments[colDef.field] = commentText;
-        extractedComments[colDef.letter] = commentText;
-        extractedComments[`${colDef.letter}2`] = commentText;
+        fieldTarget[colDef.field] = commentText;
         if (colDef.aliases) {
           colDef.aliases.forEach(alias => {
-            extractedComments[alias] = commentText;
+            fieldTarget[alias] = commentText;
           });
         }
       }
     }
   }
 
+  for (const [key, text] of Object.entries(positionalFieldComments)) {
+    if (!(key in extractedComments)) extractedComments[key] = text;
+  }
+
   if (Object.keys(extractedComments).length > 0) {
-    registerColumnComments(extractedComments);
+    // A fresh upload is the full set of header comments: drop stale keys from earlier uploads.
+    registerColumnComments(extractedComments, { replace: true });
   }
 
   const rows: Record<string, any>[] = [];

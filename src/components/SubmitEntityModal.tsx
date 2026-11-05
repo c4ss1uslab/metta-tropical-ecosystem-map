@@ -10,6 +10,7 @@ import { formatClusterWithNumber, suggestContinent, QUADRANT_CENTERS, CANONICAL_
 import { getEntityCompleteness } from '../types';
 import { FieldCommentInfo } from './FieldCommentInfo';
 import { OptionsMultiSelect } from './OptionsMultiSelect';
+import { OptionsCombobox } from './OptionsCombobox';
 import {
   SITUATIONAL_ASSESSMENT_OPTIONS,
   RESPONSE_ORIENTATION_OPTIONS,
@@ -21,8 +22,14 @@ import {
   THEORY_OF_CHANGE_IAM_OPTIONS,
   SDGS_SOCIAL_ISSUES_OPTIONS,
   IDGS_OPTIONS,
-  INTELLECTUAL_LINEAGE_OPTIONS
+  INTELLECTUAL_LINEAGE_OPTIONS,
+  INNER_WORK_MODALITIES_OPTIONS,
+  COMMUNITY_SERVED_OPTIONS,
+  SOCIETAL_SECTOR_OPTIONS
 } from '../utils/fieldOptions';
+
+const PRACTICES_COMMENT =
+  'Any specific practices they do/propose: Breathwork, Money pile, Sociocracy, Circling, Bioconstruction, etc...';
 
 // Natural numerical comparison: sorts archipelagos strictly 1 to 99+
 export function extractArchipelagoNumber(archName: string): number {
@@ -786,6 +793,17 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
   const [evidenceSources, setEvidenceSources] = useState('');
   const [hypotheses, setHypotheses] = useState('');
   const [analystCommentary, setAnalystCommentary] = useState('');
+
+  // Organization Structure suggestions: distinct values already used in the dataset
+  const organizationStructureOptions = useMemo(() => {
+    const byKey = new Map<string, string>();
+    for (const ent of allEntities) {
+      const raw = ent.organizationStructure || ent.categorizedFields?.['Overview']?.['Organization Structure'];
+      const v = typeof raw === 'string' ? raw.trim().replace(/\s+/g, ' ') : '';
+      if (v && !byKey.has(v.toLowerCase())) byKey.set(v.toLowerCase(), v);
+    }
+    return Array.from(byKey.values()).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+  }, [allEntities]);
 
   const [ourRelationship, setOurRelationship] = useState('');
 
@@ -1645,7 +1663,7 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
                                   : 'bg-white text-[#4B5563] border-[#E5E7EB] hover:border-[#111827]'
                               }`}
                             >
-                              <span className="truncate text-xs font-medium">{cat} Change</span>
+                              <span className="truncate text-xs font-medium">{`${cat} Change`}</span>
                             </button>
                           );
                         })}
@@ -1678,7 +1696,7 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
                         <div>
                           <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-1">
                             <span>Practices</span>
-                            <FieldCommentInfo fieldName="Practices" />
+                            <FieldCommentInfo fieldName="Practices" comment={PRACTICES_COMMENT} />
                           </label>
                           <textarea
                             value={practices}
@@ -1888,14 +1906,13 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
                           <div>
                             <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-1">
                               <span>Inner Work Modalities</span>
-                              <FieldCommentInfo fieldName="Inner Work Modalities (Conscious Change Collective)" />
                             </label>
-                            <input
-                              type="text"
+                            <OptionsMultiSelect
                               value={innerWorkModalities}
-                              onChange={(e) => setInnerWorkModalities(e.target.value)}
-                              placeholder="e.g. Somatics, Meditation, Circling..."
-                              className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
+                              onChange={setInnerWorkModalities}
+                              options={INNER_WORK_MODALITIES_OPTIONS}
+                              allowCustom
+                              placeholder="Select or type your own..."
                             />
                           </div>
                         </div>
@@ -2068,7 +2085,6 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
                         <div>
                           <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-0.5">
                             <span>Contact Email</span>
-                            <FieldCommentInfo fieldName="Email" />
                           </label>
                           <input
                             type="email"
@@ -2206,11 +2222,11 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
                 </div>
 
                 {/* Relationships & Connections Accordion */}
-                <div className="border border-[#E5E7EB] rounded-[6px] overflow-hidden bg-white shadow-2xs">
+                <div className="border border-[#E5E7EB] rounded-[6px] bg-white shadow-2xs">
                   <button
                     type="button"
                     onClick={() => toggleSection('relationships')}
-                    className="w-full px-4 py-3 bg-[#FAF8F5] border-l-4 border-[#15803D] flex items-center justify-between text-left hover:bg-[#F4F1EA] transition-colors cursor-pointer"
+                    className={`w-full px-4 py-3 rounded-t-[6px] ${openSections.relationships ? '' : 'rounded-b-[6px]'} bg-[#FAF8F5] border-l-4 border-[#15803D] flex items-center justify-between text-left hover:bg-[#F4F1EA] transition-colors cursor-pointer`}
                   >
                     <div className="flex items-center space-x-2">
                       <span className="text-base">🤝</span>
@@ -2295,7 +2311,7 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
                         />
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <div className="grid grid-cols-1 gap-2.5">
                         <div>
                           <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-0.5">
                             <span>Ethnic / Spiritual Lineage(s)</span>
@@ -2329,11 +2345,11 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
                 </div>
 
                 {/* Structure & Audience Accordion */}
-                <div className="border border-[#E5E7EB] rounded-[6px] overflow-hidden bg-white shadow-2xs">
+                <div className="border border-[#E5E7EB] rounded-[6px] bg-white shadow-2xs">
                   <button
                     type="button"
                     onClick={() => toggleSection('governance')}
-                    className="w-full px-4 py-3 bg-[#FAF8F5] border-l-4 border-[#7D8764] flex items-center justify-between text-left hover:bg-[#F4F1EA] transition-colors cursor-pointer"
+                    className={`w-full px-4 py-3 rounded-t-[6px] ${openSections.governance ? '' : 'rounded-b-[6px]'} bg-[#FAF8F5] border-l-4 border-[#7D8764] flex items-center justify-between text-left hover:bg-[#F4F1EA] transition-colors cursor-pointer`}
                   >
                     <div className="flex items-center space-x-2">
                       <span className="text-base">📋</span>
@@ -2353,12 +2369,11 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
                           <span>Organization Structure</span>
                           <FieldCommentInfo fieldName="Organization Structure" />
                         </label>
-                        <input
-                          type="text"
+                        <OptionsCombobox
                           value={organizationStructure}
-                          onChange={(e) => setOrganizationStructure(e.target.value)}
-                          placeholder="e.g. Non-profit, Cooperative, Foundation, Collective, DAO..."
-                          className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
+                          onChange={setOrganizationStructure}
+                          options={organizationStructureOptions}
+                          placeholder="Select or type your own..."
                         />
                       </div>
 
@@ -2367,12 +2382,11 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
                           <span>Societal Sector</span>
                           <FieldCommentInfo fieldName="Societal Sector" />
                         </label>
-                        <input
-                          type="text"
+                        <OptionsMultiSelect
                           value={societalSector}
-                          onChange={(e) => setSocietalSector(e.target.value)}
-                          placeholder="e.g. Civil Society, Ecology, Education, Governance..."
-                          className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
+                          onChange={setSocietalSector}
+                          options={SOCIETAL_SECTOR_OPTIONS}
+                          placeholder="Select..."
                         />
                       </div>
 
@@ -2393,14 +2407,13 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
                       <div>
                         <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-0.5">
                           <span>Community Served</span>
-                          <FieldCommentInfo fieldName="Community Served (Conscious Change Collective)" />
                         </label>
-                        <input
-                          type="text"
+                        <OptionsMultiSelect
                           value={communityServed}
-                          onChange={(e) => setCommunityServed(e.target.value)}
-                          placeholder="Specific communities or collectives..."
-                          className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
+                          onChange={setCommunityServed}
+                          options={COMMUNITY_SERVED_OPTIONS}
+                          allowCustom
+                          placeholder="Select or type your own..."
                         />
                       </div>
                     </div>
@@ -2485,37 +2498,35 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
                         />
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        <div>
-                          <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-1">
-                            <span>Evidence / Sources</span>
-                            <FieldCommentInfo fieldName="Evidence/Sources" />
-                          </label>
-                          <input
-                            type="text"
-                            value={evidenceSources}
-                            onChange={(e) => setEvidenceSources(e.target.value)}
-                            placeholder="Foundational texts, research, citations..."
-                            className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-1">
-                            <span>Hypotheses</span>
-                            <FieldCommentInfo fieldName="Hypotheses" />
-                          </label>
-                          <input
-                            type="text"
-                            value={hypotheses}
-                            onChange={(e) => setHypotheses(e.target.value)}
-                            placeholder="Guiding bets or exploratory hypotheses..."
-                            className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
-                          />
-                        </div>
+                      <div>
+                        <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-1">
+                          <span>Evidence / Sources</span>
+                          <FieldCommentInfo fieldName="Evidence/Sources" />
+                        </label>
+                        <input
+                          type="text"
+                          value={evidenceSources}
+                          onChange={(e) => setEvidenceSources(e.target.value)}
+                          placeholder="Foundational texts, research, citations..."
+                          className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
+                        />
                       </div>
 
                       <div>
+                        <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-1">
+                          <span>Hypotheses</span>
+                          <FieldCommentInfo fieldName="Hypotheses" />
+                        </label>
+                        <input
+                          type="text"
+                          value={hypotheses}
+                          onChange={(e) => setHypotheses(e.target.value)}
+                          placeholder="Guiding bets or exploratory hypotheses..."
+                          className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
+                        />
+                      </div>
+
+                      <div className="lg:col-span-2">
                         <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-1">
                           <span>Analyst Commentary / Curator Notes</span>
                           <FieldCommentInfo fieldName="Analyst Commentary" />
