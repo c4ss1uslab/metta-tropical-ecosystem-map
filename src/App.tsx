@@ -25,7 +25,7 @@ import {
   calculateExpandedContinentHull,
   fitContinentTightlyAroundEntities
 } from './utils/layoutGenerator';
-import { exportEntities, ExportFormat, sanitizeEntityObsoleteFields, getEntitySpreadsheetField, splitLanguageValues, entityMatchesRelationship, ensureUniqueEntityIds } from './utils/excelParser';
+import { exportEntities, ExportFormat, sanitizeEntityObsoleteFields, getEntitySpreadsheetField, splitLanguageValues, entityMatchesRelationship, ensureUniqueEntityIds, getSocialMediaReachTier } from './utils/excelParser';
 import { sanitizeEntitySocialProfiles } from './utils/socialMedia';
 import { Header } from './components/Header';
 import { LeftSidebar } from './components/LeftSidebar';
@@ -71,12 +71,10 @@ export default function App() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
-          const clean: Record<string, [number, number][]> = {};
-          for (const [k, v] of Object.entries(parsed)) {
-            const formatted = formatClusterWithNumber(k) || k;
-            clean[formatted] = v as [number, number][];
+          const healed = healAndAlignContinentShapes(parsed);
+          if (Object.keys(healed).length > 0) {
+            return healed;
           }
-          return clean;
         }
       }
     } catch (e) {
@@ -93,9 +91,20 @@ export default function App() {
         const parsed = JSON.parse(saved);
         if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
           const clean: Record<string, ArchipelagoMeta> = {};
+          // Pass 1: Canonical numbered entries take strict precedence
           for (const [k, v] of Object.entries(parsed)) {
-            const formatted = formatClusterWithNumber(k) || k;
-            clean[formatted] = { ...(clean[formatted] || {}), ...(v as ArchipelagoMeta) };
+            if (/^\d+[\.\)]/.test(k)) {
+              const formatted = formatClusterWithNumber(k) || k;
+              clean[formatted] = { ...(clean[formatted] || {}), ...(v as ArchipelagoMeta) };
+            }
+          }
+          // Pass 2: Unnumbered entries only fill if not already set
+          for (const [k, v] of Object.entries(parsed)) {
+            if (!/^\d+[\.\)]/.test(k)) {
+              const formatted = formatClusterWithNumber(k) || k;
+              clean[formatted] = { ...(v as ArchipelagoMeta), ...(clean[formatted] || {}) };
+              if (!clean[k]) clean[k] = clean[formatted];
+            }
           }
           return clean;
         }
@@ -1788,15 +1797,15 @@ export default function App() {
         if (!hasMatch) return false;
       }
 
-      // AJ2 — Reach
+      // AP — Social Media Reach (Column AP)
       const activeReachesList = (filterState.selectedReaches && filterState.selectedReaches.length > 0)
         ? filterState.selectedReaches.filter(r => r !== 'All')
         : (filterState.selectedReach && filterState.selectedReach !== 'All' ? [filterState.selectedReach] : []);
       if (activeReachesList.length > 0) {
-        const val = getEntitySpreadsheetField(ent, 'AJ2');
-        if (!val) return false;
-        const valLower = val.trim().toLowerCase();
-        const hasMatch = activeReachesList.some(r => valLower === r.trim().toLowerCase());
+        const val = getEntitySpreadsheetField(ent, 'AP');
+        const tier = getSocialMediaReachTier(val);
+        if (!tier) return false;
+        const hasMatch = activeReachesList.some(r => r.toLowerCase().trim() === tier.toLowerCase().trim());
         if (!hasMatch) return false;
       }
 
@@ -1812,48 +1821,48 @@ export default function App() {
         if (!hasMatch) return false;
       }
 
-      // BH2 — Value Meme / Ethical Orientation
+      // BJ2 — Value Meme / Ethical Orientation (Column BJ)
       const activeVMs = (filterState.selectedValueMemes && filterState.selectedValueMemes.length > 0)
         ? filterState.selectedValueMemes.filter(vm => vm !== 'All')
         : (filterState.selectedValueMeme && filterState.selectedValueMeme !== 'All' ? [filterState.selectedValueMeme] : []);
       if (activeVMs.length > 0) {
-        const val = ent.valueMemeEthicalOrientation || getEntitySpreadsheetField(ent, 'BH') || getEntitySpreadsheetField(ent, 'Value Meme / Ethical Orientation');
+        const val = ent.valueMemeEthicalOrientation || getEntitySpreadsheetField(ent, 'BJ') || getEntitySpreadsheetField(ent, 'BJ2') || getEntitySpreadsheetField(ent, 'BH') || getEntitySpreadsheetField(ent, 'Value Meme / Ethical Orientation');
         if (!val) return false;
         const valLower = val.trim().toLowerCase();
         const hasMatch = activeVMs.some(vm => valLower.includes(vm.trim().toLowerCase()));
         if (!hasMatch) return false;
       }
 
-      // BO2 — Orientation to Change (Three Horizons)
+      // BP2 — Orientation to Change (Three Horizons) (Column BP)
       const active3H = (filterState.selectedOrientations3H && filterState.selectedOrientations3H.length > 0)
         ? filterState.selectedOrientations3H.filter(oh => oh !== 'All')
         : (filterState.selectedOrientation3H && filterState.selectedOrientation3H !== 'All' ? [filterState.selectedOrientation3H] : []);
       if (active3H.length > 0) {
-        const val = getEntitySpreadsheetField(ent, 'BO') || getEntitySpreadsheetField(ent, 'Orientation to Change (Three Horizons)');
+        const val = getEntitySpreadsheetField(ent, 'BP') || getEntitySpreadsheetField(ent, 'BP2') || getEntitySpreadsheetField(ent, 'BO') || getEntitySpreadsheetField(ent, 'Orientation to Change (Three Horizons)');
         if (!val) return false;
         const valLower = val.trim().toLowerCase();
         const hasMatch = active3H.some(oh => valLower.includes(oh.trim().toLowerCase()));
         if (!hasMatch) return false;
       }
 
-      // BP2 — Orientation to Change (GTDF)
+      // BQ2 — Orientation to Change (GTDF) (Column BQ)
       const activeGTDF = (filterState.selectedOrientationsGtdf && filterState.selectedOrientationsGtdf.length > 0)
         ? filterState.selectedOrientationsGtdf.filter(og => og !== 'All')
         : (filterState.selectedOrientationGtdf && filterState.selectedOrientationGtdf !== 'All' ? [filterState.selectedOrientationGtdf] : []);
       if (activeGTDF.length > 0) {
-        const val = getEntitySpreadsheetField(ent, 'BP') || getEntitySpreadsheetField(ent, 'Orientation to Change (GTDF)');
+        const val = getEntitySpreadsheetField(ent, 'BQ') || getEntitySpreadsheetField(ent, 'BQ2') || getEntitySpreadsheetField(ent, 'BP') || getEntitySpreadsheetField(ent, 'Orientation to Change (GTDF)');
         if (!val) return false;
         const valLower = val.trim().toLowerCase();
         const hasMatch = activeGTDF.some(og => valLower.includes(og.trim().toLowerCase()));
         if (!hasMatch) return false;
       }
 
-      // BQ2 — Orientation to Change (CRI)
+      // BR2 — Orientation to Change (CRI) (Column BR)
       const activeCRI = (filterState.selectedOrientationsCri && filterState.selectedOrientationsCri.length > 0)
         ? filterState.selectedOrientationsCri.filter(oc => oc !== 'All')
         : (filterState.selectedOrientationCri && filterState.selectedOrientationCri !== 'All' ? [filterState.selectedOrientationCri] : []);
       if (activeCRI.length > 0) {
-        const val = getEntitySpreadsheetField(ent, 'BQ') || getEntitySpreadsheetField(ent, 'Orientation to Change (CRI)');
+        const val = getEntitySpreadsheetField(ent, 'BR') || getEntitySpreadsheetField(ent, 'BR2') || getEntitySpreadsheetField(ent, 'BQ') || getEntitySpreadsheetField(ent, 'Orientation to Change (CRI)');
         if (!val) return false;
         const valLower = val.trim().toLowerCase();
         const hasMatch = activeCRI.some(oc => valLower.includes(oc.trim().toLowerCase()));

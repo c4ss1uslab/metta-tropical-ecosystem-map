@@ -35,7 +35,7 @@ export const DATA_COMPLETENESS_CONFIG: Record<DataCompletenessLevel, DataComplet
     badgeText: '#065F46',
     badgeBorder: '#A7F3D0',
     percentile: 'Top 10%',
-    description: 'Top 10% completeness (>90% fields filled)'
+    description: 'Top 10% completeness (>26 fields filled)'
   },
   'Top 25%': {
     level: 'Top 25%',
@@ -46,7 +46,7 @@ export const DATA_COMPLETENESS_CONFIG: Record<DataCompletenessLevel, DataComplet
     badgeText: '#15803D',
     badgeBorder: '#BBF7D0',
     percentile: 'Top 25%',
-    description: 'Top 25% completeness (>75% fields filled)'
+    description: 'Top 25% completeness (>15 fields filled)'
   },
   'Top 50%': {
     level: 'Top 50%',
@@ -57,7 +57,7 @@ export const DATA_COMPLETENESS_CONFIG: Record<DataCompletenessLevel, DataComplet
     badgeText: '#854D0E',
     badgeBorder: '#FEF08A',
     percentile: 'Top 50%',
-    description: 'Top 50% completeness (>50% fields filled)'
+    description: 'Top 50% completeness (>12 fields filled)'
   },
   'Top 75%': {
     level: 'Top 75%',
@@ -68,7 +68,7 @@ export const DATA_COMPLETENESS_CONFIG: Record<DataCompletenessLevel, DataComplet
     badgeText: '#9A3412',
     badgeBorder: '#FED7AA',
     percentile: 'Top 75%',
-    description: 'Top 75% completeness (>25% fields filled)'
+    description: 'Top 75% completeness (>10 fields filled)'
   },
   'Bottom 25%': {
     level: 'Bottom 25%',
@@ -79,7 +79,7 @@ export const DATA_COMPLETENESS_CONFIG: Record<DataCompletenessLevel, DataComplet
     badgeText: '#991B1B',
     badgeBorder: '#FECACA',
     percentile: 'Bottom 25%',
-    description: 'Bottom 25% completeness (<25% fields filled)'
+    description: 'Bottom 25% completeness (<10 fields filled)'
   }
 };
 
@@ -475,18 +475,18 @@ export interface FilterState {
   selectedMaturityLevels?: string[]; // Multi-maturity-level selection array
   selectedSize?: string;            // AI2 — Size ('All' or specific)
   selectedSizes?: string[];         // Multi-size selection array
-  selectedReach?: string;           // AJ2 — Reach ('All' or specific)
+  selectedReach?: string;           // AP2 — Social Media Reach ('All' or specific)
   selectedReaches?: string[];       // Multi-reach selection array
   // Advanced filters (Collapsible):
   selectedSituationalAssessment?: string; // BA2 — Situational Assessment ('All' or specific)
   selectedSituationalAssessments?: string[]; // Multi-situational-assessment selection array
-  selectedValueMeme?: string;             // BH2 — Value Meme / Ethical Orientation ('All' or specific)
+  selectedValueMeme?: string;             // BJ2 — Value Meme / Ethical Orientation ('All' or specific)
   selectedValueMemes?: string[];          // Multi-value-meme selection array
-  selectedOrientation3H?: string;         // BO2 — Orientation to Change (Three Horizons) ('All' or specific)
+  selectedOrientation3H?: string;         // BP2 — Orientation to Change (Three Horizons) ('All' or specific)
   selectedOrientations3H?: string[];      // Multi-orientation-3h selection array
-  selectedOrientationGtdf?: string;       // BP2 — Orientation to Change (GTDF) ('All' or specific)
+  selectedOrientationGtdf?: string;       // BQ2 — Orientation to Change (GTDF) ('All' or specific)
   selectedOrientationsGtdf?: string[];    // Multi-orientation-gtdf selection array
-  selectedOrientationCri?: string;        // BQ2 — Orientation to Change (CRI) ('All' or specific)
+  selectedOrientationCri?: string;        // BR2 — Orientation to Change (CRI) ('All' or specific)
   selectedOrientationsCri?: string[];     // Multi-orientation-cri selection array
   selectedMatchingDatabase?: string;      // CB2 — Matching Database ('All' or specific)
   selectedMatchingDatabases?: string[];   // Multi-matching-database selection array

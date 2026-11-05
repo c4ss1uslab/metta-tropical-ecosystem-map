@@ -572,6 +572,82 @@ export function normalizeDataCompleteness(val?: any, filledFieldsVal?: any): Dat
 export const normalizeDataQuality = normalizeDataCompleteness;
 
 /**
+ * Social Media Reach filterable ranges (Column AP2 / AP)
+ */
+export const SOCIAL_MEDIA_REACH_TIERS = [
+  '< 1k',
+  '1-5k',
+  '5-10k',
+  '10-20k',
+  '20-50k',
+  '50-100k',
+  '100k+'
+] as const;
+
+export type SocialMediaReachTier = typeof SOCIAL_MEDIA_REACH_TIERS[number];
+
+/**
+ * Extracts numeric count from a social media reach string (e.g. "18k Instagram followers", "711 LinkedIn followers")
+ */
+export function parseSocialMediaReachNumber(raw: any): number | null {
+  if (raw === undefined || raw === null) return null;
+  if (typeof raw === 'number') return isNaN(raw) ? null : raw;
+  const str = String(raw).trim();
+  if (!str) return null;
+
+  // Find all number patterns with optional k/m/b suffixes
+  const regex = /([\d]+(?:[\.,]\d+)?)\s*([kKmMbB])?/g;
+  let match;
+  let maxNum: number | null = null;
+
+  while ((match = regex.exec(str)) !== null) {
+    let numStr = match[1].replace(/,/g, '');
+    let val = parseFloat(numStr);
+    if (isNaN(val)) continue;
+    const unit = (match[2] || '').toLowerCase();
+    if (unit === 'k') val *= 1000;
+    else if (unit === 'm') val *= 1000000;
+    else if (unit === 'b') val *= 1000000000;
+
+    if (maxNum === null || val > maxNum) {
+      maxNum = val;
+    }
+  }
+
+  return maxNum;
+}
+
+/**
+ * Normalizes raw social media reach value into one of the filterable range tiers:
+ * '< 1k', '1-5k', '5-10k', '10-20k', '20-50k', '50-100k', '100k+'
+ */
+export function getSocialMediaReachTier(raw: any): SocialMediaReachTier | null {
+  if (raw === undefined || raw === null) return null;
+  const str = String(raw).trim().toLowerCase();
+  if (!str) return null;
+
+  // Direct tier match if already normalized
+  if (str === '< 1k' || str === '<1k' || str === '< 1000' || str === '<1000') return '< 1k';
+  if (str === '1-5k' || str === '1k-5k' || str === '1k - 5k' || str === '1k – 5k' || str === '1-5') return '1-5k';
+  if (str === '5-10k' || str === '5k-10k' || str === '5k - 10k' || str === '5k – 10k' || str === '5-10') return '5-10k';
+  if (str === '10-20k' || str === '10k-20k' || str === '10k - 20k' || str === '10k – 20k' || str === '10-20') return '10-20k';
+  if (str === '20-50k' || str === '20k-50k' || str === '20k - 50k' || str === '20k – 50k' || str === '20-50') return '20-50k';
+  if (str === '50-100k' || str === '50k-100k' || str === '50k - 100k' || str === '50k – 100k' || str === '50-100') return '50-100k';
+  if (str === '100k+' || str === '100k +' || str === '> 100k' || str === '>100k' || str === '>100000' || str === '100k plus') return '100k+';
+
+  const num = parseSocialMediaReachNumber(raw);
+  if (num === null || isNaN(num) || num <= 0) return null;
+
+  if (num < 1000) return '< 1k';
+  if (num <= 5000) return '1-5k';
+  if (num <= 10000) return '5-10k';
+  if (num <= 20000) return '10-20k';
+  if (num <= 50000) return '20-50k';
+  if (num <= 100000) return '50-100k';
+  return '100k+';
+}
+
+/**
  * Normalizes field/approach tags
  */
 export function parseFields(val?: any): string[] {
@@ -912,7 +988,25 @@ async function parseXlsxFile(
       extractedComments[`${colLetter}${headerRowIndex}`] = commentText;
       extractedComments[`Col_${colNum}`] = commentText;
       extractedComments[`col_${colNum}`] = commentText;
-      extractedComments[`__col_${colNum}`] = commentText;
+      // Explicit mapping for verified columns to ensure correct comments
+      if (colLetter === 'AP') {
+        extractedComments['Social Media Reach'] = commentText;
+        extractedComments['social media reach'] = commentText;
+        extractedComments['Reach'] = commentText;
+      } else if (colLetter === 'BJ') {
+        extractedComments['Value Meme / Ethical Orientation'] = commentText;
+        extractedComments['Value Meme'] = commentText;
+        extractedComments['Ethical Orientation'] = commentText;
+      } else if (colLetter === 'BP') {
+        extractedComments['Orientation to Change (Three Horizons)'] = commentText;
+        extractedComments['Three Horizons'] = commentText;
+      } else if (colLetter === 'BQ') {
+        extractedComments['Orientation to Change (GTDF)'] = commentText;
+        extractedComments['GTDF'] = commentText;
+      } else if (colLetter === 'BR') {
+        extractedComments['Orientation to Change (CRI)'] = commentText;
+        extractedComments['CRI'] = commentText;
+      }
 
       if (headerName) {
         extractedComments[headerName] = commentText;
@@ -1640,7 +1734,7 @@ function mapRowsToEntities(
 
     const rawImpactReach = getVal('Impact Reach');
     const impactReach = rawImpactReach ? String(rawImpactReach).trim() : undefined;
-    const reach = impactReach || socialMediaReach;
+    const reach = socialMediaReach || impactReach;
 
     // Influence (AR / col 44)
     const rawInfluence = getVal('Influence');
@@ -2784,8 +2878,20 @@ export function getEntitySpreadsheetField(
     const val = entity.size || entity.categorizedFields?.['Logistic Info']?.['Size'] || entity.extraFields?.['Size'];
     return val ? String(val).trim() : undefined;
   }
-  if (key === 'AJ2' || key === 'AQ2' || key === 'AQ' || key === 'IMPACT REACH' || key === 'REACH') {
-    const val = entity.impactReach || entity.reach || entity.socialMediaReach || entity.categorizedFields?.['Logistic Info']?.['Impact Reach'] || entity.extraFields?.['Impact Reach'];
+  if (key === 'AP2' || key === 'AP' || key === 'SOCIAL MEDIA REACH' || key === 'SOCIAL REACH' || key === 'REACH' || key === 'REACHES') {
+    const val = entity.socialMediaReach || entity.categorizedFields?.['Logistic Info']?.['Social Media Reach'] || entity.extraFields?.['Social Media Reach'] || entity.extraFields?.['__col_42'];
+    if (val && String(val).trim()) return String(val).trim();
+    // Do NOT return impact reach. Only fallback to entity.reach if it does not equal impactReach and looks like social media reach
+    if (entity.reach && entity.reach !== entity.impactReach) {
+      const rStr = String(entity.reach).trim();
+      if (/follower|subscriber|linkedin|instagram|youtube|x\.com|twitter|substack|bluesky|tiktok/i.test(rStr) || getSocialMediaReachTier(rStr)) {
+        return rStr;
+      }
+    }
+    return undefined;
+  }
+  if (key === 'AQ2' || key === 'AQ' || key === 'IMPACT REACH') {
+    const val = entity.impactReach || entity.categorizedFields?.['Logistic Info']?.['Impact Reach'] || entity.extraFields?.['Impact Reach'] || entity.extraFields?.['__col_43'];
     return val ? String(val).trim() : undefined;
   }
   if (key === 'AV2' || key === 'AV' || key === 'TEACHERS' || key === 'TEACHERS/INFLUENCES (PEOPLE)') {
@@ -2820,20 +2926,20 @@ export function getEntitySpreadsheetField(
     const val = entity.categorizedFields?.['Worldview & Change Orientation']?.['Situational Assessment'] || entity.extraFields?.['Situational Assessment'];
     return val ? String(val).trim() : undefined;
   }
-  if (key === 'BH2' || key === 'BH' || key === 'VALUE MEME / ETHICAL ORIENTATION' || key === 'VALUE MEME' || key === 'ETHICAL ORIENTATION') {
-    const val = entity.valueMemeEthicalOrientation || entity.categorizedFields?.['Worldview & Change Orientation']?.['Value Meme / Ethical Orientation'] || entity.categorizedFields?.['Worldview & Change Orientation']?.['Value Meme'] || entity.extraFields?.['Value Meme / Ethical Orientation'];
+  if (key === 'BJ2' || key === 'BJ' || key === 'BH2' || key === 'BH' || key === 'VALUE MEME / ETHICAL ORIENTATION' || key === 'VALUE MEME' || key === 'ETHICAL ORIENTATION') {
+    const val = entity.valueMemeEthicalOrientation || entity.categorizedFields?.['Worldview & Change Orientation']?.['Value Meme / Ethical Orientation'] || entity.categorizedFields?.['Worldview & Change Orientation']?.['Value Meme'] || entity.extraFields?.['Value Meme / Ethical Orientation'] || entity.extraFields?.['Value Meme'] || entity.extraFields?.['__col_62'] || entity.extraFields?.['__col_60'];
     return val ? String(val).trim() : undefined;
   }
-  if (key === 'BO2' || key === 'BO' || key === 'ORIENTATION TO CHANGE (THREE HORIZONS)' || key === 'THREE HORIZONS') {
-    const val = entity.categorizedFields?.['Worldview & Change Orientation']?.['Orientation to Change (Three Horizons)'] || entity.extraFields?.['Orientation to Change (Three Horizons)'];
+  if (key === 'BP2' || key === 'BP' || key === 'BO2' || key === 'BO' || key === 'ORIENTATION TO CHANGE (THREE HORIZONS)' || key === 'THREE HORIZONS') {
+    const val = entity.categorizedFields?.['Worldview & Change Orientation']?.['Orientation to Change (Three Horizons)'] || entity.extraFields?.['Orientation to Change (Three Horizons)'] || entity.extraFields?.['__col_68'] || entity.extraFields?.['__col_67'];
     return val ? String(val).trim() : undefined;
   }
-  if (key === 'BP2' || key === 'BP' || key === 'ORIENTATION TO CHANGE (GTDF)' || key === 'GTDF') {
-    const val = entity.categorizedFields?.['Worldview & Change Orientation']?.['Orientation to Change (GTDF)'] || entity.extraFields?.['Orientation to Change (GTDF)'];
+  if (key === 'BQ2' || key === 'BQ' || key === 'ORIENTATION TO CHANGE (GTDF)' || key === 'GTDF') {
+    const val = entity.categorizedFields?.['Worldview & Change Orientation']?.['Orientation to Change (GTDF)'] || entity.extraFields?.['Orientation to Change (GTDF)'] || entity.extraFields?.['__col_69'];
     return val ? String(val).trim() : undefined;
   }
-  if (key === 'BQ2' || key === 'BQ' || key === 'ORIENTATION TO CHANGE (CRI)' || key === 'CRI') {
-    const val = entity.categorizedFields?.['Worldview & Change Orientation']?.['Orientation to Change (CRI)'] || entity.extraFields?.['Orientation to Change (CRI)'];
+  if (key === 'BR2' || key === 'BR' || key === 'ORIENTATION TO CHANGE (CRI)' || key === 'CRI') {
+    const val = entity.categorizedFields?.['Worldview & Change Orientation']?.['Orientation to Change (CRI)'] || entity.extraFields?.['Orientation to Change (CRI)'] || entity.extraFields?.['__col_70'];
     return val ? String(val).trim() : undefined;
   }
   if (key === 'CB2' || key === 'CB' || key === 'MATCHING DATABASE' || key === 'CORRESPONDING DATABASE') {

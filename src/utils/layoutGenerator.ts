@@ -2175,13 +2175,15 @@ export function resolveEntityOverlaps(
     }
   }
 
+  const isPosLocked = (e: EcosystemEntity) => Boolean(e.isCustomPosition) || (typeof e.x === 'number' && typeof e.y === 'number' && (e.x !== 0 || e.y !== 0) && Number.isFinite(e.x) && Number.isFinite(e.y));
+
   // 2. Alignment Solver for unpositioned non-custom entities (centering and quadrant boundary preservation without card collision detection)
   const iterations = 30;
   for (let iter = 0; iter < iterations; iter++) {
     // Repel from center Nexus and Domain Elevation zones (only for unpositioned entities)
     for (let i = 0; i < resolved.length; i++) {
       const ent = resolved[i];
-      if (ent.isCustomPosition) continue;
+      if (isPosLocked(ent)) continue;
       const distFromOrigin = Math.hypot(ent.x, ent.y);
       const isElevated = isEntityDomainElevation(ent);
 
@@ -2208,7 +2210,7 @@ export function resolveEntityOverlaps(
     if (archipelagoCenters && archipelagoCenters.size > 0) {
       for (let i = 0; i < resolved.length; i++) {
         const ent = resolved[i];
-        if (ent.isCustomPosition || isEntityDomainElevation(ent)) continue;
+        if (isPosLocked(ent) || isEntityDomainElevation(ent)) continue;
         if (!ent.continent) continue; // Do not tether entities with no archipelago!
         const archName = ent.continent;
         const aCenter = archipelagoCenters.get(archName) || archipelagoCenters.get(formatClusterWithNumber(archName));
@@ -2228,7 +2230,7 @@ export function resolveEntityOverlaps(
     if (clusterCenters.length > 0) {
       for (let i = 0; i < resolved.length; i++) {
         const ent = resolved[i];
-        if (ent.isCustomPosition) continue;
+        if (isPosLocked(ent)) continue;
         for (const clus of clusterCenters) {
           const cdx = ent.x - clus.x;
           const cdy = ent.y - clus.y;
@@ -2248,7 +2250,7 @@ export function resolveEntityOverlaps(
       const signX = (ent.category === 'Inner' || ent.category === 'Cultural') ? -1 : 1;
       const signY = (ent.category === 'Inner' || ent.category === 'Social') ? -1 : 1;
 
-      if (!ent.isCustomPosition) {
+      if (!isPosLocked(ent)) {
         if (signX < 0 && ent.x > -50) ent.x = -50 - Math.abs(ent.x % 40);
         if (signX > 0 && ent.x < 50) ent.x = 50 + Math.abs(ent.x % 40);
         if (signY < 0 && ent.y > -50) ent.y = -50 - Math.abs(ent.y % 40);
@@ -2372,7 +2374,7 @@ export function calculateEntityLayout(
     const archQuad = archipelagoMajorityQuadrant.get(arch) || ent.category || 'Inner';
     const effectiveCat = isEntityDomainElevation(ent) ? (ent.category || 'Inner') : archQuad;
 
-    ent.fields.forEach(f => {
+    (ent.fields || []).forEach(f => {
       const key = `${effectiveCat}::${f.trim()}`;
       if (!fieldCounts[key]) {
         fieldCounts[key] = { count: 0, category: effectiveCat, fieldName: f.trim() };
@@ -2432,10 +2434,12 @@ export function calculateEntityLayout(
     // If entity already has an established position from user dragging, snapshot, or previous layout, verify it matches its designated placement
     const hasValidCoordinates = typeof x === 'number' && typeof y === 'number' && (x !== 0 || y !== 0) && Number.isFinite(x) && Number.isFinite(y);
 
-    // Verify coordinates match quadrant placement so entities moved from Inner to Social/Cultural/Systems or outside don't stay in Inner
+    // If an entity already has established or custom coordinates, preserve them strictly unless forceRecalculate is requested
     let coordinatesMatchPlacement = false;
     if (hasValidCoordinates) {
-      if (arch) {
+      if (ent.isCustomPosition || !options?.forceRecalculate) {
+        coordinatesMatchPlacement = true;
+      } else if (arch) {
         coordinatesMatchPlacement = true;
       } else if (effectiveQuadrant === 'Inner') {
         coordinatesMatchPlacement = x <= 0 && y <= 0;
@@ -2454,8 +2458,7 @@ export function calculateEntityLayout(
     const hasValidPosition = Boolean(
       !options?.forceRecalculate &&
       hasValidCoordinates &&
-      coordinatesMatchPlacement &&
-      (ent.isCustomPosition || hasValidCoordinates)
+      (ent.isCustomPosition || coordinatesMatchPlacement)
     );
 
     const needsPositioning = !hasValidPosition;

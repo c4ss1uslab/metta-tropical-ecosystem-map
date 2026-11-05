@@ -16,9 +16,20 @@ export const DEFAULT_COLUMN_COMMENTS: Record<string, string> = {
   'Theory of Change (IAM)': 'Innate and Applied Metamodernism (IAM) theory of change framework — understanding evolution across inner psychological, cultural, and outer systemic dimensions.',
   'Theory of Change (GTDF)': 'Gesturing Towards Decolonial Futures (GTDF) theory of change — recognizing modern-colonial systemic limits, hospicing declining systems, and birthing alternatives.',
   'Value Meme / Ethical Orientation': 'Dominant value system, worldview, or ethical memetic center of gravity guiding this initiative (e.g. Commons-based, Indigenous cosmovision, Metamodern, Integral).',
+  'BJ': 'Dominant value system, worldview, or ethical memetic center of gravity guiding this initiative (e.g. Commons-based, Indigenous cosmovision, Metamodern, Integral).',
+  'BJ2': 'Dominant value system, worldview, or ethical memetic center of gravity guiding this initiative (e.g. Commons-based, Indigenous cosmovision, Metamodern, Integral).',
   'Orientation to Change (Three Horizons)': 'Positioning within Bill Sharpe’s Three Horizons framework: H1 (current system / business-as-usual), H2 (transitional innovations & disruptions), or H3 (emerging regenerative future).',
+  'BP': 'Positioning within Bill Sharpe’s Three Horizons framework: H1 (current system / business-as-usual), H2 (transitional innovations & disruptions), or H3 (emerging regenerative future).',
+  'BP2': 'Positioning within Bill Sharpe’s Three Horizons framework: H1 (current system / business-as-usual), H2 (transitional innovations & disruptions), or H3 (emerging regenerative future).',
   'Orientation to Change (GTDF)': 'Decolonial orientation to change according to the GTDF framework (e.g. beyond reform, hollowing out from within, collective deep adaptation).',
+  'BQ': 'Decolonial orientation to change according to the GTDF framework (e.g. beyond reform, hollowing out from within, collective deep adaptation).',
+  'BQ2': 'Decolonial orientation to change according to the GTDF framework (e.g. beyond reform, hollowing out from within, collective deep adaptation).',
   'Orientation to Change (CRI)': 'Climate Resilience Initiative (CRI) orientation to systemic transition and climate resilience pathways.',
+  'BR': 'Climate Resilience Initiative (CRI) orientation to systemic transition and climate resilience pathways.',
+  'BR2': 'Climate Resilience Initiative (CRI) orientation to systemic transition and climate resilience pathways.',
+  'Social Media Reach': 'Total followers, subscribers, or audience reach across social media channels (AP column).',
+  'AP': 'Total followers, subscribers, or audience reach across social media channels (AP column).',
+  'AP2': 'Total followers, subscribers, or audience reach across social media channels (AP column).',
   'Alternative(s) Proposed (GTA)': 'Specific alternatives to dominant development paradigms recognized by the Global Tapestry of Alternatives.',
   'Alternative(s) Proposed (Pluriverse dictionary)': 'Practices, paradigms, and worldviews documented in "Pluriverse: A Post-Development Dictionary" (e.g. Buen Vivir, Ubuntu, Swaraj, Degrowth).',
   'Alternative(s) Proposed (Mútua)': 'Economic and organizational alternative models aligned with the Mútua network framework.',
@@ -227,6 +238,40 @@ export function getColumnComment(fieldKey: string): string | undefined {
     // 2. Direct match in DEFAULT_COLUMN_COMMENTS
     found = DEFAULT_COLUMN_COMMENTS[cleanKey];
   } else {
+    // 2b. Explicit aliases for known spreadsheet column cells
+    const CELL_ALIASES: Record<string, string[]> = {
+      'Value Meme / Ethical Orientation': ['BJ2', 'BJ', 'BJ1'],
+      'Orientation to Change (Three Horizons)': ['BP2', 'BP', 'BP1'],
+      'Orientation to Change (GTDF)': ['BQ2', 'BQ', 'BQ1'],
+      'Orientation to Change (CRI)': ['BR2', 'BR', 'BR1'],
+      'Social Media Reach': ['AP2', 'AP', 'AP1'],
+      'Situational Assessment': ['BA2', 'BA', 'BA1'],
+      'Matching Database': ['CB2', 'CB', 'CB1'],
+      'BJ2': ['BJ', 'Value Meme / Ethical Orientation'],
+      'BJ': ['BJ2', 'Value Meme / Ethical Orientation'],
+      'BP2': ['BP', 'Orientation to Change (Three Horizons)'],
+      'BP': ['BP2', 'Orientation to Change (Three Horizons)'],
+      'BQ2': ['BQ', 'Orientation to Change (GTDF)'],
+      'BQ': ['BQ2', 'Orientation to Change (GTDF)'],
+      'BR2': ['BR', 'Orientation to Change (CRI)'],
+      'BR': ['BR2', 'Orientation to Change (CRI)'],
+      'AP2': ['AP', 'Social Media Reach'],
+      'AP': ['AP2', 'Social Media Reach']
+    };
+
+    if (CELL_ALIASES[cleanKey]) {
+      for (const alias of CELL_ALIASES[cleanKey]) {
+        if (dynamicSpreadsheetComments[alias]) {
+          found = dynamicSpreadsheetComments[alias];
+          break;
+        }
+        if (DEFAULT_COLUMN_COMMENTS[alias]) {
+          found = DEFAULT_COLUMN_COMMENTS[alias];
+          break;
+        }
+      }
+    }
+
     // 3. Match via ColumnDef in SPREADSHEET_COLUMNS (cross-referencing letter, cell ref 'BA2', and field name)
     const colDef = findColumnDef(cleanKey);
     if (colDef) {

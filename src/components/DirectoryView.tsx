@@ -10,11 +10,12 @@ import {
   DATA_COMPLETENESS_LEVELS, DATA_COMPLETENESS_CONFIG, getEntityCompleteness, getCompletenessConfig,
   ContinentInfo, FilterState, CommunityNote 
 } from '../types';
-import { exportEntities, getEntitySpreadsheetField, splitLanguageValues, entityMatchesRelationship, ensureUniqueEntityIds } from '../utils/excelParser';
+import { exportEntities, getEntitySpreadsheetField, splitLanguageValues, entityMatchesRelationship, ensureUniqueEntityIds, SOCIAL_MEDIA_REACH_TIERS, getSocialMediaReachTier } from '../utils/excelParser';
 import { formatDisplayUrl } from '../utils/socialMedia';
 import { isEntityDomainElevation, filterProfileTags, entityMatchesArchipelago } from '../utils/layoutGenerator';
 import { RightSidebar } from './RightSidebar';
 import { MultiSelectFilterDropdown } from './MultiSelectFilterDropdown';
+import { FilterCommentHelpPopup } from './FilterCommentHelpPopup';
 
 export const getDataCompletenessLabel = (status?: DataCompletenessLevel | string): string => {
   if (!status) return 'Bottom 25%';
@@ -339,13 +340,15 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({
     return Array.from(set).sort();
   }, [entities]);
 
+  // AP — Social Media Reach (Column AP in spreadsheet) normalized to filterable ranges
   const reaches = useMemo(() => {
-    const set = new Set<string>();
+    const activeTiers = new Set<string>();
     entities.forEach(e => {
-      const val = getEntitySpreadsheetField(e, 'AJ2');
-      if (val) set.add(val.trim());
+      const val = getEntitySpreadsheetField(e, 'AP');
+      const tier = getSocialMediaReachTier(val);
+      if (tier) activeTiers.add(tier);
     });
-    return Array.from(set).sort();
+    return SOCIAL_MEDIA_REACH_TIERS.filter(tier => activeTiers.has(tier));
   }, [entities]);
 
   // Stream list and counts extracted from spreadsheet Stream / Streams column (and entity.stream / entity.streams)
@@ -509,10 +512,9 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({
   const reachCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     reaches.forEach(r => {
-      const rLower = r.toLowerCase().trim();
       counts[r] = entities.filter(e => {
-        const val = getEntitySpreadsheetField(e, 'AJ2');
-        return val && val.toLowerCase().trim() === rLower;
+        const val = getEntitySpreadsheetField(e, 'AP');
+        return getSocialMediaReachTier(val) === r;
       }).length;
     });
     return counts;
@@ -865,12 +867,12 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({
         }
       }
 
-      // 16. AJ2 — Reach (supports multi-selection)
+      // 16. AP — Social Media Reach (supports multi-selection)
       if (activeReaches.length > 0) {
-        const val = getEntitySpreadsheetField(ent, 'AJ2');
-        if (!val) return false;
-        const valLower = val.trim().toLowerCase();
-        const matches = activeReaches.some(r => r.trim().toLowerCase() === valLower);
+        const val = getEntitySpreadsheetField(ent, 'AP');
+        const tier = getSocialMediaReachTier(val);
+        if (!tier) return false;
+        const matches = activeReaches.some(r => r.trim().toLowerCase() === tier.toLowerCase());
         if (!matches) {
           return false;
         }
@@ -884,25 +886,25 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({
         }
       }
       if (filterState.selectedValueMeme && filterState.selectedValueMeme !== 'All') {
-        const val = ent.valueMemeEthicalOrientation || getEntitySpreadsheetField(ent, 'BH') || getEntitySpreadsheetField(ent, 'Value Meme / Ethical Orientation');
+        const val = ent.valueMemeEthicalOrientation || getEntitySpreadsheetField(ent, 'BJ') || getEntitySpreadsheetField(ent, 'BJ2') || getEntitySpreadsheetField(ent, 'BH') || getEntitySpreadsheetField(ent, 'Value Meme / Ethical Orientation');
         if (!val || !val.toLowerCase().includes(filterState.selectedValueMeme.trim().toLowerCase())) {
           return false;
         }
       }
       if (filterState.selectedOrientation3H && filterState.selectedOrientation3H !== 'All') {
-        const val = getEntitySpreadsheetField(ent, 'BO') || getEntitySpreadsheetField(ent, 'Orientation to Change (Three Horizons)');
+        const val = getEntitySpreadsheetField(ent, 'BP') || getEntitySpreadsheetField(ent, 'BP2') || getEntitySpreadsheetField(ent, 'BO') || getEntitySpreadsheetField(ent, 'Orientation to Change (Three Horizons)');
         if (!val || !val.toLowerCase().includes(filterState.selectedOrientation3H.trim().toLowerCase())) {
           return false;
         }
       }
       if (filterState.selectedOrientationGtdf && filterState.selectedOrientationGtdf !== 'All') {
-        const val = getEntitySpreadsheetField(ent, 'BP') || getEntitySpreadsheetField(ent, 'Orientation to Change (GTDF)');
+        const val = getEntitySpreadsheetField(ent, 'BQ') || getEntitySpreadsheetField(ent, 'BQ2') || getEntitySpreadsheetField(ent, 'BP') || getEntitySpreadsheetField(ent, 'Orientation to Change (GTDF)');
         if (!val || !val.toLowerCase().includes(filterState.selectedOrientationGtdf.trim().toLowerCase())) {
           return false;
         }
       }
       if (filterState.selectedOrientationCri && filterState.selectedOrientationCri !== 'All') {
-        const val = getEntitySpreadsheetField(ent, 'BQ') || getEntitySpreadsheetField(ent, 'Orientation to Change (CRI)');
+        const val = getEntitySpreadsheetField(ent, 'BR') || getEntitySpreadsheetField(ent, 'BR2') || getEntitySpreadsheetField(ent, 'BQ') || getEntitySpreadsheetField(ent, 'Orientation to Change (CRI)');
         if (!val || !val.toLowerCase().includes(filterState.selectedOrientationCri.trim().toLowerCase())) {
           return false;
         }
@@ -2092,9 +2094,9 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({
                 {reaches.length > 0 && (
                   <MultiSelectFilterDropdown
                     id="reach"
-                    label="Audience Reach"
-                    singularLabel="reach scale"
-                    pluralLabel="reach scales"
+                    label="Reach"
+                    singularLabel="reach range"
+                    pluralLabel="reach ranges"
                     options={reaches.map(r => ({
                       value: r,
                       label: r,
@@ -2109,6 +2111,13 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({
                       }));
                     }}
                     totalEntitiesCount={entities.length}
+                    helpPopup={
+                      <FilterCommentHelpPopup
+                        cellRef="AP2"
+                        fieldName="Social Media Reach"
+                        category="Logistic Info"
+                      />
+                    }
                     isOpen={openDropdownId === 'reach'}
                     onToggle={() => setOpenDropdownId(prev => prev === 'reach' ? null : 'reach')}
                     onClose={() => setOpenDropdownId(null)}

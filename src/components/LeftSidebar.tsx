@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { CategoryQuadrant, EntityType, FilterState, FieldCluster, ContinentInfo, SidebarListScope, EcosystemEntity, DataQualityStatus, DataCompletenessLevel, DATA_COMPLETENESS_LEVELS, DATA_COMPLETENESS_CONFIG, getEntityCompleteness, getCompletenessConfig, ContributionSubmission } from '../types';
 import { entityMatchesArchipelago, normalizeArchipelagoBaseName, formatClusterWithNumber } from '../utils/layoutGenerator';
-import { getEntitySpreadsheetField, splitLanguageValues, splitRelationshipValues, entityMatchesRelationship } from '../utils/excelParser';
+import { getEntitySpreadsheetField, splitLanguageValues, splitRelationshipValues, entityMatchesRelationship, SOCIAL_MEDIA_REACH_TIERS, getSocialMediaReachTier } from '../utils/excelParser';
 import { 
   getStoredContributions, 
   updateContributionStatus, 
@@ -878,14 +878,15 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     return Array.from(set).sort();
   }, [entities]);
 
-  // AJ2 — Reach
+  // AP — Social Media Reach (Column AP in spreadsheet) normalized to filterable ranges
   const reaches = useMemo(() => {
-    const set = new Set<string>();
+    const activeTiers = new Set<string>();
     entities.forEach(e => {
-      const val = getEntitySpreadsheetField(e, 'AJ2');
-      if (val) set.add(val);
+      const val = getEntitySpreadsheetField(e, 'AP');
+      const tier = getSocialMediaReachTier(val);
+      if (tier) activeTiers.add(tier);
     });
-    return Array.from(set).sort();
+    return SOCIAL_MEDIA_REACH_TIERS.filter(tier => activeTiers.has(tier));
   }, [entities]);
 
   // Helper to split multi-value cells (comma, semicolon, newline, pipe)
@@ -930,11 +931,11 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [entities]);
 
-  // 2. Value Meme / Ethical Orientation
+  // 2. Value Meme / Ethical Orientation (Column BJ in spreadsheet)
   const valueMemes = useMemo(() => {
     const set = new Set<string>();
     entities.forEach(e => {
-      const val = e.valueMemeEthicalOrientation || getEntitySpreadsheetField(e, 'BH') || getEntitySpreadsheetField(e, 'Value Meme / Ethical Orientation');
+      const val = e.valueMemeEthicalOrientation || getEntitySpreadsheetField(e, 'BJ') || getEntitySpreadsheetField(e, 'BJ2') || getEntitySpreadsheetField(e, 'BH') || getEntitySpreadsheetField(e, 'Value Meme / Ethical Orientation');
       if (val) {
         splitAdvancedFilterValues(val).forEach(v => {
           if (v && v !== '-' && v.toLowerCase() !== 'n/a' && v.toLowerCase() !== 'none') {
@@ -946,11 +947,11 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [entities]);
 
-  // 3. Orientation to Change (Three Horizons)
+  // 3. Orientation to Change (Three Horizons) (Column BP in spreadsheet)
   const orientations3H = useMemo(() => {
     const set = new Set<string>();
     entities.forEach(e => {
-      const val = getEntitySpreadsheetField(e, 'BO') || getEntitySpreadsheetField(e, 'Orientation to Change (Three Horizons)');
+      const val = getEntitySpreadsheetField(e, 'BP') || getEntitySpreadsheetField(e, 'BP2') || getEntitySpreadsheetField(e, 'BO') || getEntitySpreadsheetField(e, 'Orientation to Change (Three Horizons)');
       if (val) {
         splitAdvancedFilterValues(val).forEach(v => {
           if (v && v !== '-' && v.toLowerCase() !== 'n/a' && v.toLowerCase() !== 'none') {
@@ -962,11 +963,11 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [entities]);
 
-  // 4. Orientation to Change (GTDF)
+  // 4. Orientation to Change (GTDF) (Column BQ in spreadsheet)
   const orientationsGtdf = useMemo(() => {
     const set = new Set<string>();
     entities.forEach(e => {
-      const val = getEntitySpreadsheetField(e, 'BP') || getEntitySpreadsheetField(e, 'Orientation to Change (GTDF)');
+      const val = getEntitySpreadsheetField(e, 'BQ') || getEntitySpreadsheetField(e, 'BQ2') || getEntitySpreadsheetField(e, 'BP') || getEntitySpreadsheetField(e, 'Orientation to Change (GTDF)');
       if (val) {
         splitAdvancedFilterValues(val).forEach(v => {
           if (v && v !== '-' && v.toLowerCase() !== 'n/a' && v.toLowerCase() !== 'none') {
@@ -978,11 +979,11 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [entities]);
 
-  // 5. Orientation to Change (CRI)
+  // 5. Orientation to Change (CRI) (Column BR in spreadsheet)
   const orientationsCri = useMemo(() => {
     const set = new Set<string>();
     entities.forEach(e => {
-      const val = getEntitySpreadsheetField(e, 'BQ') || getEntitySpreadsheetField(e, 'Orientation to Change (CRI)');
+      const val = getEntitySpreadsheetField(e, 'BR') || getEntitySpreadsheetField(e, 'BR2') || getEntitySpreadsheetField(e, 'BQ') || getEntitySpreadsheetField(e, 'Orientation to Change (CRI)');
       if (val) {
         splitAdvancedFilterValues(val).forEach(v => {
           if (v && v !== '-' && v.toLowerCase() !== 'n/a' && v.toLowerCase() !== 'none') {
@@ -1176,10 +1177,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   const reachCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     reaches.forEach(r => {
-      const rLower = r.toLowerCase().trim();
       counts[r] = entities.filter(e => {
-        const val = getEntitySpreadsheetField(e, 'AJ2');
-        return val && val.toLowerCase().trim() === rLower;
+        const val = getEntitySpreadsheetField(e, 'AP');
+        return getSocialMediaReachTier(val) === r;
       }).length;
     });
     return counts;
@@ -1202,7 +1202,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     valueMemes.forEach(vm => {
       const vmLower = vm.toLowerCase().trim();
       counts[vm] = entities.filter(e => {
-        const val = e.valueMemeEthicalOrientation || getEntitySpreadsheetField(e, 'BH') || getEntitySpreadsheetField(e, 'Value Meme / Ethical Orientation');
+        const val = e.valueMemeEthicalOrientation || getEntitySpreadsheetField(e, 'BJ') || getEntitySpreadsheetField(e, 'BJ2') || getEntitySpreadsheetField(e, 'BH') || getEntitySpreadsheetField(e, 'Value Meme / Ethical Orientation');
         return val && val.toLowerCase().includes(vmLower);
       }).length;
     });
@@ -1214,7 +1214,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     orientations3H.forEach(oh => {
       const ohLower = oh.toLowerCase().trim();
       counts[oh] = entities.filter(e => {
-        const val = getEntitySpreadsheetField(e, 'BO') || getEntitySpreadsheetField(e, 'Orientation to Change (Three Horizons)');
+        const val = getEntitySpreadsheetField(e, 'BP') || getEntitySpreadsheetField(e, 'BP2') || getEntitySpreadsheetField(e, 'BO') || getEntitySpreadsheetField(e, 'Orientation to Change (Three Horizons)');
         return val && val.toLowerCase().includes(ohLower);
       }).length;
     });
@@ -1226,7 +1226,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     orientationsGtdf.forEach(og => {
       const ogLower = og.toLowerCase().trim();
       counts[og] = entities.filter(e => {
-        const val = getEntitySpreadsheetField(e, 'BP') || getEntitySpreadsheetField(e, 'Orientation to Change (GTDF)');
+        const val = getEntitySpreadsheetField(e, 'BQ') || getEntitySpreadsheetField(e, 'BQ2') || getEntitySpreadsheetField(e, 'BP') || getEntitySpreadsheetField(e, 'Orientation to Change (GTDF)');
         return val && val.toLowerCase().includes(ogLower);
       }).length;
     });
@@ -1238,7 +1238,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     orientationsCri.forEach(oc => {
       const ocLower = oc.toLowerCase().trim();
       counts[oc] = entities.filter(e => {
-        const val = getEntitySpreadsheetField(e, 'BQ') || getEntitySpreadsheetField(e, 'Orientation to Change (CRI)');
+        const val = getEntitySpreadsheetField(e, 'BR') || getEntitySpreadsheetField(e, 'BR2') || getEntitySpreadsheetField(e, 'BQ') || getEntitySpreadsheetField(e, 'Orientation to Change (CRI)');
         return val && val.toLowerCase().includes(ocLower);
       }).length;
     });
@@ -2643,8 +2643,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                       <MultiSelectFilterDropdown
                         id="map-reach"
                         label="Reach"
-                        singularLabel="reach"
-                        pluralLabel="reaches"
+                        singularLabel="reach range"
+                        pluralLabel="reach ranges"
                         options={reaches.map(rc => ({
                           value: rc,
                           label: rc,
@@ -2659,6 +2659,13 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                           }));
                         }}
                         totalEntitiesCount={entities.length}
+                        helpPopup={
+                          <FilterCommentHelpPopup
+                            cellRef="AP2"
+                            fieldName="Social Media Reach"
+                            category="Logistic Info"
+                          />
+                        }
                         isOpen={openDropdownId === 'map-reach'}
                         onToggle={() => setOpenDropdownId(prev => prev === 'map-reach' ? null : 'map-reach')}
                         onClose={() => setOpenDropdownId(null)}
@@ -2769,7 +2776,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                         totalEntitiesCount={entities.length}
                         helpPopup={
                           <FilterCommentHelpPopup
-                            cellRef="BH2"
+                            cellRef="BJ2"
                             fieldName="Value Meme / Ethical Orientation"
                             category="Worldview & Change Orientation"
                           />
@@ -2801,7 +2808,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                         totalEntitiesCount={entities.length}
                         helpPopup={
                           <FilterCommentHelpPopup
-                            cellRef="BO2"
+                            cellRef="BP2"
                             fieldName="Orientation to Change (Three Horizons)"
                             category="Worldview & Change Orientation"
                           />
@@ -2833,7 +2840,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                         totalEntitiesCount={entities.length}
                         helpPopup={
                           <FilterCommentHelpPopup
-                            cellRef="BP2"
+                            cellRef="BQ2"
                             fieldName="Orientation to Change (GTDF)"
                             category="Worldview & Change Orientation"
                           />
@@ -2865,7 +2872,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                         totalEntitiesCount={entities.length}
                         helpPopup={
                           <FilterCommentHelpPopup
-                            cellRef="BQ2"
+                            cellRef="BR2"
                             fieldName="Orientation to Change (CRI)"
                             category="Worldview & Change Orientation"
                           />

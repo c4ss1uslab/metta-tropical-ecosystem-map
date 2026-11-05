@@ -135,13 +135,8 @@ export function healAndAlignContinentShapes(
 
   const healed: Record<string, [number, number][]> = {};
 
-  for (const [name, rawPoints] of Object.entries(shapes)) {
-    if (!Array.isArray(rawPoints) || rawPoints.length < 3) continue;
-
-    const baseName = normalizeArchipelagoBaseName(name);
-    const formattedName = formatClusterWithNumber(name);
-
-    // Sanitize points to ensure finite numbers
+  const sanitizePoints = (rawPoints: any): [number, number][] => {
+    if (!Array.isArray(rawPoints)) return [];
     const validPts: [number, number][] = [];
     for (const pt of rawPoints) {
       if (Array.isArray(pt) && pt.length >= 2) {
@@ -150,33 +145,58 @@ export function healAndAlignContinentShapes(
         if (Number.isFinite(x) && Number.isFinite(y)) {
           validPts.push([Math.round(x), Math.round(y)]);
         }
-      }
-    }
-
-    // If too few valid points left, fallback only if entities are provided
-    if (validPts.length < 3) {
-      if (entities && Array.isArray(entities) && entities.length > 0) {
-        const memberEntities = entities.filter(e =>
-          !isEntityDomainElevation(e) && (
-            (e.continent && normalizeArchipelagoBaseName(e.continent) === baseName) ||
-            isEntityPrimaryToArchipelago(e, name) ||
-            (e.continent && formatClusterWithNumber(e.continent) === formattedName)
-          )
-        );
-        if (memberEntities.length >= 1) {
-          const regenerated = fitContinentTightlyAroundEntities(memberEntities, 35);
-          healed[name] = regenerated;
-          healed[formattedName] = regenerated;
-          continue;
+      } else if (pt && typeof pt === 'object' && 'x' in pt && 'y' in pt) {
+        const x = Number((pt as any).x);
+        const y = Number((pt as any).y);
+        if (Number.isFinite(x) && Number.isFinite(y)) {
+          validPts.push([Math.round(x), Math.round(y)]);
         }
       }
-      continue;
     }
+    return validPts;
+  };
 
-    // Preserve exact polygon shape points without shifting or drifting
+  // Pass 1: Canonical exact formatted shapes (e.g. "28. Decolonial Education" where name === formattedName)
+  for (const [name, rawPoints] of Object.entries(shapes)) {
+    const formattedName = formatClusterWithNumber(name);
+    if (name !== formattedName) continue;
+    const validPts = sanitizePoints(rawPoints);
+    if (validPts.length < 3) continue;
+
     healed[formattedName] = validPts;
-    if (name === formattedName || name === baseName) {
+    healed[name] = validPts;
+  }
+
+  // Pass 2: Other numbered shapes (only if canonical shape not already established)
+  for (const [name, rawPoints] of Object.entries(shapes)) {
+    if (!/^\d+[\.\)]/.test(name)) continue;
+    const formattedName = formatClusterWithNumber(name);
+    if (healed[formattedName]) continue;
+
+    const validPts = sanitizePoints(rawPoints);
+    if (validPts.length < 3) continue;
+
+    healed[formattedName] = validPts;
+    healed[name] = validPts;
+  }
+
+  // Pass 3: Unnumbered / alias shapes
+  for (const [name, rawPoints] of Object.entries(shapes)) {
+    if (/^\d+[\.\)]/.test(name)) continue;
+    const formattedName = formatClusterWithNumber(name);
+    const baseName = normalizeArchipelagoBaseName(name);
+    const validPts = sanitizePoints(rawPoints);
+
+    if (!healed[formattedName] && validPts.length >= 3) {
+      healed[formattedName] = validPts;
+    }
+    if (validPts.length >= 3) {
       healed[name] = validPts;
+    } else if (healed[formattedName]) {
+      healed[name] = healed[formattedName];
+    }
+    if (!healed[baseName] && healed[formattedName]) {
+      healed[baseName] = healed[formattedName];
     }
   }
 

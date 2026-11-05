@@ -136,7 +136,7 @@ export const SPREADSHEET_COLUMNS: ColumnDef[] = [
   { letter: 'AM', index: 39, field: 'Year Founded', category: 'Logistic Info', aliases: ['year founded', 'founded year', 'year of foundation'] },
   { letter: 'AN', index: 40, field: 'Maturity Level', category: 'Logistic Info', aliases: ['maturity level', 'maturity'] },
   { letter: 'AO', index: 41, field: 'Size', category: 'Logistic Info', aliases: ['size', 'team size', 'headcount', 'organization size'] },
-  { letter: 'AP', index: 42, field: 'Social Media Reach', category: 'Logistic Info', aliases: ['social media reach', 'social reach'] },
+  { letter: 'AP', index: 42, field: 'Social Media Reach', category: 'Logistic Info', aliases: ['social media reach', 'social reach', 'reach', 'reaches'] },
   { letter: 'AQ', index: 43, field: 'Impact Reach', category: 'Logistic Info', aliases: ['impact reach', 'reach scale', 'audience size'] },
   { letter: 'AR', index: 44, field: 'Influence', category: 'Logistic Info', aliases: ['influence', 'influence level'] },
 
@@ -162,17 +162,17 @@ export const SPREADSHEET_COLUMNS: ColumnDef[] = [
   { letter: 'BE', index: 57, field: 'Alternative(s) Proposed (Pluriverse dictionary)', category: 'Worldview & Change Orientation', aliases: ['alternative(s) proposed (pluriverse dictionary)', 'alternatives proposed (pluriverse dictionary)', 'alternative(s) proposed (pluriverse)', 'alternatives proposed (pluriverse)', 'pluriverse alternative(s)', 'pluriverse dictionary alternatives', 'pluriverse alternatives', 'pluriverse dictionary'] },
   { letter: 'BF', index: 58, field: 'Alternative(s) Proposed (Mútua)', category: 'Worldview & Change Orientation', aliases: ['alternative(s) proposed (mútua)', 'alternative(s) proposed (mutua)', 'alternatives proposed (mútua)', 'alternatives proposed (mutua)', 'mútua alternative(s)', 'mutua alternatives'] },
   { letter: 'BG', index: 59, field: 'Alternative(s) Proposed', category: 'Worldview & Change Orientation', aliases: ['alternative(s) proposed', 'alternatives proposed', 'proposed alternatives'] },
-  { letter: 'BH', index: 60, field: 'Value Meme / Ethical Orientation', category: 'Worldview & Change Orientation', aliases: ['value meme / ethical orientation', 'value meme/ethical orientation', 'value meme', 'ethical orientation'] },
+  { letter: 'BH', index: 60, field: 'Value Meme / Ethical Orientation (Legacy BH)', category: 'Worldview & Change Orientation', aliases: ['bh', 'col_60'] },
   { letter: 'BI', index: 61, field: 'Theory of Change (GTDF)', category: 'Worldview & Change Orientation', aliases: ['theory of change (gtdf)', 'theories of change (gtdf)', 'theory of change gtdf', 'theories of change gtdf', 'toc (gtdf)', 'gtdf theory of change', 'gtdf toc'] },
-  { letter: 'BJ', index: 62, field: 'Theory of Change (IAM)', category: 'Worldview & Change Orientation', aliases: ['theory of change (iam)', 'theories of change (iam)', 'theory of change iam', 'theories of change iam', 'toc (iam)', 'iam theory of change', 'iam toc'] },
+  { letter: 'BJ', index: 62, field: 'Value Meme / Ethical Orientation', category: 'Worldview & Change Orientation', aliases: ['value meme / ethical orientation', 'value meme/ethical orientation', 'value meme', 'ethical orientation', 'bj', 'col_62', 'theory of change (iam)', 'theories of change (iam)', 'theory of change iam'] },
   { letter: 'BK', index: 63, field: 'Crisis of Response', category: 'Worldview & Change Orientation', aliases: ['crisis of response'] },
   { letter: 'BL', index: 64, field: 'Paradigmatic? (Life Itself)', category: 'Worldview & Change Orientation', aliases: ['paradigmatic? (life itself)', 'paradigmatic (life itself)', 'life itself paradigmatic'] },
   { letter: 'BM', index: 65, field: 'Integrative? (Life Itself)', category: 'Worldview & Change Orientation', aliases: ['integrative? (life itself)', 'integrative (life itself)', 'life itself integrative'] },
   { letter: 'BN', index: 66, field: 'Pragmatic? (Life Itself)', category: 'Worldview & Change Orientation', aliases: ['pragmatic? (life itself)', 'pragmatic (life itself)', 'life itself pragmatic'] },
-  { letter: 'BO', index: 67, field: 'Orientation to Change (Three Horizons)', category: 'Worldview & Change Orientation', aliases: ['orientation to change (three horizons)', 'orientation to change three horizons', 'three horizons orientation', 'three horizons'] },
-  { letter: 'BP', index: 68, field: 'Orientation to Change (GTDF)', category: 'Worldview & Change Orientation', aliases: ['orientation to change (gtdf)', 'orientation to change gtdf', 'gtdf orientation to change', 'gtdf orientation'] },
-  { letter: 'BQ', index: 69, field: 'Orientation to Change (CRI)', category: 'Worldview & Change Orientation', aliases: ['orientation to change (cri)', 'orientation to change cri', 'cri orientation to change', 'cri orientation'] },
-  { letter: 'BR', index: 70, field: 'SDGs/Social Issues (Conscious Change Collective)', category: 'Worldview & Change Orientation', aliases: ['sdgs/social issues (conscious change collective)', 'sdgs / social issues (conscious change collective)', 'sdgs/social issues (ccc)', 'sdgs/social issues', 'sdgs / social issues', 'ccc sdgs/social issues', 'sdgs'] },
+  { letter: 'BO', index: 67, field: 'Orientation to Change (Legacy BO)', category: 'Worldview & Change Orientation', aliases: ['bo', 'col_67'] },
+  { letter: 'BP', index: 68, field: 'Orientation to Change (Three Horizons)', category: 'Worldview & Change Orientation', aliases: ['orientation to change (three horizons)', 'orientation to change three horizons', 'three horizons orientation', 'three horizons', 'bp', 'col_68'] },
+  { letter: 'BQ', index: 69, field: 'Orientation to Change (GTDF)', category: 'Worldview & Change Orientation', aliases: ['orientation to change (gtdf)', 'orientation to change gtdf', 'gtdf orientation to change', 'gtdf orientation', 'bq', 'col_69'] },
+  { letter: 'BR', index: 70, field: 'Orientation to Change (CRI)', category: 'Worldview & Change Orientation', aliases: ['orientation to change (cri)', 'orientation to change cri', 'cri orientation to change', 'cri orientation', 'br', 'col_70', 'sdgs/social issues (conscious change collective)', 'sdgs / social issues (conscious change collective)', 'sdgs'] },
   { letter: 'BS', index: 71, field: 'Relevant Resources', category: 'Worldview & Change Orientation', aliases: ['relevant resources', 'relevant resource'] },
   { letter: 'BT', index: 72, field: 'Featured Resources', category: 'Worldview & Change Orientation', aliases: ['featured resources', 'featured resource'] },
   { letter: 'BU', index: 73, field: 'IDGs/Inner Capacities', category: 'Worldview & Change Orientation', aliases: ['idgs/inner capacities', 'idgs / inner capacities', 'idg inner capacities', 'inner capacities', 'idg capacities'] },
@@ -320,6 +320,21 @@ export function findColumnDef(columnName: string): ColumnDef | undefined {
   }
   if (clean.includes('analyst commentary') || clean.includes('analyst comments') || clean.includes('analyst comment') || clean.includes('curator notes')) {
     return SPREADSHEET_COLUMNS.find(c => c.letter === 'CI');
+  }
+  if (clean.includes('three horizons') || clean === 'bp' || clean === 'bp2' || clean === 'col_68' || clean === '__col_68') {
+    return SPREADSHEET_COLUMNS.find(c => c.letter === 'BP');
+  }
+  if ((clean.includes('gtdf') && clean.includes('orientation')) || clean === 'bq' || clean === 'bq2' || clean === 'col_69' || clean === '__col_69') {
+    return SPREADSHEET_COLUMNS.find(c => c.letter === 'BQ');
+  }
+  if ((clean.includes('cri') && clean.includes('orientation')) || clean === 'br' || clean === 'br2' || clean === 'col_70' || clean === '__col_70') {
+    return SPREADSHEET_COLUMNS.find(c => c.letter === 'BR');
+  }
+  if (clean.includes('value meme') || clean.includes('ethical orientation') || clean === 'bj' || clean === 'bj2' || clean === 'col_62' || clean === '__col_62') {
+    return SPREADSHEET_COLUMNS.find(c => c.letter === 'BJ');
+  }
+  if (clean === 'ap' || clean === 'ap2' || clean === 'social media reach' || clean === 'col_42' || clean === '__col_42') {
+    return SPREADSHEET_COLUMNS.find(c => c.letter === 'AP');
   }
   if (clean.includes('sdgs') || clean.includes('social issues')) {
     return SPREADSHEET_COLUMNS.find(c => c.letter === 'BR');

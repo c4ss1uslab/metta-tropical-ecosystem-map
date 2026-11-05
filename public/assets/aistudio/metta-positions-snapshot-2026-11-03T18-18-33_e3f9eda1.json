@@ -1,0 +1,8687 @@
+{
+  "version": 1,
+  "snapshotType": "metta-map-positions-snapshot",
+  "exportedAt": "2026-11-03T18:18:33.758Z",
+  "description": "Metta Tropical Ecosystem Map - Entity & Archipelago Positions Snapshot",
+  "totalEntities": 588,
+  "totalShapes": 98,
+  "entities": [
+    {
+      "id": "1",
+      "name": "Institute of Applied Metatheory (IAM)",
+      "continent": "19. Metacrisis Research & Education",
+      "category": "Cultural",
+      "x": -126,
+      "y": 465,
+      "isCustomPosition": true
+    },
+    {
+      "id": "2",
+      "name": "Archdisciplinary Research Center (ARC)",
+      "continent": "19. Metacrisis Research & Education",
+      "category": "Cultural",
+      "x": -131,
+      "y": 344,
+      "isCustomPosition": true
+    },
+    {
+      "id": "3",
+      "name": "Roote",
+      "category": "Social",
+      "x": -911,
+      "y": -64,
+      "isCustomPosition": true
+    },
+    {
+      "id": "4",
+      "name": "The Democracy Collaborative",
+      "category": "Social",
+      "x": -1064,
+      "y": -115,
+      "isCustomPosition": true
+    },
+    {
+      "id": "5",
+      "name": "Democracy Next",
+      "category": "Social",
+      "x": -1074,
+      "y": -98,
+      "isCustomPosition": true
+    },
+    {
+      "id": "6",
+      "name": "RadicalxChange Foundation",
+      "continent": "62. Public Sensemaking",
+      "category": "Cultural",
+      "x": -771,
+      "y": 734,
+      "isCustomPosition": true
+    },
+    {
+      "id": "7",
+      "name": "Extinction Rebellion (XR)",
+      "category": "Social",
+      "x": -951,
+      "y": -175,
+      "isCustomPosition": true
+    },
+    {
+      "id": "8",
+      "name": "XR Internationalist Solidarity",
+      "category": "Social",
+      "x": -1106,
+      "y": -89,
+      "isCustomPosition": true
+    },
+    {
+      "id": "9",
+      "name": "XR Red de Afinidades de Abya Yala del Sur",
+      "category": "Social",
+      "x": -875,
+      "y": -52,
+      "isCustomPosition": true
+    },
+    {
+      "id": "10",
+      "name": "L-CPC Lifehouses Community (Lifehouse - Collapse Preparing Communities)",
+      "category": "Social",
+      "x": -994,
+      "y": -211,
+      "isCustomPosition": true
+    },
+    {
+      "id": "11",
+      "name": "South of the Future",
+      "category": "Social",
+      "x": -1066,
+      "y": -57,
+      "isCustomPosition": true
+    },
+    {
+      "id": "12",
+      "name": "Instituto Simplexidade",
+      "continent": "44. Complex Systems Education",
+      "category": "Systems",
+      "x": 1311,
+      "y": 211,
+      "isCustomPosition": true
+    },
+    {
+      "id": "13",
+      "name": "AI Psychological Harms Research Coalition",
+      "continent": "23. Ethical Technology Education",
+      "category": "Cultural",
+      "x": 64,
+      "y": -355,
+      "isCustomPosition": true
+    },
+    {
+      "id": "14",
+      "name": "The School for Moral Ambition",
+      "category": "Social",
+      "x": -847,
+      "y": -95,
+      "isCustomPosition": true
+    },
+    {
+      "id": "15",
+      "name": "Metamoderna",
+      "continent": "19. Metacrisis Research & Education",
+      "category": "Cultural",
+      "x": -153,
+      "y": 240,
+      "isCustomPosition": true
+    },
+    {
+      "id": "16",
+      "name": "Life Itself",
+      "continent": "19. Metacrisis Research & Education",
+      "category": "Cultural",
+      "x": -208,
+      "y": 155,
+      "isCustomPosition": true
+    },
+    {
+      "id": "17",
+      "name": "Perspectiva",
+      "continent": "19. Metacrisis Research & Education",
+      "category": "Cultural",
+      "x": -43,
+      "y": 195,
+      "isCustomPosition": true
+    },
+    {
+      "id": "18",
+      "name": "Kainos",
+      "continent": "19. Metacrisis Research & Education",
+      "category": "Cultural",
+      "x": -1549,
+      "y": 344,
+      "isCustomPosition": true
+    },
+    {
+      "id": "19",
+      "name": "The Stoa",
+      "continent": "19. Metacrisis Research & Education",
+      "category": "Cultural",
+      "x": -1668,
+      "y": 175,
+      "isCustomPosition": true
+    },
+    {
+      "id": "20",
+      "name": "Denizen",
+      "continent": "19. Metacrisis Research & Education",
+      "category": "Cultural",
+      "x": -1697,
+      "y": 441,
+      "isCustomPosition": true
+    },
+    {
+      "id": "21",
+      "name": "Small Giants Academy",
+      "continent": "20. Leadership Education",
+      "category": "Social",
+      "x": 1264,
+      "y": -124,
+      "isCustomPosition": true
+    },
+    {
+      "id": "22",
+      "name": "Design Science Studio",
+      "continent": "21. Sociocultural Education",
+      "category": "Cultural",
+      "x": -586,
+      "y": 1154,
+      "isCustomPosition": true
+    },
+    {
+      "id": "23",
+      "name": "The Leading Edge",
+      "continent": "16. Community of Practice",
+      "category": "Cultural",
+      "x": -629,
+      "y": 188,
+      "isCustomPosition": true
+    },
+    {
+      "id": "24",
+      "name": "School of Wise Innovation",
+      "continent": "23. Ethical Technology Education",
+      "category": "Social",
+      "x": 62,
+      "y": -245,
+      "isCustomPosition": true
+    },
+    {
+      "id": "25",
+      "name": "Futurecraft",
+      "continent": "23. Ethical Technology Education",
+      "category": "Social",
+      "x": 167,
+      "y": -399,
+      "isCustomPosition": true
+    },
+    {
+      "id": "26",
+      "name": "Meta-Relationality Institute",
+      "continent": "27. Indigenous Education",
+      "category": "Cultural",
+      "x": -1025,
+      "y": 27,
+      "isCustomPosition": true
+    },
+    {
+      "id": "27",
+      "name": "Institute for the Study of Energy and Our Future",
+      "continent": "19. Metacrisis Research & Education",
+      "category": "Cultural",
+      "x": 32,
+      "y": 400,
+      "isCustomPosition": true
+    },
+    {
+      "id": "28",
+      "name": "The Great Simplification",
+      "continent": "19. Metacrisis Research & Education",
+      "category": "Cultural",
+      "x": -9,
+      "y": 306,
+      "isCustomPosition": true
+    },
+    {
+      "id": "29",
+      "name": "The Consilience Project",
+      "continent": "19. Metacrisis Research & Education",
+      "category": "Cultural",
+      "x": -36,
+      "y": 578,
+      "isCustomPosition": true
+    },
+    {
+      "id": "30",
+      "name": "Projeto Regenerar",
+      "continent": "21. Sociocultural Education",
+      "category": "Cultural",
+      "x": -335,
+      "y": 1124,
+      "isCustomPosition": true
+    },
+    {
+      "id": "31",
+      "name": "Degrowth Institute",
+      "category": "Systems",
+      "x": -1142,
+      "y": -101,
+      "isCustomPosition": true
+    },
+    {
+      "id": "32",
+      "name": "Research & Degrowth International",
+      "category": "Systems",
+      "x": -914,
+      "y": -91,
+      "isCustomPosition": true
+    },
+    {
+      "id": "33",
+      "name": "Post Growth Institute",
+      "continent": "24. Alternative Economics",
+      "category": "Systems",
+      "x": 1107,
+      "y": 114,
+      "isCustomPosition": true
+    },
+    {
+      "id": "34",
+      "name": "Capital Institute",
+      "continent": "24. Alternative Economics",
+      "category": "Systems",
+      "x": 872,
+      "y": 91,
+      "isCustomPosition": true
+    },
+    {
+      "id": "35",
+      "name": "OASA.earth",
+      "category": "Social",
+      "x": -983,
+      "y": -244,
+      "isCustomPosition": true
+    },
+    {
+      "id": "36",
+      "name": "Earth4All",
+      "category": "Social",
+      "x": -1155,
+      "y": -84,
+      "isCustomPosition": true
+    },
+    {
+      "id": "37",
+      "name": "Wellbeing Economy Alliance (WEAll)",
+      "continent": "24. Alternative Economics",
+      "category": "Systems",
+      "x": 391,
+      "y": 302,
+      "isCustomPosition": true
+    },
+    {
+      "id": "38",
+      "name": "Doughnut Economics Action Lab (DEAL)",
+      "continent": "24. Alternative Economics",
+      "category": "Systems",
+      "x": 447,
+      "y": 116,
+      "isCustomPosition": true
+    },
+    {
+      "id": "39",
+      "name": "Outra Economia",
+      "continent": "24. Alternative Economics",
+      "category": "Systems",
+      "x": 292,
+      "y": 202,
+      "isCustomPosition": true
+    },
+    {
+      "id": "40",
+      "name": "Local Futures",
+      "continent": "24. Alternative Economics",
+      "category": "Systems",
+      "x": 1023,
+      "y": 26,
+      "isCustomPosition": true
+    },
+    {
+      "id": "41",
+      "name": "Economy for the Common Good",
+      "continent": "24. Alternative Economics",
+      "category": "Systems",
+      "x": 404,
+      "y": 80,
+      "isCustomPosition": true
+    },
+    {
+      "id": "42",
+      "name": "Institute of Noetic Sciences (IONS)",
+      "category": "Social",
+      "x": -817,
+      "y": -86,
+      "isCustomPosition": true
+    },
+    {
+      "id": "43",
+      "name": "MAPS",
+      "continent": "25. Psychedelic Research",
+      "category": "Social",
+      "x": 101,
+      "y": -986,
+      "isCustomPosition": true
+    },
+    {
+      "id": "44",
+      "name": "Johns Hopkins Center for Psychedelic and Consciousness Research",
+      "continent": "25. Psychedelic Research",
+      "category": "Social",
+      "x": 102,
+      "y": -990,
+      "isCustomPosition": true
+    },
+    {
+      "id": "45",
+      "name": "Chacruna Institute",
+      "continent": "25. Psychedelic Research",
+      "category": "Social",
+      "x": -471,
+      "y": -864,
+      "isCustomPosition": true
+    },
+    {
+      "id": "46",
+      "name": "Instituto Phaneros",
+      "continent": "25. Psychedelic Research",
+      "category": "Social",
+      "x": 103,
+      "y": -990,
+      "isCustomPosition": true
+    },
+    {
+      "id": "47",
+      "name": "Instituto Alma Viva",
+      "continent": "25. Psychedelic Research",
+      "category": "Social",
+      "x": 79,
+      "y": -990,
+      "isCustomPosition": true
+    },
+    {
+      "id": "48",
+      "name": "Mandalah",
+      "continent": "32. Consultancies",
+      "category": "Cultural",
+      "x": 863,
+      "y": -343,
+      "isCustomPosition": true
+    },
+    {
+      "id": "49",
+      "name": "California Institute of Integral Studies (CIIS)",
+      "continent": "8. Integral Education",
+      "category": "Inner",
+      "x": -202,
+      "y": -307,
+      "isCustomPosition": true
+    },
+    {
+      "id": "50",
+      "name": "Inner Development Goals (IDGs)",
+      "continent": "13. Human Development",
+      "category": "Social",
+      "x": -150,
+      "y": -826,
+      "isCustomPosition": true
+    },
+    {
+      "id": "51",
+      "name": "Lectica",
+      "continent": "8. Integral Education",
+      "category": "Inner",
+      "x": -179,
+      "y": -209,
+      "isCustomPosition": true
+    },
+    {
+      "id": "52",
+      "name": "Ma Earth",
+      "continent": "31. Philanthropy",
+      "category": "Social",
+      "x": 1425,
+      "y": 147,
+      "isCustomPosition": true
+    },
+    {
+      "id": "53",
+      "name": "Transition Resource Circle",
+      "continent": "31. Philanthropy",
+      "category": "Social",
+      "x": 1531,
+      "y": 196,
+      "isCustomPosition": true
+    },
+    {
+      "id": "54",
+      "name": "Imaginable Futures",
+      "continent": "31. Philanthropy",
+      "category": "Social",
+      "x": 1506,
+      "y": 27,
+      "isCustomPosition": true
+    },
+    {
+      "id": "55",
+      "name": "Reos Partners",
+      "continent": "31. Philanthropy",
+      "category": "Social",
+      "x": 169,
+      "y": 547,
+      "isCustomPosition": true
+    },
+    {
+      "id": "56",
+      "name": "Omidyar Network",
+      "continent": "31. Philanthropy",
+      "category": "Social",
+      "x": 1408,
+      "y": -44,
+      "isCustomPosition": true
+    },
+    {
+      "id": "57",
+      "name": "Acumen",
+      "category": "Social",
+      "x": -1056,
+      "y": -248,
+      "isCustomPosition": true
+    },
+    {
+      "id": "58",
+      "name": "RSF Regenerative Social Finance",
+      "category": "Social",
+      "x": -910,
+      "y": -85,
+      "isCustomPosition": true
+    },
+    {
+      "id": "59",
+      "name": "Purpose US",
+      "category": "Social",
+      "x": -852,
+      "y": -148,
+      "isCustomPosition": true
+    },
+    {
+      "id": "60",
+      "name": "[Sthorm.io](http://sthorm.io/)",
+      "category": "Social",
+      "x": -1148,
+      "y": -57,
+      "isCustomPosition": true
+    },
+    {
+      "id": "61",
+      "name": "Re-imagining Education",
+      "category": "Social",
+      "x": -921,
+      "y": -62,
+      "isCustomPosition": true
+    },
+    {
+      "id": "62",
+      "name": "The Center for Nonviolent Communication",
+      "continent": "14. Relational Education",
+      "category": "Social",
+      "x": -795,
+      "y": 989,
+      "isCustomPosition": true
+    },
+    {
+      "id": "63",
+      "name": "Projeto Cooperação",
+      "continent": "14. Relational Education",
+      "category": "Social",
+      "x": -1284,
+      "y": 512,
+      "isCustomPosition": true
+    },
+    {
+      "id": "64",
+      "name": "Guerreiros Sem Armas (GSA)",
+      "continent": "20. Leadership Education",
+      "category": "Social",
+      "x": 1174,
+      "y": -295,
+      "isCustomPosition": true
+    },
+    {
+      "id": "65",
+      "name": "Latin American Leadership Academy",
+      "category": "Social",
+      "x": 1168,
+      "y": -386,
+      "isCustomPosition": true
+    },
+    {
+      "id": "66",
+      "name": "Club of Rome",
+      "category": "Social",
+      "x": -1131,
+      "y": -70,
+      "isCustomPosition": true
+    },
+    {
+      "id": "67",
+      "name": "Stockholm Resilience Centre",
+      "category": "Social",
+      "x": -830,
+      "y": -145,
+      "isCustomPosition": true
+    },
+    {
+      "id": "68",
+      "name": "Schumacher Center for a New Economics",
+      "continent": "24. Alternative Economics",
+      "category": "Systems",
+      "x": 375,
+      "y": 346,
+      "isCustomPosition": true
+    },
+    {
+      "id": "69",
+      "name": "Conscious Capitalism",
+      "category": "Social",
+      "x": -1108,
+      "y": -214,
+      "isCustomPosition": true
+    },
+    {
+      "id": "70",
+      "name": "Capitalismo Consciente Brasil",
+      "category": "Social",
+      "x": -909,
+      "y": -88,
+      "isCustomPosition": true
+    },
+    {
+      "id": "71",
+      "name": "B Lab",
+      "category": "Social",
+      "x": -887,
+      "y": -188,
+      "isCustomPosition": true
+    },
+    {
+      "id": "72",
+      "name": "Sistema B",
+      "category": "Social",
+      "x": -1150,
+      "y": -69,
+      "isCustomPosition": true
+    },
+    {
+      "id": "73",
+      "name": "Civic Square",
+      "category": "Social",
+      "x": -844,
+      "y": -50,
+      "isCustomPosition": true
+    },
+    {
+      "id": "74",
+      "name": "Livelab",
+      "category": "Social",
+      "x": -1087,
+      "y": -206,
+      "isCustomPosition": true
+    },
+    {
+      "id": "75",
+      "name": "Ludus Vídeos e Cultura",
+      "category": "Social",
+      "x": -1102,
+      "y": -52,
+      "isCustomPosition": true
+    },
+    {
+      "id": "76",
+      "name": "Spanda Produtora",
+      "continent": "21. Sociocultural Education",
+      "category": "Social",
+      "x": -593,
+      "y": 1245,
+      "isCustomPosition": true
+    },
+    {
+      "id": "77",
+      "name": "Instituto Feira Preta",
+      "category": "Social",
+      "x": -871,
+      "y": -190,
+      "isCustomPosition": true
+    },
+    {
+      "id": "78",
+      "name": "Instituto Amuta",
+      "category": "Social",
+      "x": -1136,
+      "y": -160,
+      "isCustomPosition": true
+    },
+    {
+      "id": "79",
+      "name": "Reaprendiz",
+      "category": "Social",
+      "x": -836,
+      "y": -56,
+      "isCustomPosition": true
+    },
+    {
+      "id": "80",
+      "name": "Chie Integrates",
+      "continent": "8. Integral Education",
+      "category": "Social",
+      "x": -352,
+      "y": -248,
+      "isCustomPosition": true
+    },
+    {
+      "id": "81",
+      "name": "eCycle",
+      "category": "Social",
+      "x": -923,
+      "y": -235,
+      "isCustomPosition": true
+    },
+    {
+      "id": "82",
+      "name": "Instituto Integral Brasil",
+      "continent": "8. Integral Education",
+      "category": "Inner",
+      "x": -287,
+      "y": -193,
+      "isCustomPosition": true
+    },
+    {
+      "id": "83",
+      "name": "LivMundi",
+      "category": "Social",
+      "x": -1122,
+      "y": -56,
+      "isCustomPosition": true
+    },
+    {
+      "id": "84",
+      "name": "Instituto IRIS Pro Bem Viver",
+      "continent": "21. Sociocultural Education",
+      "category": "Social",
+      "x": -457,
+      "y": 1212,
+      "isCustomPosition": true
+    },
+    {
+      "id": "85",
+      "name": "Virada Zen",
+      "category": "Social",
+      "x": -502,
+      "y": -195,
+      "isCustomPosition": true
+    },
+    {
+      "id": "86",
+      "name": "The Conscious Citizens",
+      "continent": "34. Activism",
+      "category": "Social",
+      "x": -42,
+      "y": 956,
+      "isCustomPosition": true
+    },
+    {
+      "id": "87",
+      "name": "better future media",
+      "continent": "21. Sociocultural Education",
+      "category": "Social",
+      "x": -283,
+      "y": 1219,
+      "isCustomPosition": true
+    },
+    {
+      "id": "88",
+      "name": "Open Source Ecology",
+      "category": "Social",
+      "x": -827,
+      "y": -64,
+      "isCustomPosition": true
+    },
+    {
+      "id": "89",
+      "name": "Bambual Editora",
+      "category": "Social",
+      "x": -1140,
+      "y": -176,
+      "isCustomPosition": true
+    },
+    {
+      "id": "90",
+      "name": "Articulação dos Povos Indígenas do Brasil (APIB)",
+      "continent": "26. Indigenous Allyship",
+      "category": "Social",
+      "x": 615,
+      "y": -298,
+      "isCustomPosition": true
+    },
+    {
+      "id": "91",
+      "name": "Instituto Socioambiental (ISA)",
+      "continent": "26. Indigenous Allyship",
+      "category": "Social",
+      "x": 530,
+      "y": -405,
+      "isCustomPosition": true
+    },
+    {
+      "id": "92",
+      "name": "Fundação Nacional dos Povos Indígenas (FUNAI)",
+      "continent": "26. Indigenous Allyship",
+      "category": "Social",
+      "x": 1044,
+      "y": -674,
+      "isCustomPosition": true
+    },
+    {
+      "id": "93",
+      "name": "Ministério dos Povos Indígenas (MPI)",
+      "category": "Social",
+      "x": -1075,
+      "y": -53,
+      "isCustomPosition": true
+    },
+    {
+      "id": "94",
+      "name": "Calma Urgente!",
+      "category": "Social",
+      "x": -923,
+      "y": -211,
+      "isCustomPosition": true
+    },
+    {
+      "id": "95",
+      "name": "Nova Acrópole",
+      "category": "Social",
+      "x": -1140,
+      "y": -104,
+      "isCustomPosition": true
+    },
+    {
+      "id": "96",
+      "name": "Sociedade do Bem Viver",
+      "category": "Social",
+      "x": -821,
+      "y": -62,
+      "isCustomPosition": true
+    },
+    {
+      "id": "97",
+      "name": "Instituto UKA - Casa dos Saberes Ancestrais",
+      "category": "Social",
+      "x": -981,
+      "y": -233,
+      "isCustomPosition": true
+    },
+    {
+      "id": "98",
+      "name": "Economia Viva",
+      "category": "Social",
+      "x": -1063,
+      "y": -70,
+      "isCustomPosition": true
+    },
+    {
+      "id": "99",
+      "name": "Bloom Network",
+      "category": "Social",
+      "x": -835,
+      "y": -82,
+      "isCustomPosition": true
+    },
+    {
+      "id": "100",
+      "name": "Enspiral",
+      "category": "Social",
+      "x": -1147,
+      "y": -115,
+      "isCustomPosition": true
+    },
+    {
+      "id": "101",
+      "name": "UNESCO",
+      "category": "Social",
+      "x": -919,
+      "y": -95,
+      "isCustomPosition": true
+    },
+    {
+      "id": "102",
+      "name": "Fundação Lemann",
+      "category": "Social",
+      "x": -970,
+      "y": -240,
+      "isCustomPosition": true
+    },
+    {
+      "id": "103",
+      "name": "North Star",
+      "category": "Social",
+      "x": 84,
+      "y": -1007,
+      "isCustomPosition": true
+    },
+    {
+      "id": "104",
+      "name": "LIFT Economy",
+      "category": "Social",
+      "x": -1152,
+      "y": -82,
+      "isCustomPosition": true
+    },
+    {
+      "id": "105",
+      "name": "Instituto Unibanco",
+      "category": "Social",
+      "x": -828,
+      "y": -72,
+      "isCustomPosition": true
+    },
+    {
+      "id": "106",
+      "name": "Jeduca",
+      "category": "Social",
+      "x": -1038,
+      "y": -240,
+      "isCustomPosition": true
+    },
+    {
+      "id": "107",
+      "name": "Instituto Fogo Cruzado",
+      "category": "Social",
+      "x": -911,
+      "y": -55,
+      "isCustomPosition": true
+    },
+    {
+      "id": "108",
+      "name": "Instituto Odara da Mulher Negra",
+      "category": "Social",
+      "x": -834,
+      "y": -141,
+      "isCustomPosition": true
+    },
+    {
+      "id": "109",
+      "name": "Articulação dos Povos e Organizações Indígenas do Nordeste, Minas Gerais e Espírito Santo (APOINME)",
+      "category": "Social",
+      "x": -1162,
+      "y": -65,
+      "isCustomPosition": true
+    },
+    {
+      "id": "110",
+      "name": "Redes da Maré",
+      "category": "Social",
+      "x": -880,
+      "y": -80,
+      "isCustomPosition": true
+    },
+    {
+      "id": "111",
+      "name": "Ação Educativa",
+      "category": "Social",
+      "x": -1029,
+      "y": -250,
+      "isCustomPosition": true
+    },
+    {
+      "id": "112",
+      "name": "Instituto Chapada de Educação e Pesquisa (ICEP)",
+      "category": "Social",
+      "x": -1142,
+      "y": -69,
+      "isCustomPosition": true
+    },
+    {
+      "id": "113",
+      "name": "Fórum Nacional de Educação Escolar Indígena",
+      "category": "Social",
+      "x": -824,
+      "y": -132,
+      "isCustomPosition": true
+    },
+    {
+      "id": "114",
+      "name": "CONAQ (Coordenação Nacional de Articulação das Comunidades Negras Rurais Quilombolas)",
+      "category": "Social",
+      "x": -1097,
+      "y": -223,
+      "isCustomPosition": true
+    },
+    {
+      "id": "115",
+      "name": "Floresta Ativista",
+      "category": "Social",
+      "x": -891,
+      "y": -57,
+      "isCustomPosition": true
+    },
+    {
+      "id": "116",
+      "name": "Articulação Nacional de Agroecologia",
+      "category": "Social",
+      "x": -880,
+      "y": -177,
+      "isCustomPosition": true
+    },
+    {
+      "id": "117",
+      "name": "Agroecologia em Rede",
+      "category": "Social",
+      "x": -1145,
+      "y": -84,
+      "isCustomPosition": true
+    },
+    {
+      "id": "118",
+      "name": "Instituto Ima Flora",
+      "category": "Social",
+      "x": -817,
+      "y": -82,
+      "isCustomPosition": true
+    },
+    {
+      "id": "119",
+      "name": "Museu da História e da Cultura Afro-brasileira",
+      "category": "Social",
+      "x": -1073,
+      "y": -208,
+      "isCustomPosition": true
+    },
+    {
+      "id": "120",
+      "name": "Fundação Cultural Palmares",
+      "category": "Social",
+      "x": -1165,
+      "y": -66,
+      "isCustomPosition": true
+    },
+    {
+      "id": "121",
+      "name": "Instituto Internacional Arayara",
+      "category": "Social",
+      "x": -871,
+      "y": -173,
+      "isCustomPosition": true
+    },
+    {
+      "id": "122",
+      "name": "Núcleo de Cultura Indígena",
+      "continent": "28. Decolonial Education",
+      "category": "Cultural",
+      "x": -387,
+      "y": 979,
+      "isCustomPosition": true
+    },
+    {
+      "id": "123",
+      "name": "Escola Nego Bispo de Saberes Tradicionais",
+      "category": "Cultural",
+      "x": -1121,
+      "y": -166,
+      "isCustomPosition": true
+    },
+    {
+      "id": "123_2",
+      "name": "Ikorẽ",
+      "continent": "28. Decolonial Education",
+      "category": "Cultural",
+      "x": -1549,
+      "y": 877,
+      "isCustomPosition": true
+    },
+    {
+      "id": "124",
+      "name": "Schumacher College",
+      "continent": "9. Living Systems Education",
+      "category": "Cultural",
+      "x": -1100,
+      "y": 582,
+      "isCustomPosition": true
+    },
+    {
+      "id": "125",
+      "name": "Escola Schumacher Brasil",
+      "continent": "9. Living Systems Education",
+      "category": "Cultural",
+      "x": -929,
+      "y": 571,
+      "isCustomPosition": true
+    },
+    {
+      "id": "126",
+      "name": "Way of Nature",
+      "continent": "9. Depth Psychological Education",
+      "category": "Inner",
+      "x": -1269,
+      "y": -506,
+      "isCustomPosition": true
+    },
+    {
+      "id": "127",
+      "name": "The Work That Reconnects",
+      "continent": "12. Deep Ecology Education",
+      "category": "Inner",
+      "x": -747,
+      "y": 192,
+      "isCustomPosition": true
+    },
+    {
+      "id": "128",
+      "name": "Gaia Education",
+      "continent": "22. Regenerative Education",
+      "category": "Cultural",
+      "x": -623,
+      "y": 415,
+      "isCustomPosition": true
+    },
+    {
+      "id": "129",
+      "name": "Gaia Education Brasil",
+      "continent": "22. Regenerative Education",
+      "category": "Cultural",
+      "x": -463,
+      "y": 437,
+      "isCustomPosition": true
+    },
+    {
+      "id": "130",
+      "name": "Regenesis Group",
+      "continent": "22. Regenerative Education",
+      "category": "Cultural",
+      "x": -479,
+      "y": 558,
+      "isCustomPosition": true
+    },
+    {
+      "id": "131",
+      "name": "Instituto Desenvolvimento Regenerativo (IDR)",
+      "continent": "22. Regenerative Education",
+      "category": "Cultural",
+      "x": -301,
+      "y": 487,
+      "isCustomPosition": true
+    },
+    {
+      "id": "132",
+      "name": "EcoUniversidade",
+      "continent": "20. Leadership Education",
+      "category": "Cultural",
+      "x": 1141,
+      "y": -172,
+      "isCustomPosition": true
+    },
+    {
+      "id": "133",
+      "name": "Universidade Vida",
+      "continent": "22. Regenerative Education",
+      "category": "Cultural",
+      "x": -769,
+      "y": 404,
+      "isCustomPosition": true
+    },
+    {
+      "id": "134",
+      "name": "Design School for Regenerating Earth",
+      "continent": "22. Regenerative Education",
+      "category": "Cultural",
+      "x": -461,
+      "y": 647,
+      "isCustomPosition": true
+    },
+    {
+      "id": "135",
+      "name": "Biomimicry Institute",
+      "continent": "9. Living Systems Education",
+      "category": "Cultural",
+      "x": -1018,
+      "y": 674,
+      "isCustomPosition": true
+    },
+    {
+      "id": "136",
+      "name": "Biomimicry 3.8",
+      "category": "Cultural",
+      "x": -825,
+      "y": -69,
+      "isCustomPosition": true
+    },
+    {
+      "id": "137",
+      "name": "Pachamama Alliance",
+      "category": "Cultural",
+      "x": -917,
+      "y": -217,
+      "isCustomPosition": true
+    },
+    {
+      "id": "138",
+      "name": "Berkana Institute",
+      "category": "Cultural",
+      "x": -1151,
+      "y": -64,
+      "isCustomPosition": true
+    },
+    {
+      "id": "139",
+      "name": "nRhythm",
+      "continent": "22. Regenerative Education",
+      "category": "Cultural",
+      "x": -87,
+      "y": 998,
+      "isCustomPosition": true
+    },
+    {
+      "id": "140",
+      "name": "r3.0",
+      "continent": "22. Regenerative Education",
+      "category": "Cultural",
+      "x": -317,
+      "y": 601,
+      "isCustomPosition": true
+    },
+    {
+      "id": "141",
+      "name": "Indigenous Systems Knowledge Collective",
+      "category": "Cultural",
+      "x": -815,
+      "y": -84,
+      "isCustomPosition": true
+    },
+    {
+      "id": "142",
+      "name": "Collab Jovem",
+      "continent": "33. Youth Education",
+      "category": "Cultural",
+      "x": -1092,
+      "y": 322,
+      "isCustomPosition": true
+    },
+    {
+      "id": "143",
+      "name": "Sinal do Vale",
+      "category": "Systems",
+      "x": -1119,
+      "y": -178,
+      "isCustomPosition": true
+    },
+    {
+      "id": "144",
+      "name": "Ecobairro Brasil",
+      "category": "Cultural",
+      "x": -1086,
+      "y": -86,
+      "isCustomPosition": true
+    },
+    {
+      "id": "145",
+      "name": "Ilumina Brasil",
+      "continent": "21. Sociocultural Education",
+      "category": "Cultural",
+      "x": -1194,
+      "y": 1336,
+      "isCustomPosition": true
+    },
+    {
+      "id": "146",
+      "name": "Kilombo Tenondé",
+      "continent": "30. Grassroots Communities",
+      "category": "Social",
+      "x": 192,
+      "y": -74,
+      "isCustomPosition": true
+    },
+    {
+      "id": "147",
+      "name": "Tenondé Porã",
+      "continent": "30. Grassroots Communities",
+      "category": "Social",
+      "x": 64,
+      "y": -102,
+      "isCustomPosition": true
+    },
+    {
+      "id": "148",
+      "name": "Regenerosity",
+      "continent": "31. Philanthropy",
+      "category": "Systems",
+      "x": 1547,
+      "y": 95,
+      "isCustomPosition": true
+    },
+    {
+      "id": "149",
+      "name": "Deep Adaptation Forum",
+      "category": "Cultural",
+      "x": -904,
+      "y": -216,
+      "isCustomPosition": true
+    },
+    {
+      "id": "150",
+      "name": "Transition Network",
+      "continent": "24. Alternative Economics",
+      "category": "Systems",
+      "x": 875,
+      "y": 202,
+      "isCustomPosition": true
+    },
+    {
+      "id": "151",
+      "name": "Transition Brasil",
+      "continent": "24. Alternative Economics",
+      "category": "Systems",
+      "x": 717,
+      "y": 153,
+      "isCustomPosition": true
+    },
+    {
+      "id": "152",
+      "name": "Transition Granja Viana",
+      "category": "Systems",
+      "x": -1150,
+      "y": -119,
+      "isCustomPosition": true
+    },
+    {
+      "id": "153",
+      "name": "Preta Terra",
+      "category": "Systems",
+      "x": -815,
+      "y": -72,
+      "isCustomPosition": true
+    },
+    {
+      "id": "154",
+      "name": "Teia dos Povos",
+      "continent": "26. Indigenous Allyship",
+      "category": "Social",
+      "x": 680,
+      "y": 8,
+      "isCustomPosition": true
+    },
+    {
+      "id": "155",
+      "name": "Agente Muda",
+      "continent": "20. Leadership Education",
+      "category": "Cultural",
+      "x": 1316,
+      "y": -371,
+      "isCustomPosition": true
+    },
+    {
+      "id": "156",
+      "name": "Instituto Favela da Paz",
+      "continent": "30. Grassroots Communities",
+      "category": "Social",
+      "x": 316,
+      "y": -152,
+      "isCustomPosition": true
+    },
+    {
+      "id": "157",
+      "name": "Prosocial World",
+      "category": "Cultural",
+      "x": -967,
+      "y": -243,
+      "isCustomPosition": true
+    },
+    {
+      "id": "158",
+      "name": "The Human Project",
+      "continent": "30. Grassroots Communities",
+      "category": "Social",
+      "x": 372,
+      "y": -243,
+      "isCustomPosition": true
+    },
+    {
+      "id": "159",
+      "name": "Centro Popular de Cultura e Desenvolvimento (CPDC)",
+      "category": "Cultural",
+      "x": -1108,
+      "y": -88,
+      "isCustomPosition": true
+    },
+    {
+      "id": "160",
+      "name": "Instituto Brasileiro de Estudos e Apoio Comunitário (IBEAC)",
+      "continent": "30. Grassroots Communities",
+      "category": "Social",
+      "x": 390,
+      "y": -386,
+      "isCustomPosition": true
+    },
+    {
+      "id": "161",
+      "name": "Swaraj University",
+      "category": "Cultural",
+      "x": -826,
+      "y": -69,
+      "isCustomPosition": true
+    },
+    {
+      "id": "162",
+      "name": "Uni-Diversidade da Quebrada (UniKebradas)",
+      "continent": "30. Grassroots Communities",
+      "category": "Social",
+      "x": -175,
+      "y": 63,
+      "isCustomPosition": true
+    },
+    {
+      "id": "163",
+      "name": "Instituto Nova União da Arte (NUA)",
+      "category": "Cultural",
+      "x": -1152,
+      "y": -130,
+      "isCustomPosition": true
+    },
+    {
+      "id": "164",
+      "name": "Mulheres do GAU",
+      "category": "Cultural",
+      "x": -910,
+      "y": -51,
+      "isCustomPosition": true
+    },
+    {
+      "id": "165",
+      "name": "Escola Debaixo da Ponte",
+      "category": "Cultural",
+      "x": -955,
+      "y": -246,
+      "isCustomPosition": true
+    },
+    {
+      "id": "166",
+      "name": "Nibs",
+      "category": "Cultural",
+      "x": -1162,
+      "y": -67,
+      "isCustomPosition": true
+    },
+    {
+      "id": "167",
+      "name": "Futuro Possivel",
+      "category": "Cultural",
+      "x": -822,
+      "y": -85,
+      "isCustomPosition": true
+    },
+    {
+      "id": "168",
+      "name": "Purpy",
+      "continent": "32. Consultancies",
+      "category": "Social",
+      "x": 1046,
+      "y": -212,
+      "isCustomPosition": true
+    },
+    {
+      "id": "169",
+      "name": "IRIS Negócios Regenerativos",
+      "category": "Cultural",
+      "x": -1026,
+      "y": -250,
+      "isCustomPosition": true
+    },
+    {
+      "id": "170",
+      "name": "Rede Amazônidas pelo Clima (RAC)",
+      "category": "Inner",
+      "x": -1066,
+      "y": -104,
+      "isCustomPosition": true
+    },
+    {
+      "id": "171",
+      "name": "Instituto Amazon People",
+      "category": "Social",
+      "x": -825,
+      "y": -129,
+      "isCustomPosition": true
+    },
+    {
+      "id": "172",
+      "name": "Supernature Brasil",
+      "category": "Systems",
+      "x": -1167,
+      "y": -73,
+      "isCustomPosition": true
+    },
+    {
+      "id": "173",
+      "name": "Instituto de Biourbanismo do Brasil",
+      "category": "Inner",
+      "x": -876,
+      "y": -68,
+      "isCustomPosition": true
+    },
+    {
+      "id": "174",
+      "name": "BiodiversasLab",
+      "category": "Inner",
+      "x": -1015,
+      "y": -256,
+      "isCustomPosition": true
+    },
+    {
+      "id": "175",
+      "name": "Rede Biocêntrica pelos Princípios da Vida",
+      "category": "Inner",
+      "x": -1149,
+      "y": -69,
+      "isCustomPosition": true
+    },
+    {
+      "id": "176",
+      "name": "Biossplena Regeneração Urbana",
+      "category": "Inner",
+      "x": -817,
+      "y": -119,
+      "isCustomPosition": true
+    },
+    {
+      "id": "177",
+      "name": "[Cidades.co](http://cidades.co/)",
+      "category": "Inner",
+      "x": -1085,
+      "y": -234,
+      "isCustomPosition": true
+    },
+    {
+      "id": "178",
+      "name": "Mahta",
+      "category": "Inner",
+      "x": -893,
+      "y": -83,
+      "isCustomPosition": true
+    },
+    {
+      "id": "179",
+      "name": "Dengo Chocolates",
+      "category": "Systems",
+      "x": -871,
+      "y": -169,
+      "isCustomPosition": true
+    },
+    {
+      "id": "180",
+      "name": "The Nature Conservancy",
+      "category": "Inner",
+      "x": -1165,
+      "y": -82,
+      "isCustomPosition": true
+    },
+    {
+      "id": "181",
+      "name": "Rede Favela Sustentável",
+      "category": "Inner",
+      "x": -844,
+      "y": -67,
+      "isCustomPosition": true
+    },
+    {
+      "id": "182",
+      "name": "Navdanya International",
+      "category": "Inner",
+      "x": -1062,
+      "y": -214,
+      "isCustomPosition": true
+    },
+    {
+      "id": "183",
+      "name": "Instituto Perifa Sustentável",
+      "category": "Inner",
+      "x": -1148,
+      "y": -63,
+      "isCustomPosition": true
+    },
+    {
+      "id": "184",
+      "name": "Rizoma Agroflorestal",
+      "category": "Inner",
+      "x": -863,
+      "y": -162,
+      "isCustomPosition": true
+    },
+    {
+      "id": "185",
+      "name": "Regenerators",
+      "category": "Inner",
+      "x": -1113,
+      "y": -176,
+      "isCustomPosition": true
+    },
+    {
+      "id": "186",
+      "name": "Bioneers",
+      "category": "Inner",
+      "x": -821,
+      "y": -81,
+      "isCustomPosition": true
+    },
+    {
+      "id": "187",
+      "name": "Origens Brasil",
+      "category": "Inner",
+      "x": -907,
+      "y": -209,
+      "isCustomPosition": true
+    },
+    {
+      "id": "188",
+      "name": "Ecocentro BioEvoluir",
+      "category": "Inner",
+      "x": -1162,
+      "y": -82,
+      "isCustomPosition": true
+    },
+    {
+      "id": "189",
+      "name": "Humana Terra",
+      "category": "Inner",
+      "x": -825,
+      "y": -66,
+      "isCustomPosition": true
+    },
+    {
+      "id": "190",
+      "name": "Instituto Regenera",
+      "category": "Inner",
+      "x": -1108,
+      "y": -187,
+      "isCustomPosition": true
+    },
+    {
+      "id": "191",
+      "name": "MUDA Agroecologia",
+      "continent": "39. Regenerative Practice",
+      "category": "Systems",
+      "x": 460,
+      "y": 276,
+      "isCustomPosition": true
+    },
+    {
+      "id": "192",
+      "name": "Quebrada Orgânica",
+      "category": "Systems",
+      "x": -1131,
+      "y": -50,
+      "isCustomPosition": true
+    },
+    {
+      "id": "193",
+      "name": "Terra Luminous",
+      "category": "Systems",
+      "x": -896,
+      "y": -206,
+      "isCustomPosition": true
+    },
+    {
+      "id": "194",
+      "name": "Dois Rios Agrofloresta",
+      "category": "Systems",
+      "x": -1143,
+      "y": -130,
+      "isCustomPosition": true
+    },
+    {
+      "id": "195",
+      "name": "Bioinspirations",
+      "category": "Cultural",
+      "x": -828,
+      "y": -79,
+      "isCustomPosition": true
+    },
+    {
+      "id": "196",
+      "name": "Mapa da Terra",
+      "category": "Systems",
+      "x": -954,
+      "y": -236,
+      "isCustomPosition": true
+    },
+    {
+      "id": "197",
+      "name": "Bioconstrução Brasil",
+      "category": "Systems",
+      "x": -1156,
+      "y": -87,
+      "isCustomPosition": true
+    },
+    {
+      "id": "198",
+      "name": "Casa Botânica na Cidade",
+      "category": "Cultural",
+      "x": -832,
+      "y": -78,
+      "isCustomPosition": true
+    },
+    {
+      "id": "199",
+      "name": "Casa Planta",
+      "category": "Cultural",
+      "x": -1143,
+      "y": -141,
+      "isCustomPosition": true
+    },
+    {
+      "id": "200",
+      "name": "rede #permaperifa",
+      "category": "Systems",
+      "x": -1068,
+      "y": -101,
+      "isCustomPosition": true
+    },
+    {
+      "id": "201",
+      "name": "Rizomar",
+      "category": "Cultural",
+      "x": -944,
+      "y": -237,
+      "isCustomPosition": true
+    },
+    {
+      "id": "202",
+      "name": "Regenera Museu",
+      "category": "Cultural",
+      "x": -1156,
+      "y": -75,
+      "isCustomPosition": true
+    },
+    {
+      "id": "203",
+      "name": "Instituto Rios e Ruas",
+      "category": "Cultural",
+      "x": -830,
+      "y": -67,
+      "isCustomPosition": true
+    },
+    {
+      "id": "204",
+      "name": "Aldeia Segredo do Artesão",
+      "category": "Inner",
+      "x": -1011,
+      "y": -244,
+      "isCustomPosition": true
+    },
+    {
+      "id": "205",
+      "name": "Nii'kinaaganaa Foundation",
+      "category": "Cultural",
+      "x": -1068,
+      "y": -53,
+      "isCustomPosition": true
+    },
+    {
+      "id": "206",
+      "name": "Internal Family Systems Institute",
+      "continent": "15. Psychoterapeutic Modality",
+      "category": "Inner",
+      "x": -939,
+      "y": -886,
+      "isCustomPosition": true
+    },
+    {
+      "id": "207",
+      "name": "Aletheia Coaching",
+      "continent": "6. Developmental Practice",
+      "category": "Inner",
+      "x": -227,
+      "y": -517,
+      "isCustomPosition": true
+    },
+    {
+      "id": "208",
+      "name": "Compassionate Inquiry",
+      "continent": "6. Developmental Practice",
+      "category": "Cultural",
+      "x": -380,
+      "y": -568,
+      "isCustomPosition": true
+    },
+    {
+      "id": "209",
+      "name": "Compassion Institute",
+      "continent": "6. Developmental Practice",
+      "category": "Inner",
+      "x": -343,
+      "y": -460,
+      "isCustomPosition": true
+    },
+    {
+      "id": "210",
+      "name": "Circling Institute",
+      "continent": "14. Relational Education",
+      "category": "Cultural",
+      "x": -1525,
+      "y": 341,
+      "isCustomPosition": true
+    },
+    {
+      "id": "211",
+      "name": "Authentic Relating",
+      "continent": "14. Relational Education",
+      "category": "Cultural",
+      "x": -1392,
+      "y": 416,
+      "isCustomPosition": true
+    },
+    {
+      "id": "212",
+      "name": "Insight Dialogue",
+      "continent": "14. Relational Education",
+      "category": "Cultural",
+      "x": -1468,
+      "y": 219,
+      "isCustomPosition": true
+    },
+    {
+      "id": "213",
+      "name": "Transformational Connection",
+      "continent": "14. Relational Education",
+      "category": "Cultural",
+      "x": -1281,
+      "y": 157,
+      "isCustomPosition": true
+    },
+    {
+      "id": "214",
+      "name": "Instituto Música do Círculo",
+      "continent": "14. Relational Education",
+      "category": "Cultural",
+      "x": -1259,
+      "y": 352,
+      "isCustomPosition": true
+    },
+    {
+      "id": "215",
+      "name": "The Center for Compassion and Altruism Research and Education (CCARE at Stanford University)",
+      "continent": "4. Contemplative Education",
+      "category": "Inner",
+      "x": -585,
+      "y": -490,
+      "isCustomPosition": true
+    },
+    {
+      "id": "216",
+      "name": "Animas Valley",
+      "continent": "9. Depth Psychological Education",
+      "category": "Inner",
+      "x": -1099,
+      "y": -476,
+      "isCustomPosition": true
+    },
+    {
+      "id": "217",
+      "name": "The Men Kind Project",
+      "category": "Cultural",
+      "x": -1000,
+      "y": -249,
+      "isCustomPosition": true
+    },
+    {
+      "id": "218",
+      "name": "All Kings",
+      "category": "Cultural",
+      "x": -1156,
+      "y": -73,
+      "isCustomPosition": true
+    },
+    {
+      "id": "219",
+      "name": "Rites of Passage Institute",
+      "category": "Inner",
+      "x": -823,
+      "y": -103,
+      "isCustomPosition": true
+    },
+    {
+      "id": "220",
+      "name": "Thrive Network",
+      "category": "Inner",
+      "x": -1068,
+      "y": -233,
+      "isCustomPosition": true
+    },
+    {
+      "id": "221",
+      "name": "Instituto Arapoty",
+      "continent": "54. Indigenous-led Spiritual Communities & Networks",
+      "category": "Inner",
+      "x": -1572,
+      "y": -926,
+      "isCustomPosition": true
+    },
+    {
+      "id": "222",
+      "name": "Center for World Philosophy and Religion",
+      "continent": "1. Wisdom Traditions",
+      "category": "Inner",
+      "x": -1309,
+      "y": -49,
+      "isCustomPosition": true
+    },
+    {
+      "id": "223",
+      "name": "Unique Self Institute",
+      "continent": "2. Spiritual Lineage",
+      "category": "Inner",
+      "x": -564,
+      "y": -217,
+      "isCustomPosition": true
+    },
+    {
+      "id": "224",
+      "name": "Plum Village",
+      "continent": "1. Wisdom Traditions",
+      "category": "Inner",
+      "x": -1458,
+      "y": -119,
+      "isCustomPosition": true
+    },
+    {
+      "id": "225",
+      "name": "Monastic Academy",
+      "continent": "1. Wisdom Traditions",
+      "category": "Inner",
+      "x": -1350,
+      "y": -187,
+      "isCustomPosition": true
+    },
+    {
+      "id": "226",
+      "name": "Planetary Dharma",
+      "continent": "2. Spiritual Lineage",
+      "category": "Inner",
+      "x": -545,
+      "y": -139,
+      "isCustomPosition": true
+    },
+    {
+      "id": "227",
+      "name": "Hermes Amāra Foundation (HAF)",
+      "continent": "2. Spiritual Lineage",
+      "category": "Inner",
+      "x": -670,
+      "y": -100,
+      "isCustomPosition": true
+    },
+    {
+      "id": "228",
+      "name": "O Lugar",
+      "continent": "16. Community of Practice",
+      "category": "Inner",
+      "x": -373,
+      "y": 72,
+      "isCustomPosition": true
+    },
+    {
+      "id": "229",
+      "name": "Terreiro Aruanda",
+      "continent": "16. Community of Practice",
+      "category": "Inner",
+      "x": -480,
+      "y": 130,
+      "isCustomPosition": true
+    },
+    {
+      "id": "230",
+      "name": "CEBB São Paulo",
+      "continent": "1. Wisdom Traditions",
+      "category": "Inner",
+      "x": -1210,
+      "y": -147,
+      "isCustomPosition": true
+    },
+    {
+      "id": "231",
+      "name": "One Earth Sangha",
+      "category": "Inner",
+      "x": -1106,
+      "y": -446,
+      "isCustomPosition": true
+    },
+    {
+      "id": "232",
+      "name": "Paróquia São Miguel Arcanjo",
+      "category": "Inner",
+      "x": -908,
+      "y": -60,
+      "isCustomPosition": true
+    },
+    {
+      "id": "233",
+      "name": "Chagdud Gonpa Odsal Ling",
+      "continent": "1. Wisdom Traditions",
+      "category": "Inner",
+      "x": -1116,
+      "y": -218,
+      "isCustomPosition": true
+    },
+    {
+      "id": "234",
+      "name": "Vipassana Meditation",
+      "continent": "1. Wisdom Traditions",
+      "category": "Inner",
+      "x": -1502,
+      "y": -227,
+      "isCustomPosition": true
+    },
+    {
+      "id": "235",
+      "name": "Foundation for Conscious Evolution",
+      "category": "Inner",
+      "x": -845,
+      "y": -170,
+      "isCustomPosition": true
+    },
+    {
+      "id": "236",
+      "name": "Flow Genome Project",
+      "continent": "8. Integral Education",
+      "category": "Inner",
+      "x": -419,
+      "y": -179,
+      "isCustomPosition": true
+    },
+    {
+      "id": "237",
+      "name": "Grof Transpersonal Training",
+      "category": "Inner",
+      "x": -1156,
+      "y": -83,
+      "isCustomPosition": true
+    },
+    {
+      "id": "238",
+      "name": "Integral Life",
+      "continent": "8. Integral Education",
+      "category": "Inner",
+      "x": -288,
+      "y": -333,
+      "isCustomPosition": true
+    },
+    {
+      "id": "239",
+      "name": "Wim Hof Method",
+      "category": "Inner",
+      "x": -838,
+      "y": -78,
+      "isCustomPosition": true
+    },
+    {
+      "id": "240",
+      "name": "Mosaic Multicultural Foundation",
+      "continent": "9. Depth Psychological Education",
+      "category": "Inner",
+      "x": -1202,
+      "y": -422,
+      "isCustomPosition": true
+    },
+    {
+      "id": "241",
+      "name": "Esalen Institute",
+      "category": "Inner",
+      "x": -1053,
+      "y": -237,
+      "isCustomPosition": true
+    },
+    {
+      "id": "242",
+      "name": "Sourcekeepers Guild",
+      "continent": "16. Community of Practice",
+      "category": "Inner",
+      "x": -468,
+      "y": 39,
+      "isCustomPosition": true
+    },
+    {
+      "id": "243",
+      "name": "Escola do Fluxo",
+      "category": "Inner",
+      "x": -1151,
+      "y": -73,
+      "isCustomPosition": true
+    },
+    {
+      "id": "244",
+      "name": "Escola de Virtudes",
+      "category": "Inner",
+      "x": -837,
+      "y": -161,
+      "isCustomPosition": true
+    },
+    {
+      "id": "245",
+      "name": "Pacific Integral",
+      "continent": "6. Developmental Practice",
+      "category": "Inner",
+      "x": -267,
+      "y": -628,
+      "isCustomPosition": true
+    },
+    {
+      "id": "246",
+      "name": "Voicecraft",
+      "category": "Inner",
+      "x": -818,
+      "y": -62,
+      "isCustomPosition": true
+    },
+    {
+      "id": "247",
+      "name": "HearthMath Institute",
+      "category": "Inner",
+      "x": -882,
+      "y": -219,
+      "isCustomPosition": true
+    },
+    {
+      "id": "248",
+      "name": "Wisdom Waypoints",
+      "category": "Inner",
+      "x": -1490,
+      "y": -211,
+      "isCustomPosition": true
+    },
+    {
+      "id": "249",
+      "name": "Center for Action and Contemplation (CAC)",
+      "category": "Inner",
+      "x": -598,
+      "y": -120,
+      "isCustomPosition": true
+    },
+    {
+      "id": "250",
+      "name": "Academy of Inner Science",
+      "continent": "6. Developmental Practice",
+      "category": "Inner",
+      "x": -478,
+      "y": -536,
+      "isCustomPosition": true
+    },
+    {
+      "id": "251",
+      "name": "Ubiquity University",
+      "category": "Inner",
+      "x": -879,
+      "y": -630,
+      "isCustomPosition": true
+    },
+    {
+      "id": "252",
+      "name": "Mind & Life Institute",
+      "continent": "4. Contemplative Education",
+      "category": "Inner",
+      "x": -753,
+      "y": -531,
+      "isCustomPosition": true
+    },
+    {
+      "id": "253",
+      "name": "Articulação Brasileira de Indígenas Psicólogos(as) - ABIPSI",
+      "category": "Inner",
+      "x": -843,
+      "y": -74,
+      "isCustomPosition": true
+    },
+    {
+      "id": "254",
+      "name": "Rûnûã Nítí",
+      "category": "Inner",
+      "x": -1113,
+      "y": -211,
+      "isCustomPosition": true
+    },
+    {
+      "id": "255",
+      "name": "Festival Indígena União dos Povos (FIUP)",
+      "category": "Inner",
+      "x": -1146,
+      "y": -80,
+      "isCustomPosition": true
+    },
+    {
+      "id": "256",
+      "name": "Xamanismo Universal",
+      "category": "Inner",
+      "x": -893,
+      "y": -190,
+      "isCustomPosition": true
+    },
+    {
+      "id": "257",
+      "name": "Xamanismo Sete Raios",
+      "category": "Inner",
+      "x": -1128,
+      "y": -138,
+      "isCustomPosition": true
+    },
+    {
+      "id": "258",
+      "name": "Casa Akueran",
+      "category": "Inner",
+      "x": -816,
+      "y": -64,
+      "isCustomPosition": true
+    },
+    {
+      "id": "259",
+      "name": "Templo Xamânico 7 Flechas",
+      "category": "Inner",
+      "x": -945,
+      "y": -222,
+      "isCustomPosition": true
+    },
+    {
+      "id": "260",
+      "name": "AYA Música Medicina",
+      "category": "Inner",
+      "x": -1167,
+      "y": -73,
+      "isCustomPosition": true
+    },
+    {
+      "id": "261",
+      "name": "Possibility Management",
+      "category": "Inner",
+      "x": -814,
+      "y": -73,
+      "isCustomPosition": true
+    },
+    {
+      "id": "262",
+      "name": "Corvo Seco",
+      "category": "Cultural",
+      "x": -1126,
+      "y": -149,
+      "isCustomPosition": true
+    },
+    {
+      "id": "263",
+      "name": "Trabalho que Reconecta",
+      "continent": "12. Deep Ecology Education",
+      "category": "Inner",
+      "x": -914,
+      "y": 241,
+      "isCustomPosition": true
+    },
+    {
+      "id": "264",
+      "name": "Advaya",
+      "category": "Inner",
+      "x": -1065,
+      "y": -57,
+      "isCustomPosition": true
+    },
+    {
+      "id": "265",
+      "name": "Wisdom Keepers",
+      "category": "Inner",
+      "x": -1562,
+      "y": -57,
+      "isCustomPosition": true
+    },
+    {
+      "id": "266",
+      "name": "Lama Rod Owens",
+      "continent": "1. Wisdom Traditions",
+      "category": "Inner",
+      "x": -1242,
+      "y": -270,
+      "isCustomPosition": true
+    },
+    {
+      "id": "267",
+      "name": "The Mythic Body",
+      "category": "Inner",
+      "x": -822,
+      "y": -504,
+      "isCustomPosition": true
+    },
+    {
+      "id": "268",
+      "name": "Othering & Belonging Institute",
+      "category": "Inner",
+      "x": -935,
+      "y": -220,
+      "isCustomPosition": true
+    },
+    {
+      "id": "271",
+      "name": "Center for Contemplative Research",
+      "continent": "4. Contemplative Education",
+      "category": "Inner",
+      "x": -929,
+      "y": -413,
+      "isCustomPosition": true
+    },
+    {
+      "id": "270",
+      "name": "Science and Nonduality",
+      "category": "Inner",
+      "x": -1144,
+      "y": -89,
+      "isCustomPosition": true
+    },
+    {
+      "id": "271_2",
+      "name": "Illuminated Courses & Tours",
+      "category": "Inner",
+      "x": -929,
+      "y": -393,
+      "isCustomPosition": true
+    },
+    {
+      "id": "272",
+      "name": "Aldeia da Vida",
+      "category": "Inner",
+      "x": -997,
+      "y": -233,
+      "isCustomPosition": true
+    },
+    {
+      "id": "275",
+      "name": "RegenIntel",
+      "continent": "22. Regenerative Education",
+      "category": "Cultural",
+      "x": -197,
+      "y": 640,
+      "isCustomPosition": true
+    },
+    {
+      "id": "274",
+      "name": "Project Drawdown",
+      "category": "Systems",
+      "x": -1078,
+      "y": -55,
+      "isCustomPosition": true
+    },
+    {
+      "id": "275_2",
+      "name": "Warm Data Lab",
+      "continent": "44. Complex Systems Education",
+      "category": "Systems",
+      "x": 298,
+      "y": 1006,
+      "isCustomPosition": true
+    },
+    {
+      "id": "276",
+      "name": "Capra Course",
+      "category": "Systems",
+      "x": -839,
+      "y": -98,
+      "isCustomPosition": true
+    },
+    {
+      "id": "277",
+      "name": "Dark Matter Labs",
+      "continent": "46. Civic Infrastructure",
+      "category": "Systems",
+      "x": 369,
+      "y": 788,
+      "isCustomPosition": true
+    },
+    {
+      "id": "280",
+      "name": "Culture Hack Labs",
+      "continent": "47. Narrative Change",
+      "category": "Systems",
+      "x": -27,
+      "y": 1151,
+      "isCustomPosition": true
+    },
+    {
+      "id": "279",
+      "name": "Civilization Research Institute (CRI)",
+      "continent": "19. Metacrisis Research & Education",
+      "category": "Systems",
+      "x": 69,
+      "y": 503,
+      "isCustomPosition": true
+    },
+    {
+      "id": "280_2",
+      "name": "The Cynefin Company",
+      "continent": "44. Complex Systems Education",
+      "category": "Systems",
+      "x": 247,
+      "y": 1208,
+      "isCustomPosition": true
+    },
+    {
+      "id": "281",
+      "name": "Associação Internacional de Metadesign",
+      "continent": "44. Complex Systems Education",
+      "category": "Social",
+      "x": 284,
+      "y": 1097,
+      "isCustomPosition": true
+    },
+    {
+      "id": "282",
+      "name": "Mútua Systems",
+      "continent": "48. Systemic Investing",
+      "category": "Systems",
+      "x": 1443,
+      "y": 386,
+      "isCustomPosition": true
+    },
+    {
+      "id": "283",
+      "name": "Buckminster Fuller Institute",
+      "continent": "44. Complex Systems Education",
+      "category": "Systems",
+      "x": 105,
+      "y": 1248,
+      "isCustomPosition": true
+    },
+    {
+      "id": "284",
+      "name": "Social Presencing Theatre",
+      "category": "Systems",
+      "x": -1145,
+      "y": -99,
+      "isCustomPosition": true
+    },
+    {
+      "id": "285",
+      "name": "Center for Systems Awareness",
+      "category": "Systems",
+      "x": -906,
+      "y": -59,
+      "isCustomPosition": true
+    },
+    {
+      "id": "286",
+      "name": "School of System Change",
+      "category": "Systems",
+      "x": -986,
+      "y": -235,
+      "isCustomPosition": true
+    },
+    {
+      "id": "287",
+      "name": "Academy for Systems Change",
+      "category": "Systems",
+      "x": -1141,
+      "y": -69,
+      "isCustomPosition": true
+    },
+    {
+      "id": "288",
+      "name": "Santa Fe Institute",
+      "category": "Systems",
+      "x": -836,
+      "y": -88,
+      "isCustomPosition": true
+    },
+    {
+      "id": "289",
+      "name": "Human Systems Dynamics Institute",
+      "category": "Systems",
+      "x": -1044,
+      "y": -227,
+      "isCustomPosition": true
+    },
+    {
+      "id": "292",
+      "name": "Center for Humane Technology",
+      "continent": "23. Ethical Technology Education",
+      "category": "Systems",
+      "x": 179,
+      "y": -223,
+      "isCustomPosition": true
+    },
+    {
+      "id": "293",
+      "name": "Meaning Alignment Institute",
+      "continent": "19. Metacrisis Research & Education",
+      "category": "Cultural",
+      "x": 132,
+      "y": 303,
+      "isCustomPosition": true
+    },
+    {
+      "id": "292_2",
+      "name": "OpenCivics",
+      "continent": "35. Civic Organization",
+      "category": "Systems",
+      "x": 143,
+      "y": 813,
+      "isCustomPosition": true
+    },
+    {
+      "id": "293_2",
+      "name": "Commons Stack",
+      "continent": "52. Regenerative Technology Design & Development",
+      "category": "Systems",
+      "x": 812,
+      "y": 576,
+      "isCustomPosition": true
+    },
+    {
+      "id": "294",
+      "name": "New_Public",
+      "category": "Systems",
+      "x": -917,
+      "y": -68,
+      "isCustomPosition": true
+    },
+    {
+      "id": "295",
+      "name": "Regen Network",
+      "continent": "53. Regenerative Coordination",
+      "category": "Systems",
+      "x": 395,
+      "y": 565,
+      "isCustomPosition": true
+    },
+    {
+      "id": "298",
+      "name": "Regen Foundation",
+      "continent": "53. Regenerative Coordination",
+      "category": "Systems",
+      "x": 368,
+      "y": 475,
+      "isCustomPosition": true
+    },
+    {
+      "id": "297",
+      "name": "The Seva Institute",
+      "continent": "22. Regenerative Education",
+      "category": "Cultural",
+      "x": -592,
+      "y": 519,
+      "isCustomPosition": true
+    },
+    {
+      "id": "298_2",
+      "name": "Basin Collective",
+      "continent": "48. Systemic Investing",
+      "category": "Systems",
+      "x": 1280,
+      "y": 422,
+      "isCustomPosition": true
+    },
+    {
+      "id": "299",
+      "name": "Twist: Investing for Systems Change",
+      "continent": "48. Systemic Investing",
+      "category": "Systems",
+      "x": 1372,
+      "y": 473,
+      "isCustomPosition": true
+    },
+    {
+      "id": "300",
+      "name": "Transcap Initiative",
+      "continent": "48. Systemic Investing",
+      "category": "Systems",
+      "x": 1335,
+      "y": 362,
+      "isCustomPosition": true
+    },
+    {
+      "id": "301",
+      "name": "Collaborative Technology Alliance",
+      "continent": "52. Regenerative Technology Design & Development",
+      "category": "Systems",
+      "x": 789,
+      "y": 454,
+      "isCustomPosition": true
+    },
+    {
+      "id": "302",
+      "name": "The Regenerative Technology Project",
+      "continent": "52. Regenerative Technology Design & Development",
+      "category": "Systems",
+      "x": 628,
+      "y": 493,
+      "isCustomPosition": true
+    },
+    {
+      "id": "303",
+      "name": "The BioFi Project",
+      "continent": "53. Regenerative Coordination",
+      "category": "Systems",
+      "x": 256,
+      "y": 610,
+      "isCustomPosition": true
+    },
+    {
+      "id": "304",
+      "name": "Bioregional Weaving Labs",
+      "continent": "53. Regenerative Coordination",
+      "category": "Systems",
+      "x": 271,
+      "y": 519,
+      "isCustomPosition": true
+    },
+    {
+      "id": "305",
+      "name": "Holochain",
+      "continent": "52. Regenerative Technology Design & Development",
+      "category": "Systems",
+      "x": 657,
+      "y": 594,
+      "isCustomPosition": true
+    },
+    {
+      "id": "306",
+      "name": "Hylo",
+      "category": "Systems",
+      "x": -852,
+      "y": -152,
+      "isCustomPosition": true
+    },
+    {
+      "id": "307",
+      "name": "Catalist Network",
+      "continent": "52. Regenerative Technology Design & Development",
+      "category": "Systems",
+      "x": 735,
+      "y": 703,
+      "isCustomPosition": true
+    },
+    {
+      "id": "310",
+      "name": "Emerge Lakefront",
+      "continent": "8. Integral Education",
+      "category": "Inner",
+      "x": -83,
+      "y": -234,
+      "isCustomPosition": true
+    },
+    {
+      "id": "309",
+      "name": "Gesturing Towards Decolonial Futures Collective (GTDF)",
+      "continent": "28. Decolonial Education",
+      "category": "Cultural",
+      "x": -299,
+      "y": 894,
+      "isCustomPosition": true
+    },
+    {
+      "id": "310_2",
+      "name": "POSSIBLE FUTURES Collective",
+      "continent": "28. Decolonial Education",
+      "category": "Cultural",
+      "x": -666,
+      "y": 813,
+      "isCustomPosition": true
+    },
+    {
+      "id": "311",
+      "name": "Terra Adentro",
+      "continent": "28. Decolonial Education",
+      "category": "Cultural",
+      "x": -139,
+      "y": 782,
+      "isCustomPosition": true
+    },
+    {
+      "id": "312",
+      "name": "Teia das 5 Curas",
+      "continent": "27. Indigenous Education",
+      "category": "Inner",
+      "x": -1106,
+      "y": -17,
+      "isCustomPosition": true
+    },
+    {
+      "id": "313",
+      "name": "Universidade da Floresta",
+      "category": "Inner",
+      "x": -1147,
+      "y": -75,
+      "isCustomPosition": true
+    },
+    {
+      "id": "314",
+      "name": "Umma Hub",
+      "category": "Cultural",
+      "x": -840,
+      "y": -62,
+      "isCustomPosition": true
+    },
+    {
+      "id": "317",
+      "name": "Ciclo Selvagem",
+      "continent": "28. Decolonial Education",
+      "category": "Cultural",
+      "x": -547,
+      "y": 780,
+      "isCustomPosition": true
+    },
+    {
+      "id": "318",
+      "name": "Mahin Consultoria Antirracista",
+      "continent": "28. Decolonial Education",
+      "category": "Cultural",
+      "x": -522,
+      "y": 944,
+      "isCustomPosition": true
+    },
+    {
+      "id": "317_2",
+      "name": "South Feminist Futures",
+      "category": "Inner",
+      "x": -480,
+      "y": 781,
+      "isCustomPosition": true
+    },
+    {
+      "id": "318_2",
+      "name": "Ecoversities Alliance",
+      "continent": "28. Decolonial Education",
+      "category": "Cultural",
+      "x": -248,
+      "y": 975,
+      "isCustomPosition": true
+    },
+    {
+      "id": "321",
+      "name": "The Emergence Network (ten)",
+      "continent": "28. Decolonial Education",
+      "category": "Cultural",
+      "x": -151,
+      "y": 892,
+      "isCustomPosition": true
+    },
+    {
+      "id": "322",
+      "name": "Presencing Institute",
+      "continent": "44. Complex Systems Education",
+      "category": "Cultural",
+      "x": 151,
+      "y": 1013,
+      "isCustomPosition": true
+    },
+    {
+      "id": "321_2",
+      "name": "CryptoRave",
+      "category": "Systems",
+      "x": -128,
+      "y": 899,
+      "isCustomPosition": true
+    },
+    {
+      "id": "322_2",
+      "name": "Fluxonomia 4D",
+      "category": "Cultural",
+      "x": 151,
+      "y": 1013,
+      "isCustomPosition": true
+    },
+    {
+      "id": "323",
+      "name": "Rise Life-Centered Investments",
+      "category": "Social",
+      "x": -825,
+      "y": -74,
+      "isCustomPosition": true
+    },
+    {
+      "id": "324",
+      "name": "Din4mo",
+      "category": "Inner",
+      "x": -882,
+      "y": -197,
+      "isCustomPosition": true
+    },
+    {
+      "id": "325",
+      "name": "REconomy Brasil",
+      "category": "Cultural",
+      "x": -1157,
+      "y": -84,
+      "isCustomPosition": true
+    },
+    {
+      "id": "326",
+      "name": "Regen Tribe",
+      "category": "Inner",
+      "x": -837,
+      "y": -79,
+      "isCustomPosition": true
+    },
+    {
+      "id": "327",
+      "name": "Muda Outras Economias",
+      "category": "Social",
+      "x": -1092,
+      "y": -208,
+      "isCustomPosition": true
+    },
+    {
+      "id": "330",
+      "name": "Learning2Unlearn",
+      "continent": "28. Decolonial Education",
+      "category": "Cultural",
+      "x": -427,
+      "y": 806,
+      "isCustomPosition": true
+    },
+    {
+      "id": "331",
+      "name": "P2P Foundation",
+      "continent": "52. Regenerative Technology Design & Development",
+      "category": "Systems",
+      "x": 887,
+      "y": 664,
+      "isCustomPosition": true
+    },
+    {
+      "id": "330_2",
+      "name": "Be The Earth",
+      "continent": "31. Philanthropy",
+      "category": "Cultural",
+      "x": 1352,
+      "y": 63,
+      "isCustomPosition": true
+    },
+    {
+      "id": "331_2",
+      "name": "Instituto Pindorama",
+      "category": "Inner",
+      "x": 846,
+      "y": 671,
+      "isCustomPosition": true
+    },
+    {
+      "id": "332",
+      "name": "Epstemia",
+      "category": "Cultural",
+      "x": -873,
+      "y": -192,
+      "isCustomPosition": true
+    },
+    {
+      "id": "333",
+      "name": "[Actualized.org](http://actualized.org/)",
+      "category": "Inner",
+      "x": -1136,
+      "y": -156,
+      "isCustomPosition": true
+    },
+    {
+      "id": "334",
+      "name": "Auravana Project",
+      "category": "Systems",
+      "x": -843,
+      "y": -74,
+      "isCustomPosition": true
+    },
+    {
+      "id": "335",
+      "name": "Zebras Unite",
+      "category": "Inner",
+      "x": -928,
+      "y": -231,
+      "isCustomPosition": true
+    },
+    {
+      "id": "336",
+      "name": "GCED Clearinghouse",
+      "category": "Inner",
+      "x": -1140,
+      "y": -84,
+      "isCustomPosition": true
+    },
+    {
+      "id": "337",
+      "name": "Our Canada project",
+      "category": "Inner",
+      "x": -834,
+      "y": -75,
+      "isCustomPosition": true
+    },
+    {
+      "id": "338",
+      "name": "Resources for Rethinking (R4R)",
+      "category": "Inner",
+      "x": -1133,
+      "y": -168,
+      "isCustomPosition": true
+    },
+    {
+      "id": "339",
+      "name": "Learning for sustainable future (LSR)",
+      "category": "Inner",
+      "x": -1093,
+      "y": -88,
+      "isCustomPosition": true
+    },
+    {
+      "id": "340",
+      "name": "Story of stuff project",
+      "category": "Inner",
+      "x": -917,
+      "y": -229,
+      "isCustomPosition": true
+    },
+    {
+      "id": "341",
+      "name": "DEEEP Project",
+      "category": "Inner",
+      "x": -1158,
+      "y": -103,
+      "isCustomPosition": true
+    },
+    {
+      "id": "342",
+      "name": "Global Footprint Network",
+      "category": "Cultural",
+      "x": -836,
+      "y": -72,
+      "isCustomPosition": true
+    },
+    {
+      "id": "343",
+      "name": "Slavery Footprint",
+      "category": "Cultural",
+      "x": -983,
+      "y": -247,
+      "isCustomPosition": true
+    },
+    {
+      "id": "344",
+      "name": "350 project",
+      "category": "Inner",
+      "x": -1123,
+      "y": -85,
+      "isCustomPosition": true
+    },
+    {
+      "id": "345",
+      "name": "Youth White Paper on Global Citizenship",
+      "category": "Inner",
+      "x": -466,
+      "y": -173,
+      "isCustomPosition": true
+    },
+    {
+      "id": "346",
+      "name": "Leap Manifesto",
+      "category": "Inner",
+      "x": -822,
+      "y": -86,
+      "isCustomPosition": true
+    },
+    {
+      "id": "347",
+      "name": "The Rules",
+      "category": "Inner",
+      "x": -1158,
+      "y": -114,
+      "isCustomPosition": true
+    },
+    {
+      "id": "348",
+      "name": "There you go!",
+      "category": "Inner",
+      "x": -920,
+      "y": -61,
+      "isCustomPosition": true
+    },
+    {
+      "id": "349",
+      "name": "La Via Campesina",
+      "category": "Inner",
+      "x": -972,
+      "y": -250,
+      "isCustomPosition": true
+    },
+    {
+      "id": "350",
+      "name": "Smart CSOs",
+      "category": "Inner",
+      "x": -1158,
+      "y": -75,
+      "isCustomPosition": true
+    },
+    {
+      "id": "351",
+      "name": "GlobalPOV project",
+      "category": "Inner",
+      "x": -821,
+      "y": -75,
+      "isCustomPosition": true
+    },
+    {
+      "id": "352",
+      "name": "Shikshantar Institute",
+      "category": "Inner",
+      "x": -1042,
+      "y": -244,
+      "isCustomPosition": true
+    },
+    {
+      "id": "353",
+      "name": "EarthCARE framework",
+      "category": "Inner",
+      "x": -920,
+      "y": -61,
+      "isCustomPosition": true
+    },
+    {
+      "id": "354",
+      "name": "Unitierra",
+      "category": "Inner",
+      "x": -840,
+      "y": -146,
+      "isCustomPosition": true
+    },
+    {
+      "id": "355",
+      "name": "Dark Mountain Project",
+      "category": "Inner",
+      "x": -1163,
+      "y": -74,
+      "isCustomPosition": true
+    },
+    {
+      "id": "356",
+      "name": "Parallax",
+      "continent": "47. Audiovisual Education",
+      "category": "Cultural",
+      "x": -444,
+      "y": 2078,
+      "isCustomPosition": true
+    },
+    {
+      "id": "357",
+      "name": "Future Thinkers",
+      "category": "Cultural",
+      "x": -817,
+      "y": -69,
+      "isCustomPosition": true
+    },
+    {
+      "id": "358",
+      "name": "The International Bateson Institute",
+      "category": "Systems",
+      "x": -1032,
+      "y": -250,
+      "isCustomPosition": true
+    },
+    {
+      "id": "359",
+      "name": "Institute for Developmental Philosophy",
+      "category": "Inner",
+      "x": -766,
+      "y": -690,
+      "isCustomPosition": true
+    },
+    {
+      "id": "360",
+      "name": "Eudaimonia Institute",
+      "category": "Inner",
+      "x": -1140,
+      "y": -73,
+      "isCustomPosition": true
+    },
+    {
+      "id": "361",
+      "name": "UTOK Society",
+      "category": "Cultural",
+      "x": -828,
+      "y": -137,
+      "isCustomPosition": true
+    },
+    {
+      "id": "364",
+      "name": "MetaIntegral",
+      "continent": "32. Consultancies",
+      "category": "Social",
+      "x": 970,
+      "y": -336,
+      "isCustomPosition": true
+    },
+    {
+      "id": "363",
+      "name": "Nordic Bildung",
+      "category": "Cultural",
+      "x": -1098,
+      "y": -219,
+      "isCustomPosition": true
+    },
+    {
+      "id": "364_2",
+      "name": "Sky Meadow Institute",
+      "category": "Cultural",
+      "x": 970,
+      "y": -336,
+      "isCustomPosition": true
+    },
+    {
+      "id": "365",
+      "name": "Deep Transformation Network",
+      "category": "Cultural",
+      "x": -853,
+      "y": 154,
+      "isCustomPosition": true
+    },
+    {
+      "id": "366",
+      "name": "Moral Imaginations",
+      "category": "Cultural",
+      "x": -1147,
+      "y": -78,
+      "isCustomPosition": true
+    },
+    {
+      "id": "367",
+      "name": "Grande Assembleia do Povo Guarani e Kaiowá (Aty Guasu)",
+      "category": "Social",
+      "x": -834,
+      "y": -68,
+      "isCustomPosition": true
+    },
+    {
+      "id": "368",
+      "name": "DACOR",
+      "category": "Inner",
+      "x": -1076,
+      "y": -202,
+      "isCustomPosition": true
+    },
+    {
+      "id": "369",
+      "name": "Fundo Casa Socioambiental",
+      "category": "Inner",
+      "x": -1154,
+      "y": -73,
+      "isCustomPosition": true
+    },
+    {
+      "id": "370",
+      "name": "Rede Comuá",
+      "category": "Inner",
+      "x": -853,
+      "y": -190,
+      "isCustomPosition": true
+    },
+    {
+      "id": "371",
+      "name": "Associação Terra Indígena Xingu",
+      "category": "Social",
+      "x": -1141,
+      "y": -176,
+      "isCustomPosition": true
+    },
+    {
+      "id": "372",
+      "name": "Legisla Brasil",
+      "category": "Inner",
+      "x": -843,
+      "y": -79,
+      "isCustomPosition": true
+    },
+    {
+      "id": "373",
+      "name": "Articulação dos Povos Indígenas da Região Sul (ARPINSUL)",
+      "category": "Social",
+      "x": -908,
+      "y": -238,
+      "isCustomPosition": true
+    },
+    {
+      "id": "374",
+      "name": "QUID",
+      "category": "Inner",
+      "x": -1169,
+      "y": -64,
+      "isCustomPosition": true
+    },
+    {
+      "id": "375",
+      "name": "Observatório da Branquitude",
+      "category": "Inner",
+      "x": -826,
+      "y": -78,
+      "isCustomPosition": true
+    },
+    {
+      "id": "376",
+      "name": "CEDEPNA (Centro de Estudos e Defesa do Negro do Pará)",
+      "category": "Inner",
+      "x": -1136,
+      "y": -187,
+      "isCustomPosition": true
+    },
+    {
+      "id": "377",
+      "name": "Instituto Incube",
+      "category": "Inner",
+      "x": -1140,
+      "y": -74,
+      "isCustomPosition": true
+    },
+    {
+      "id": "378",
+      "name": "FOIRN (Federação das Organizações Indígenas\ndo Rio Negro)",
+      "category": "Inner",
+      "x": -915,
+      "y": -207,
+      "isCustomPosition": true
+    },
+    {
+      "id": "379",
+      "name": "Todos Pela Educação",
+      "category": "Inner",
+      "x": -1137,
+      "y": -112,
+      "isCustomPosition": true
+    },
+    {
+      "id": "380",
+      "name": "Porticus",
+      "category": "Inner",
+      "x": -830,
+      "y": -76,
+      "isCustomPosition": true
+    },
+    {
+      "id": "381",
+      "name": "ISER (Instituto de Estudos da Religião)",
+      "category": "Inner",
+      "x": -971,
+      "y": -228,
+      "isCustomPosition": true
+    },
+    {
+      "id": "382",
+      "name": "Geledés",
+      "category": "Inner",
+      "x": -1140,
+      "y": -70,
+      "isCustomPosition": true
+    },
+    {
+      "id": "383",
+      "name": "Coordenação das Organizações Indígenas da Amazônia Brasileira (COIAB)",
+      "category": "Inner",
+      "x": -843,
+      "y": -73,
+      "isCustomPosition": true
+    },
+    {
+      "id": "384",
+      "name": "Podáali Fundo Indígena da Amazônia\nBrasileira",
+      "category": "Inner",
+      "x": -1136,
+      "y": -123,
+      "isCustomPosition": true
+    },
+    {
+      "id": "385",
+      "name": "Cidade Escola Aprendiz",
+      "category": "Inner",
+      "x": -915,
+      "y": -57,
+      "isCustomPosition": true
+    },
+    {
+      "id": "386",
+      "name": "Makira E'ta - Rede de Mulheres Indígenas do\nEstado do Amazonas",
+      "category": "Inner",
+      "x": -962,
+      "y": -228,
+      "isCustomPosition": true
+    },
+    {
+      "id": "387",
+      "name": "Projeto SETA",
+      "category": "Inner",
+      "x": -1142,
+      "y": -76,
+      "isCustomPosition": true
+    },
+    {
+      "id": "388",
+      "name": "GIFE (Grupo de Institutos, Fundações e\nEmpresas)",
+      "category": "Inner",
+      "x": -841,
+      "y": -78,
+      "isCustomPosition": true
+    },
+    {
+      "id": "389",
+      "name": "Ashoka",
+      "category": "Social",
+      "x": -1024,
+      "y": -228,
+      "isCustomPosition": true
+    },
+    {
+      "id": "390",
+      "name": "Instituto de Referência Negra Peregum",
+      "category": "Inner",
+      "x": -1071,
+      "y": -53,
+      "isCustomPosition": true
+    },
+    {
+      "id": "391",
+      "name": "CEERT (Centro de Estudos das Relações de\nTrabalho e Desigualdades)",
+      "category": "Inner",
+      "x": -821,
+      "y": -133,
+      "isCustomPosition": true
+    },
+    {
+      "id": "395",
+      "name": "Kimberton Waldorf",
+      "continent": "37. Alternative Education",
+      "category": "Social",
+      "x": 100,
+      "y": -584,
+      "isCustomPosition": true
+    },
+    {
+      "id": "393",
+      "name": "Instituto Etno",
+      "category": "Cultural",
+      "x": -1145,
+      "y": -82,
+      "isCustomPosition": true
+    },
+    {
+      "id": "394",
+      "name": "Center on Modernity in Transition",
+      "category": "Cultural",
+      "x": -834,
+      "y": -77,
+      "isCustomPosition": true
+    },
+    {
+      "id": "395_2",
+      "name": "Sacred Design Lab",
+      "category": "Inner",
+      "x": 100,
+      "y": -584,
+      "isCustomPosition": true
+    },
+    {
+      "id": "396",
+      "name": "Templeton World Charity Foundation",
+      "category": "Inner",
+      "x": -1158,
+      "y": -82,
+      "isCustomPosition": true
+    },
+    {
+      "id": "397",
+      "name": "Instituto Chão",
+      "category": "Systems",
+      "x": -843,
+      "y": -112,
+      "isCustomPosition": true
+    },
+    {
+      "id": "398",
+      "name": "Embrapa",
+      "category": "Inner",
+      "x": -1080,
+      "y": -207,
+      "isCustomPosition": true
+    },
+    {
+      "id": "399",
+      "name": "Casa do Saber",
+      "category": "Social",
+      "x": -830,
+      "y": -52,
+      "isCustomPosition": true
+    },
+    {
+      "id": "400",
+      "name": "COURB - Instituto de Urbanismo Colaborativo",
+      "category": "Social",
+      "x": -870,
+      "y": -174,
+      "isCustomPosition": true
+    },
+    {
+      "id": "401",
+      "name": "Instituto A Cidade Precisa de Você",
+      "category": "Social",
+      "x": -1166,
+      "y": -71,
+      "isCustomPosition": true
+    },
+    {
+      "id": "402",
+      "name": "Rede Urbanismo Colaborativo",
+      "category": "Social",
+      "x": -835,
+      "y": -74,
+      "isCustomPosition": true
+    },
+    {
+      "id": "403",
+      "name": "Escola Livre Areté",
+      "category": "Social",
+      "x": -1070,
+      "y": -213,
+      "isCustomPosition": true
+    },
+    {
+      "id": "404",
+      "name": "Fábrica de Cultura",
+      "category": "Cultural",
+      "x": -1149,
+      "y": -75,
+      "isCustomPosition": true
+    },
+    {
+      "id": "405",
+      "name": "SESC São Paulo",
+      "category": "Social",
+      "x": -862,
+      "y": -167,
+      "isCustomPosition": true
+    },
+    {
+      "id": "406",
+      "name": "University of the People",
+      "category": "Social",
+      "x": -1116,
+      "y": -175,
+      "isCustomPosition": true
+    },
+    {
+      "id": "407",
+      "name": "Areté Centro de Estudos Helênicos",
+      "category": "Cultural",
+      "x": -814,
+      "y": -65,
+      "isCustomPosition": true
+    },
+    {
+      "id": "408",
+      "name": "Context Institute",
+      "category": "Systems",
+      "x": -908,
+      "y": -213,
+      "isCustomPosition": true
+    },
+    {
+      "id": "409",
+      "name": "Huberman Lab",
+      "category": "Social",
+      "x": -1162,
+      "y": -84,
+      "isCustomPosition": true
+    },
+    {
+      "id": "410",
+      "name": "Politize!",
+      "category": "Social",
+      "x": -821,
+      "y": -83,
+      "isCustomPosition": true
+    },
+    {
+      "id": "411",
+      "name": "Articulação dos Povos Indígenas da Região Sudeste (ARPINSUDESTE)",
+      "category": "Social",
+      "x": -1111,
+      "y": -184,
+      "isCustomPosition": true
+    },
+    {
+      "id": "412",
+      "name": "Comissão Guarani Yvyrupa (CGY)",
+      "category": "Social",
+      "x": -1155,
+      "y": -57,
+      "isCustomPosition": true
+    },
+    {
+      "id": "413",
+      "name": "Conselho do Povo Terena",
+      "category": "Social",
+      "x": -899,
+      "y": -208,
+      "isCustomPosition": true
+    },
+    {
+      "id": "414",
+      "name": "Mídia Guarani Mbya",
+      "category": "Social",
+      "x": -1144,
+      "y": -128,
+      "isCustomPosition": true
+    },
+    {
+      "id": "415",
+      "name": "Instituto PDH (Papo de Homem)",
+      "category": "Inner",
+      "x": -826,
+      "y": -82,
+      "isCustomPosition": true
+    },
+    {
+      "id": "416",
+      "name": "TaKeTiNa",
+      "category": "Inner",
+      "x": -921,
+      "y": -604,
+      "isCustomPosition": true
+    },
+    {
+      "id": "417",
+      "name": "The Institute of Core Energetics",
+      "category": "Inner",
+      "x": -958,
+      "y": -236,
+      "isCustomPosition": true
+    },
+    {
+      "id": "418",
+      "name": "International Institute for Bioenergetic Analysis (IIBA)",
+      "category": "Inner",
+      "x": -1149,
+      "y": -82,
+      "isCustomPosition": true
+    },
+    {
+      "id": "422",
+      "name": "Global Tapestry of Alternatives (GTA)",
+      "continent": "28. Decolonial Education",
+      "category": "Systems",
+      "x": -283,
+      "y": 796,
+      "isCustomPosition": true
+    },
+    {
+      "id": "420",
+      "name": "Pupykary Institute",
+      "category": "Social",
+      "x": -833,
+      "y": -75,
+      "isCustomPosition": true
+    },
+    {
+      "id": "421",
+      "name": "Indigenous Reciprocity Initiative (IRI) of the Americas",
+      "category": "Systems",
+      "x": -1141,
+      "y": -138,
+      "isCustomPosition": true
+    },
+    {
+      "id": "422_2",
+      "name": "Rádio Yandê",
+      "category": "Cultural",
+      "x": -220,
+      "y": 778,
+      "isCustomPosition": true
+    },
+    {
+      "id": "423",
+      "name": "Associação de Jovens Produtores Tingui Botó",
+      "category": "Systems",
+      "x": -585,
+      "y": -342,
+      "isCustomPosition": true
+    },
+    {
+      "id": "424",
+      "name": "Associação Centro de Cultura Sabuká Kariri Xocó",
+      "category": "Cultural",
+      "x": -1638,
+      "y": -101,
+      "isCustomPosition": true
+    },
+    {
+      "id": "425",
+      "name": "Coletivo Jupago Kreká",
+      "category": "Inner",
+      "x": -1410,
+      "y": -91,
+      "isCustomPosition": true
+    },
+    {
+      "id": "426",
+      "name": "Associação Indígena Marajó",
+      "category": "Inner",
+      "x": -948,
+      "y": -235,
+      "isCustomPosition": true
+    },
+    {
+      "id": "427",
+      "name": "CooperSapó",
+      "category": "Systems",
+      "x": -1151,
+      "y": -71,
+      "isCustomPosition": true
+    },
+    {
+      "id": "428",
+      "name": "World Ayahuasca Conference",
+      "category": "Social",
+      "x": -833,
+      "y": -78,
+      "isCustomPosition": true
+    },
+    {
+      "id": "432",
+      "name": "Yubaka Hayrá (Conferência Indígena da Ayahuasca)",
+      "continent": "54. Indigenous-led Spiritual Communities & Networks",
+      "category": "Social",
+      "x": -151,
+      "y": -50,
+      "isCustomPosition": true
+    },
+    {
+      "id": "430",
+      "name": "World Ayahuasca Forum",
+      "category": "Social",
+      "x": -1013,
+      "y": -241,
+      "isCustomPosition": true
+    },
+    {
+      "id": "431",
+      "name": "Donut Brasil",
+      "continent": "24. Alternative Economics",
+      "category": "Social",
+      "x": 436,
+      "y": 366,
+      "isCustomPosition": true
+    },
+    {
+      "id": "432_2",
+      "name": "N'Kumi Impact Solutions",
+      "category": "Inner",
+      "x": -175,
+      "y": -50,
+      "isCustomPosition": true
+    },
+    {
+      "id": "433",
+      "name": "Haudenosaunee Confederacy",
+      "continent": "63. Indigenous-led Communities & Networks",
+      "category": "Inner",
+      "x": -1938,
+      "y": 566,
+      "isCustomPosition": true
+    },
+    {
+      "id": "434",
+      "name": "Faculdade Rudolf Steiner",
+      "category": "Inner",
+      "x": -830,
+      "y": -112,
+      "isCustomPosition": true
+    },
+    {
+      "id": "435",
+      "name": "Kaospilot",
+      "category": "Social",
+      "x": -1154,
+      "y": -86,
+      "isCustomPosition": true
+    },
+    {
+      "id": "436",
+      "name": "Youth Initiative Project - YIP",
+      "category": "Social",
+      "x": -828,
+      "y": -82,
+      "isCustomPosition": true
+    },
+    {
+      "id": "440",
+      "name": "Church of The Intimate Web",
+      "continent": "16. Community of Practice",
+      "category": "Inner",
+      "x": -580,
+      "y": 99,
+      "isCustomPosition": true
+    },
+    {
+      "id": "441",
+      "name": "The Nectary",
+      "continent": "14. Relational Education",
+      "category": "Inner",
+      "x": -1495,
+      "y": 471,
+      "isCustomPosition": true
+    },
+    {
+      "id": "442",
+      "name": "Diamond Approach",
+      "continent": "2. Spiritual Lineage",
+      "category": "Inner",
+      "x": -658,
+      "y": -182,
+      "isCustomPosition": true
+    },
+    {
+      "id": "440_2",
+      "name": "Goodmakers",
+      "category": "Social",
+      "x": -580,
+      "y": 99,
+      "isCustomPosition": true
+    },
+    {
+      "id": "441_2",
+      "name": "Inward Bound Mindfulness Education",
+      "continent": "4. Contemplative Education",
+      "category": "Inner",
+      "x": -630,
+      "y": -592,
+      "isCustomPosition": true
+    },
+    {
+      "id": "442_2",
+      "name": "Dharma Gates",
+      "continent": "4. Contemplative Education",
+      "category": "Inner",
+      "x": -896,
+      "y": -505,
+      "isCustomPosition": true
+    },
+    {
+      "id": "446",
+      "name": "Evolve World",
+      "continent": "14. Relational Education",
+      "category": "Inner",
+      "x": -1336,
+      "y": 280,
+      "isCustomPosition": true
+    },
+    {
+      "id": "444",
+      "name": "On Being",
+      "category": "Inner",
+      "x": -1143,
+      "y": -73,
+      "isCustomPosition": true
+    },
+    {
+      "id": "445",
+      "name": "Planet: Critical",
+      "continent": "21. Sociocultural Education",
+      "category": "Social",
+      "x": -477,
+      "y": 1119,
+      "isCustomPosition": true
+    },
+    {
+      "id": "446_2",
+      "name": "Deep Transformation",
+      "continent": "4. Contemplative Education",
+      "category": "Inner",
+      "x": -795,
+      "y": -326,
+      "isCustomPosition": true
+    },
+    {
+      "id": "450",
+      "name": "Emerge Podcast",
+      "continent": "19. Metacrisis Research & Education",
+      "category": "Cultural",
+      "x": -185,
+      "y": 80,
+      "isCustomPosition": true
+    },
+    {
+      "id": "448",
+      "name": "Accidental Gods",
+      "continent": "4. Contemplative Education",
+      "category": "Inner",
+      "x": -766,
+      "y": -435,
+      "isCustomPosition": true
+    },
+    {
+      "id": "449",
+      "name": "Jim Rutt Show",
+      "category": "Social",
+      "x": -830,
+      "y": -106,
+      "isCustomPosition": true
+    },
+    {
+      "id": "450_2",
+      "name": "The Integral Stage",
+      "category": "Inner",
+      "x": -185,
+      "y": 80,
+      "isCustomPosition": true
+    },
+    {
+      "id": "451",
+      "name": "Point of Relation",
+      "continent": "4. Contemplative Education",
+      "category": "Inner",
+      "x": -595,
+      "y": -349,
+      "isCustomPosition": true
+    },
+    {
+      "id": "455",
+      "name": "Future Learning Design Podcast",
+      "continent": "38. Education",
+      "category": "Social",
+      "x": 417,
+      "y": -624,
+      "isCustomPosition": true
+    },
+    {
+      "id": "456",
+      "name": "Coaches Rising",
+      "continent": "13. Human Development",
+      "category": "Inner",
+      "x": -252,
+      "y": -860,
+      "isCustomPosition": true
+    },
+    {
+      "id": "454",
+      "name": "Elevating Consciousness",
+      "continent": "4. Contemplative Education",
+      "category": "Inner",
+      "x": -849,
+      "y": -603,
+      "isCustomPosition": true
+    },
+    {
+      "id": "455_2",
+      "name": "Buddhist Geeks",
+      "continent": "4. Contemplative Education",
+      "category": "Inner",
+      "x": -652,
+      "y": -671,
+      "isCustomPosition": true
+    },
+    {
+      "id": "456_2",
+      "name": "Indígenas.BR - Festival de Músicas Indígenas",
+      "category": "Inner",
+      "x": -252,
+      "y": -860,
+      "isCustomPosition": true
+    },
+    {
+      "id": "457",
+      "name": "Mapa da Cultura",
+      "category": "Inner",
+      "x": -853,
+      "y": -169,
+      "isCustomPosition": true
+    },
+    {
+      "id": "458",
+      "name": "Filosofia del Buen Vivir",
+      "category": "Inner",
+      "x": -1149,
+      "y": -76,
+      "isCustomPosition": true
+    },
+    {
+      "id": "462",
+      "name": "Green Pill",
+      "continent": "52. Regenerative Technology Design & Development",
+      "category": "Systems",
+      "x": 960,
+      "y": 432,
+      "isCustomPosition": true
+    },
+    {
+      "id": "463",
+      "name": "SEEDS",
+      "continent": "52. Regenerative Technology Design & Development",
+      "category": "Systems",
+      "x": 1002,
+      "y": 623,
+      "isCustomPosition": true
+    },
+    {
+      "id": "461",
+      "name": "Isha Institute of Inner Sciences",
+      "category": "Inner",
+      "x": -840,
+      "y": -81,
+      "isCustomPosition": true
+    },
+    {
+      "id": "462_2",
+      "name": "Mindvalley",
+      "category": "Inner",
+      "x": 919,
+      "y": 439,
+      "isCustomPosition": true
+    },
+    {
+      "id": "463_2",
+      "name": "NewWorld Game",
+      "continent": "44. Complex Systems Education",
+      "category": "Systems",
+      "x": 128,
+      "y": 1142,
+      "isCustomPosition": true
+    },
+    {
+      "id": "464",
+      "name": "Ambikira",
+      "category": "Social",
+      "x": -1140,
+      "y": -73,
+      "isCustomPosition": true
+    },
+    {
+      "id": "468",
+      "name": "Collective Presencing",
+      "continent": "6. Developmental Practice",
+      "category": "Cultural",
+      "x": -140,
+      "y": -545,
+      "isCustomPosition": true
+    },
+    {
+      "id": "466",
+      "name": "The Liminal Institute",
+      "category": "Inner",
+      "x": -1116,
+      "y": -192,
+      "isCustomPosition": true
+    },
+    {
+      "id": "467",
+      "name": "The Nerve",
+      "category": "Social",
+      "x": -822,
+      "y": -73,
+      "isCustomPosition": true
+    },
+    {
+      "id": "468_2",
+      "name": "Future of Life Institute",
+      "category": "Social",
+      "x": -140,
+      "y": -545,
+      "isCustomPosition": true
+    },
+    {
+      "id": "469",
+      "name": "Black Jaguar Foundation",
+      "category": "Social",
+      "x": -1151,
+      "y": -78,
+      "isCustomPosition": true
+    },
+    {
+      "id": "470",
+      "name": "Omega Resilience Awards",
+      "category": "Inner",
+      "x": -818,
+      "y": -74,
+      "isCustomPosition": true
+    },
+    {
+      "id": "471",
+      "name": "Long Now Foundation",
+      "category": "Social",
+      "x": -1109,
+      "y": -201,
+      "isCustomPosition": true
+    },
+    {
+      "id": "472",
+      "name": "Post Carbon Institute",
+      "category": "Inner",
+      "x": -1162,
+      "y": -69,
+      "isCustomPosition": true
+    },
+    {
+      "id": "473",
+      "name": "Commonweal",
+      "category": "Social",
+      "x": -882,
+      "y": -207,
+      "isCustomPosition": true
+    },
+    {
+      "id": "474",
+      "name": "OMEGA",
+      "category": "Social",
+      "x": -1149,
+      "y": -143,
+      "isCustomPosition": true
+    },
+    {
+      "id": "478",
+      "name": "Design Regenerativo Brasil",
+      "continent": "22. Regenerative Education",
+      "category": "Cultural",
+      "x": -632,
+      "y": 598,
+      "isCustomPosition": true
+    },
+    {
+      "id": "479",
+      "name": "Escola da Regeneração",
+      "continent": "22. Regenerative Education",
+      "category": "Cultural",
+      "x": -729,
+      "y": 488,
+      "isCustomPosition": true
+    },
+    {
+      "id": "477",
+      "name": "Playfight",
+      "category": "Cultural",
+      "x": -826,
+      "y": -71,
+      "isCustomPosition": true
+    },
+    {
+      "id": "478_2",
+      "name": "Fighting Monkeys",
+      "category": "Cultural",
+      "x": -632,
+      "y": 598,
+      "isCustomPosition": true
+    },
+    {
+      "id": "479_2",
+      "name": "Instituto Purna",
+      "category": "Inner",
+      "x": -729,
+      "y": 488,
+      "isCustomPosition": true
+    },
+    {
+      "id": "480",
+      "name": "Yogaia Brasil",
+      "category": "Inner",
+      "x": -826,
+      "y": -82,
+      "isCustomPosition": true
+    },
+    {
+      "id": "481",
+      "name": "Casa Sri Aurobindo",
+      "category": "Inner",
+      "x": -1145,
+      "y": -155,
+      "isCustomPosition": true
+    },
+    {
+      "id": "482",
+      "name": "Sri Aurobindo Ashram Brasil",
+      "category": "Inner",
+      "x": -1077,
+      "y": -90,
+      "isCustomPosition": true
+    },
+    {
+      "id": "483",
+      "name": "Studio Integral",
+      "category": "Inner",
+      "x": -930,
+      "y": -239,
+      "isCustomPosition": true
+    },
+    {
+      "id": "484",
+      "name": "O Despertar do Guerreiro Interno (ODG-I)",
+      "category": "Inner",
+      "x": -1163,
+      "y": -91,
+      "isCustomPosition": true
+    },
+    {
+      "id": "485",
+      "name": "Associação Nacional de Yoga Integral (Anyi)",
+      "category": "Inner",
+      "x": -827,
+      "y": -82,
+      "isCustomPosition": true
+    },
+    {
+      "id": "489",
+      "name": "Center For The Understanding of Sustainable Prosperity",
+      "continent": "24. Alternative Economics",
+      "category": "Systems",
+      "x": 1133,
+      "y": 209,
+      "isCustomPosition": true
+    },
+    {
+      "id": "487",
+      "name": "Voices of Emergence",
+      "category": "Inner",
+      "x": -1001,
+      "y": -252,
+      "isCustomPosition": true
+    },
+    {
+      "id": "491",
+      "name": "School of Lost Borders",
+      "continent": "10. Nature-based Education",
+      "category": "Inner",
+      "x": -859,
+      "y": -133,
+      "isCustomPosition": true
+    },
+    {
+      "id": "489_2",
+      "name": "World Inequality Lab",
+      "category": "Systems",
+      "x": 1133,
+      "y": 209,
+      "isCustomPosition": true
+    },
+    {
+      "id": "490",
+      "name": "New Economy Coalition",
+      "category": "Systems",
+      "x": -821,
+      "y": -104,
+      "isCustomPosition": true
+    },
+    {
+      "id": "491_2",
+      "name": "Partners for a New Economy (P4NE)",
+      "category": "Systems",
+      "x": -859,
+      "y": -133,
+      "isCustomPosition": true
+    },
+    {
+      "id": "492",
+      "name": "TV indigena",
+      "category": "Social",
+      "x": -864,
+      "y": -84,
+      "isCustomPosition": true
+    },
+    {
+      "id": "493",
+      "name": "Voices of Amerikua",
+      "category": "Social",
+      "x": -990,
+      "y": -253,
+      "isCustomPosition": true
+    },
+    {
+      "id": "494",
+      "name": "Weaving Worlds",
+      "category": "Cultural",
+      "x": -1151,
+      "y": -75,
+      "isCustomPosition": true
+    },
+    {
+      "id": "495",
+      "name": "Mídia Indígena",
+      "category": "Social",
+      "x": -819,
+      "y": -93,
+      "isCustomPosition": true
+    },
+    {
+      "id": "496",
+      "name": "Katahirine Rede Audiovisual das Mulheres Indígenas",
+      "category": "Social",
+      "x": -1054,
+      "y": -237,
+      "isCustomPosition": true
+    },
+    {
+      "id": "497",
+      "name": "Espaço Cultural Território das Artes",
+      "category": "Cultural",
+      "x": -900,
+      "y": -57,
+      "isCustomPosition": true
+    },
+    {
+      "id": "498",
+      "name": "Templo Espírita Barca do Luar",
+      "category": "Inner",
+      "x": -837,
+      "y": -161,
+      "isCustomPosition": true
+    },
+    {
+      "id": "499",
+      "name": "Centro Espírita Beneficente União do Vegetal",
+      "category": "Inner",
+      "x": -1156,
+      "y": -76,
+      "isCustomPosition": true
+    },
+    {
+      "id": "500",
+      "name": "Igreja Céu do Gamarra",
+      "category": "Inner",
+      "x": -819,
+      "y": -65,
+      "isCustomPosition": true
+    },
+    {
+      "id": "501",
+      "name": "Igreja do Culto Eclético da Fluente Luz Universal (ICEFLU)",
+      "category": "Inner",
+      "x": -1042,
+      "y": -244,
+      "isCustomPosition": true
+    },
+    {
+      "id": "502",
+      "name": "Quilombo Caminho das Pedras",
+      "category": "Inner",
+      "x": -1161,
+      "y": -82,
+      "isCustomPosition": true
+    },
+    {
+      "id": "503",
+      "name": "Céu de Maria",
+      "category": "Inner",
+      "x": -837,
+      "y": -155,
+      "isCustomPosition": true
+    },
+    {
+      "id": "504",
+      "name": "Casa de Cura Raimundo Irineu Serra",
+      "category": "Inner",
+      "x": -1113,
+      "y": -209,
+      "isCustomPosition": true
+    },
+    {
+      "id": "505",
+      "name": "Nossa Irmandade",
+      "category": "Inner",
+      "x": -835,
+      "y": -78,
+      "isCustomPosition": true
+    },
+    {
+      "id": "506",
+      "name": "Céu do Mar (accusations)",
+      "category": "Inner",
+      "x": -874,
+      "y": -212,
+      "isCustomPosition": true
+    },
+    {
+      "id": "507",
+      "name": "Grassroots Economics",
+      "category": "Social",
+      "x": -1170,
+      "y": -72,
+      "isCustomPosition": true
+    },
+    {
+      "id": "511",
+      "name": "Garrison Institute",
+      "continent": "4. Contemplative Education",
+      "category": "Inner",
+      "x": -800,
+      "y": -680,
+      "isCustomPosition": true
+    },
+    {
+      "id": "512",
+      "name": "Movimento Refloresta",
+      "continent": "17. Tropical Education",
+      "category": "Cultural",
+      "x": -930,
+      "y": 381,
+      "isCustomPosition": true
+    },
+    {
+      "id": "510",
+      "name": "Inner Development Goals Experiences (ID-X)",
+      "category": "Social",
+      "x": -819,
+      "y": -80,
+      "isCustomPosition": true
+    },
+    {
+      "id": "511_2",
+      "name": "erōtikós",
+      "category": "Cultural",
+      "x": -735,
+      "y": -690,
+      "isCustomPosition": true
+    },
+    {
+      "id": "512_2",
+      "name": "A Kaluanã",
+      "category": "Inner",
+      "x": -930,
+      "y": 381,
+      "isCustomPosition": true
+    },
+    {
+      "id": "513",
+      "name": "NOLS",
+      "category": "Inner",
+      "x": -865,
+      "y": -204,
+      "isCustomPosition": true
+    },
+    {
+      "id": "517",
+      "name": "Movimento Sem Terra (MST)",
+      "continent": "30. Grassroots Communities",
+      "category": "Social",
+      "x": 415,
+      "y": -92,
+      "isCustomPosition": true
+    },
+    {
+      "id": "515",
+      "name": "Imazon - Instituto do Homem e Meio Ambiente da Amazônia",
+      "category": "Social",
+      "x": -1151,
+      "y": -160,
+      "isCustomPosition": true
+    },
+    {
+      "id": "516",
+      "name": "Instituto Nacional de Pesquisas da Amazônia (INPA)",
+      "category": "Social",
+      "x": -833,
+      "y": -76,
+      "isCustomPosition": true
+    },
+    {
+      "id": "517_2",
+      "name": "Biotic Pump Greening Group",
+      "category": "Social",
+      "x": 415,
+      "y": -92,
+      "isCustomPosition": true
+    },
+    {
+      "id": "518",
+      "name": "clube leituras decoloniais",
+      "category": "Cultural",
+      "x": -1147,
+      "y": -84,
+      "isCustomPosition": true
+    },
+    {
+      "id": "519",
+      "name": "New Economies Eradicating Poverty (NEEP)",
+      "category": "Social",
+      "x": -820,
+      "y": -74,
+      "isCustomPosition": true
+    },
+    {
+      "id": "520",
+      "name": "Sacred Plant Alliance (SPA)",
+      "category": "Social",
+      "x": -1119,
+      "y": -155,
+      "isCustomPosition": true
+    },
+    {
+      "id": "521",
+      "name": "Nativas Brasil - Associação Brasileira dos Produtores de Sementes e Mudas Nativas",
+      "category": "Social",
+      "x": -1113,
+      "y": -70,
+      "isCustomPosition": true
+    },
+    {
+      "id": "522",
+      "name": "KOINONIA",
+      "category": "Social",
+      "x": -925,
+      "y": -212,
+      "isCustomPosition": true
+    },
+    {
+      "id": "523",
+      "name": "Rede Eclesial Pan-Amazônica (REPAM)*",
+      "category": "Social",
+      "x": -1479,
+      "y": -244,
+      "isCustomPosition": true
+    },
+    {
+      "id": "524",
+      "name": "Global Good x Amani",
+      "category": "Social",
+      "x": -1140,
+      "y": -97,
+      "isCustomPosition": true
+    },
+    {
+      "id": "525",
+      "name": "Quintessa",
+      "category": "Social",
+      "x": -822,
+      "y": -74,
+      "isCustomPosition": true
+    },
+    {
+      "id": "526",
+      "name": "Pipe.Social",
+      "category": "Social",
+      "x": -987,
+      "y": -228,
+      "isCustomPosition": true
+    },
+    {
+      "id": "527",
+      "name": "Base Colaborativa",
+      "category": "Social",
+      "x": -1153,
+      "y": -64,
+      "isCustomPosition": true
+    },
+    {
+      "id": "528",
+      "name": "Observatório das Economias de Sociobiodiversidade",
+      "category": "Social",
+      "x": -844,
+      "y": -89,
+      "isCustomPosition": true
+    },
+    {
+      "id": "529",
+      "name": "Slow Food Brasil",
+      "category": "Social",
+      "x": -1139,
+      "y": -108,
+      "isCustomPosition": true
+    },
+    {
+      "id": "530",
+      "name": "Escola Comunitária Luíza Mahin",
+      "category": "Social",
+      "x": -919,
+      "y": -75,
+      "isCustomPosition": true
+    },
+    {
+      "id": "531",
+      "name": "Instituto Alana",
+      "category": "Social",
+      "x": -978,
+      "y": -229,
+      "isCustomPosition": true
+    },
+    {
+      "id": "532",
+      "name": "Bodhi Sangha India",
+      "continent": "19. Metacrisis Research & Education",
+      "category": "Systems",
+      "x": -1730,
+      "y": 138,
+      "isCustomPosition": true
+    },
+    {
+      "id": "533",
+      "name": "Ostara Collective",
+      "category": "Inner",
+      "x": -1165,
+      "y": -74,
+      "isCustomPosition": true
+    },
+    {
+      "id": "534",
+      "name": "Peregrinos de Gaya",
+      "category": "Inner",
+      "x": -843,
+      "y": -78,
+      "isCustomPosition": true
+    },
+    {
+      "id": "535",
+      "name": "Instituto pelo Diálogo",
+      "category": "Social",
+      "x": -1033,
+      "y": -223,
+      "isCustomPosition": true
+    },
+    {
+      "id": "536",
+      "name": "Nexo Sistêmico",
+      "category": "Cultural",
+      "x": -916,
+      "y": -59,
+      "isCustomPosition": true
+    },
+    {
+      "id": "537",
+      "name": "Tekoá Pyau Jaraguá",
+      "category": "Social",
+      "x": -829,
+      "y": -156,
+      "isCustomPosition": true
+    },
+    {
+      "id": "538",
+      "name": "CETRANS - Centro de Educação Transdisciplinar",
+      "category": "Social",
+      "x": -1170,
+      "y": -73,
+      "isCustomPosition": true
+    },
+    {
+      "id": "539",
+      "name": "O Joio e O Trigo",
+      "category": "Cultural",
+      "x": -834,
+      "y": -71,
+      "isCustomPosition": true
+    },
+    {
+      "id": "543",
+      "name": "Rede Novo Quilombo",
+      "continent": "8. Integral Education",
+      "category": "Inner",
+      "x": -103,
+      "y": -339,
+      "isCustomPosition": true
+    },
+    {
+      "id": "541",
+      "name": "Instituto Pólis",
+      "category": "Inner",
+      "x": -1031,
+      "y": -226,
+      "isCustomPosition": true
+    },
+    {
+      "id": "545",
+      "name": "MUDA SP (Movimento Urbano de Agroecologia de São Paulo)",
+      "continent": "39. Regenerative Practice",
+      "category": "Systems",
+      "x": 386,
+      "y": 187,
+      "isCustomPosition": true
+    },
+    {
+      "id": "543_2",
+      "name": "Network Weaving Institute",
+      "category": "Inner",
+      "x": -103,
+      "y": -339,
+      "isCustomPosition": true
+    },
+    {
+      "id": "544",
+      "name": "Superluminal Systems",
+      "category": "Inner",
+      "x": -849,
+      "y": -137,
+      "isCustomPosition": true
+    },
+    {
+      "id": "545_2",
+      "name": "Unah Piracanga",
+      "category": "Cultural",
+      "x": 386,
+      "y": 187,
+      "isCustomPosition": true
+    },
+    {
+      "id": "546",
+      "name": "Centro de Trabalho Indigenista",
+      "category": "Social",
+      "x": -822,
+      "y": -83,
+      "isCustomPosition": true
+    },
+    {
+      "id": "550",
+      "name": "Alef Trust",
+      "continent": "4. Contemplative Education",
+      "category": "Inner",
+      "x": -962,
+      "y": -314,
+      "isCustomPosition": true
+    },
+    {
+      "id": "548",
+      "name": "Conscious Food Systems Alliance",
+      "category": "Systems",
+      "x": -882,
+      "y": -184,
+      "isCustomPosition": true
+    },
+    {
+      "id": "549",
+      "name": "Amazônia Revelada",
+      "category": "Social",
+      "x": -1147,
+      "y": -77,
+      "isCustomPosition": true
+    },
+    {
+      "id": "550_2",
+      "name": "ICEERS (International Center for Ethnobotanical Education, Research, and Service)",
+      "category": "Social",
+      "x": -962,
+      "y": -314,
+      "isCustomPosition": true
+    },
+    {
+      "id": "551",
+      "name": "SUMAÚMA – Jornalismo do Centro do Mundo",
+      "category": "Inner",
+      "x": -1079,
+      "y": -205,
+      "isCustomPosition": true
+    },
+    {
+      "id": "552",
+      "name": "FLIPEI (Festa Literária Pirata das Editoras Independentes)",
+      "category": "Social",
+      "x": -1158,
+      "y": -73,
+      "isCustomPosition": true
+    },
+    {
+      "id": "553",
+      "name": "Comissão Pró-Indígena do Acre",
+      "category": "Social",
+      "x": -874,
+      "y": -178,
+      "isCustomPosition": true
+    },
+    {
+      "id": "554",
+      "name": "Oceana Brasil",
+      "category": "Systems",
+      "x": -1122,
+      "y": -160,
+      "isCustomPosition": true
+    },
+    {
+      "id": "558",
+      "name": "Green Pill Brazil",
+      "continent": "52. Regenerative Technology Design & Development",
+      "category": "Systems",
+      "x": 987,
+      "y": 513,
+      "isCustomPosition": true
+    },
+    {
+      "id": "556",
+      "name": "Endemic",
+      "continent": "56. Spiritual Education",
+      "category": "Inner",
+      "x": -1167,
+      "y": -1610,
+      "isCustomPosition": true
+    },
+    {
+      "id": "560",
+      "name": "The Metacurrency Project",
+      "continent": "24. Alternative Economics",
+      "category": "Systems",
+      "x": 1026,
+      "y": 278,
+      "isCustomPosition": true
+    },
+    {
+      "id": "558_2",
+      "name": "Historiando Axé",
+      "continent": "1. Wisdom Traditions",
+      "category": "Inner",
+      "x": 946,
+      "y": 520,
+      "isCustomPosition": true
+    },
+    {
+      "id": "559",
+      "name": "verses",
+      "category": "Cultural",
+      "x": -837,
+      "y": -71,
+      "isCustomPosition": true
+    },
+    {
+      "id": "560_2",
+      "name": "Gitcoin",
+      "category": "Systems",
+      "x": 1026,
+      "y": 278,
+      "isCustomPosition": true
+    },
+    {
+      "id": "561",
+      "name": "Protocol Labs",
+      "category": "Systems",
+      "x": -1140,
+      "y": -81,
+      "isCustomPosition": true
+    },
+    {
+      "id": "565",
+      "name": "Schools for Chiapas",
+      "continent": "30. Grassroots Communities",
+      "category": "Social",
+      "x": 350,
+      "y": 1,
+      "isCustomPosition": true
+    },
+    {
+      "id": "566",
+      "name": "Youth by Youth",
+      "continent": "28. Decolonial Education",
+      "category": "Social",
+      "x": -444,
+      "y": 887,
+      "isCustomPosition": true
+    },
+    {
+      "id": "564",
+      "name": "Centro de Estudos Universais AUM",
+      "continent": "32. Multicultural Education",
+      "category": "Inner",
+      "x": -1961,
+      "y": -515,
+      "isCustomPosition": true
+    },
+    {
+      "id": "565_2",
+      "name": "Multiversidade da Floresta",
+      "continent": "27. Indigenous Education",
+      "category": "Inner",
+      "x": -1138,
+      "y": 87,
+      "isCustomPosition": true
+    },
+    {
+      "id": "566_2",
+      "name": "Associação Povos da Terra (APOTI)",
+      "continent": "26. Indigenous Allyship",
+      "category": "Social",
+      "x": 670,
+      "y": -383,
+      "isCustomPosition": true
+    },
+    {
+      "id": "570",
+      "name": "Design Ecossistêmico",
+      "continent": "22. Regenerative Education",
+      "category": "Cultural",
+      "x": -357,
+      "y": 422,
+      "isCustomPosition": true
+    },
+    {
+      "id": "568",
+      "name": "Teia SACI - Saberes Ancestrais e Cura Integrativa",
+      "continent": "54. Indigenous-led Spiritual Communities & Networks",
+      "category": "Inner",
+      "x": -334,
+      "y": -46,
+      "isCustomPosition": true
+    },
+    {
+      "id": "569",
+      "name": "Centro Avançado de Medicina Psicodélica (CAMP)",
+      "continent": "25. Psychedelic Research",
+      "category": "Inner",
+      "x": -632,
+      "y": -867,
+      "isCustomPosition": true
+    },
+    {
+      "id": "570_2",
+      "name": "Dantes Editora",
+      "continent": "27. Indigenous Education",
+      "category": "Cultural",
+      "x": -357,
+      "y": 422,
+      "isCustomPosition": true
+    },
+    {
+      "id": "571",
+      "name": "Núcleo de Psicologia Comunitária e da Saúde (NUCS) - UFCG",
+      "continent": "1. Wisdom Traditions",
+      "category": "Inner",
+      "x": -1313,
+      "y": -86,
+      "isCustomPosition": true
+    },
+    {
+      "id": "572",
+      "name": "Jornadas de Kura Retreat Center",
+      "continent": "59. Retreat Center",
+      "category": "Inner",
+      "x": -378,
+      "y": -1027,
+      "isCustomPosition": true
+    },
+    {
+      "id": "576",
+      "name": "Kura Alliance",
+      "continent": "26. Indigenous Allyship",
+      "category": "Social",
+      "x": 660,
+      "y": -203,
+      "isCustomPosition": true
+    },
+    {
+      "id": "574",
+      "name": "Etnias.site",
+      "continent": "58. Technological Sovereignty",
+      "category": "Systems",
+      "x": 612,
+      "y": 1996,
+      "isCustomPosition": true
+    },
+    {
+      "id": "575",
+      "name": "Curandera",
+      "continent": "59. Retreat Center",
+      "category": "Inner",
+      "x": -1685,
+      "y": -548,
+      "isCustomPosition": true
+    },
+    {
+      "id": "576_2",
+      "name": "Onaya Science",
+      "category": "Inner",
+      "x": 660,
+      "y": -203,
+      "isCustomPosition": true
+    },
+    {
+      "id": "577",
+      "name": "DWeb",
+      "continent": "58. Technological Sovereignty",
+      "category": "Systems",
+      "x": 459,
+      "y": 1945,
+      "isCustomPosition": true
+    },
+    {
+      "id": "578",
+      "name": "MapBiomas Brasil",
+      "continent": "50. Climate Science",
+      "category": "Systems",
+      "x": -1449,
+      "y": 1689,
+      "isCustomPosition": true
+    },
+    {
+      "id": "579",
+      "name": "Museu das Culturas Indígenas",
+      "continent": "26. Indigenous Allyship",
+      "category": "Cultural",
+      "x": 1057,
+      "y": -896,
+      "isCustomPosition": true
+    },
+    {
+      "id": "580",
+      "name": "Centre for Climate Psychology",
+      "continent": "23. Climate Education",
+      "category": "Social",
+      "x": -753,
+      "y": 40,
+      "isCustomPosition": true
+    },
+    {
+      "id": "581",
+      "name": "Instituto Gurdjieff",
+      "category": "Inner",
+      "x": -1117,
+      "y": -169,
+      "isCustomPosition": true
+    },
+    {
+      "id": "582",
+      "name": "Editora Elefante",
+      "continent": "32. Publishing",
+      "category": "Cultural",
+      "x": -1786,
+      "y": 1071,
+      "isCustomPosition": true
+    },
+    {
+      "id": "583",
+      "name": "Instituto Toriba",
+      "continent": "47. Narrative Change",
+      "category": "Cultural",
+      "x": -163,
+      "y": 1135,
+      "isCustomPosition": true
+    },
+    {
+      "id": "584",
+      "name": "Amana-Key",
+      "continent": "20. Leadership Education",
+      "category": "Social",
+      "x": 1351,
+      "y": -197,
+      "isCustomPosition": true
+    },
+    {
+      "id": "585",
+      "name": "Dancing with Mountains",
+      "continent": "28. Decolonial Education",
+      "category": "Cultural",
+      "x": -576,
+      "y": 866,
+      "isCustomPosition": true
+    },
+    {
+      "id": "586",
+      "name": "Reweaving Project",
+      "category": "Cultural",
+      "x": -1169,
+      "y": -85,
+      "isCustomPosition": true
+    },
+    {
+      "id": "587",
+      "name": "The Cynefin Co Brasil",
+      "continent": "44. Complex Systems Education",
+      "category": "Systems",
+      "x": 350,
+      "y": 1184,
+      "isCustomPosition": true
+    }
+  ],
+  "customContinentShapes": {
+    "15. Psychoterapeutic Modality": [
+      [
+        -854,
+        -866
+      ],
+      [
+        -915,
+        -844
+      ],
+      [
+        -943,
+        -837
+      ],
+      [
+        -971,
+        -844
+      ],
+      [
+        -1011,
+        -862
+      ],
+      [
+        -988,
+        -921
+      ],
+      [
+        -942,
+        -934
+      ],
+      [
+        -884,
+        -931
+      ]
+    ],
+    "psychoterapeutic modality": [
+      [
+        -854,
+        -866
+      ],
+      [
+        -915,
+        -844
+      ],
+      [
+        -943,
+        -837
+      ],
+      [
+        -971,
+        -844
+      ],
+      [
+        -1011,
+        -862
+      ],
+      [
+        -988,
+        -921
+      ],
+      [
+        -942,
+        -934
+      ],
+      [
+        -884,
+        -931
+      ]
+    ],
+    "21. Sociocultural Education": [
+      [
+        -692,
+        1130
+      ],
+      [
+        -529,
+        1109
+      ],
+      [
+        -413,
+        1058
+      ],
+      [
+        -310,
+        1119
+      ],
+      [
+        -219,
+        1190
+      ],
+      [
+        -237,
+        1254
+      ],
+      [
+        -270,
+        1313
+      ],
+      [
+        -372,
+        1302
+      ],
+      [
+        -478,
+        1321
+      ],
+      [
+        -669,
+        1328
+      ]
+    ],
+    "14. Relational Education": [
+      [
+        -1610,
+        504
+      ],
+      [
+        -1595,
+        441
+      ],
+      [
+        -1596,
+        415
+      ],
+      [
+        -1563,
+        308
+      ],
+      [
+        -1505,
+        212
+      ],
+      [
+        -1395,
+        141
+      ],
+      [
+        -1283,
+        98
+      ],
+      [
+        -1202,
+        142
+      ],
+      [
+        -1191,
+        207
+      ],
+      [
+        -1168,
+        317
+      ],
+      [
+        -1201,
+        393
+      ],
+      [
+        -1210,
+        577
+      ],
+      [
+        -1337,
+        545
+      ],
+      [
+        -1473,
+        556
+      ]
+    ],
+    "relational education": [
+      [
+        -1610,
+        504
+      ],
+      [
+        -1595,
+        441
+      ],
+      [
+        -1596,
+        415
+      ],
+      [
+        -1563,
+        308
+      ],
+      [
+        -1505,
+        212
+      ],
+      [
+        -1395,
+        141
+      ],
+      [
+        -1283,
+        98
+      ],
+      [
+        -1202,
+        142
+      ],
+      [
+        -1191,
+        207
+      ],
+      [
+        -1168,
+        317
+      ],
+      [
+        -1201,
+        393
+      ],
+      [
+        -1210,
+        577
+      ],
+      [
+        -1337,
+        545
+      ],
+      [
+        -1473,
+        556
+      ]
+    ],
+    "30. Grassroots Communities": [
+      [
+        11,
+        -56
+      ],
+      [
+        -6,
+        -83
+      ],
+      [
+        17,
+        -141
+      ],
+      [
+        316,
+        -187
+      ],
+      [
+        319,
+        -270
+      ],
+      [
+        411,
+        -561
+      ],
+      [
+        494,
+        66
+      ],
+      [
+        136,
+        -39
+      ]
+    ],
+    "8. Integral Education": [
+      [
+        -441,
+        -118
+      ],
+      [
+        -430,
+        -182
+      ],
+      [
+        -404,
+        -251
+      ],
+      [
+        -360,
+        -306
+      ],
+      [
+        -301,
+        -355
+      ],
+      [
+        -181,
+        -368
+      ],
+      [
+        -62,
+        -396
+      ],
+      [
+        -25,
+        -279
+      ],
+      [
+        2,
+        -190
+      ],
+      [
+        -218,
+        -146
+      ]
+    ],
+    "27. Indigenous Education": [
+      [
+        -977,
+        62
+      ],
+      [
+        -1029,
+        102
+      ],
+      [
+        -1087,
+        161
+      ],
+      [
+        -1169,
+        145
+      ],
+      [
+        -1197,
+        62
+      ],
+      [
+        -1160,
+        -10
+      ],
+      [
+        -1087,
+        -58
+      ],
+      [
+        -1014,
+        -10
+      ]
+    ],
+    "62. Public Sensemaking": [
+      [
+        -734,
+        731
+      ],
+      [
+        -744,
+        759
+      ],
+      [
+        -772,
+        766
+      ],
+      [
+        -800,
+        759
+      ],
+      [
+        -810,
+        731
+      ],
+      [
+        -797,
+        706
+      ],
+      [
+        -772,
+        690
+      ],
+      [
+        -747,
+        706
+      ]
+    ],
+    "public sensemaking": [
+      [
+        -734,
+        731
+      ],
+      [
+        -744,
+        759
+      ],
+      [
+        -772,
+        766
+      ],
+      [
+        -800,
+        759
+      ],
+      [
+        -810,
+        731
+      ],
+      [
+        -797,
+        706
+      ],
+      [
+        -772,
+        690
+      ],
+      [
+        -747,
+        706
+      ]
+    ],
+    "19. Metacrisis Research": [
+      [
+        42,
+        404
+      ],
+      [
+        70,
+        252
+      ],
+      [
+        259,
+        182
+      ],
+      [
+        636,
+        185
+      ],
+      [
+        852,
+        259
+      ],
+      [
+        836,
+        388
+      ],
+      [
+        657,
+        603
+      ],
+      [
+        234,
+        651
+      ]
+    ],
+    "33. Youth Education": [
+      [
+        -1032,
+        325
+      ],
+      [
+        -1049,
+        368
+      ],
+      [
+        -1092,
+        379
+      ],
+      [
+        -1135,
+        368
+      ],
+      [
+        -1151,
+        325
+      ],
+      [
+        -1131,
+        286
+      ],
+      [
+        -1092,
+        261
+      ],
+      [
+        -1053,
+        286
+      ]
+    ],
+    "youth education": [
+      [
+        -1032,
+        325
+      ],
+      [
+        -1049,
+        368
+      ],
+      [
+        -1092,
+        379
+      ],
+      [
+        -1135,
+        368
+      ],
+      [
+        -1151,
+        325
+      ],
+      [
+        -1131,
+        286
+      ],
+      [
+        -1092,
+        261
+      ],
+      [
+        -1053,
+        286
+      ]
+    ],
+    "34. Activism": [
+      [
+        20,
+        965
+      ],
+      [
+        -3,
+        1001
+      ],
+      [
+        -44,
+        1016
+      ],
+      [
+        -91,
+        999
+      ],
+      [
+        -100,
+        970
+      ],
+      [
+        -87,
+        921
+      ],
+      [
+        -50,
+        890
+      ],
+      [
+        -4,
+        919
+      ]
+    ],
+    "19. Climate Science": [
+      [
+        -181,
+        1230
+      ],
+      [
+        -191,
+        1258
+      ],
+      [
+        -219,
+        1265
+      ],
+      [
+        -247,
+        1258
+      ],
+      [
+        -257,
+        1230
+      ],
+      [
+        -244,
+        1205
+      ],
+      [
+        -219,
+        1189
+      ],
+      [
+        -194,
+        1205
+      ]
+    ],
+    "26. Indigenous Allyship": [
+      [
+        421,
+        -418
+      ],
+      [
+        555,
+        -450
+      ],
+      [
+        691,
+        -466
+      ],
+      [
+        726,
+        -342
+      ],
+      [
+        769,
+        -189
+      ],
+      [
+        778,
+        -48
+      ],
+      [
+        666,
+        82
+      ],
+      [
+        570,
+        -166
+      ],
+      [
+        495,
+        -340
+      ]
+    ],
+    "13. Human Development": [
+      [
+        -155,
+        -709
+      ],
+      [
+        -9,
+        -955
+      ],
+      [
+        -208,
+        -933
+      ],
+      [
+        -371,
+        -793
+      ]
+    ],
+    "39. Regenerative Practice": [
+      [
+        598,
+        197
+      ],
+      [
+        474,
+        158
+      ],
+      [
+        269,
+        155
+      ],
+      [
+        432,
+        465
+      ]
+    ],
+    "52. Regenerative Technology Design & Development": [
+      [
+        534,
+        497
+      ],
+      [
+        705,
+        407
+      ],
+      [
+        892,
+        368
+      ],
+      [
+        1072,
+        463
+      ],
+      [
+        1093,
+        563
+      ],
+      [
+        1065,
+        691
+      ],
+      [
+        862,
+        773
+      ],
+      [
+        714,
+        832
+      ],
+      [
+        544,
+        721
+      ]
+    ],
+    "integral education": [
+      [
+        -441,
+        -118
+      ],
+      [
+        -430,
+        -182
+      ],
+      [
+        -404,
+        -251
+      ],
+      [
+        -360,
+        -306
+      ],
+      [
+        -301,
+        -355
+      ],
+      [
+        -181,
+        -368
+      ],
+      [
+        -62,
+        -396
+      ],
+      [
+        -25,
+        -279
+      ],
+      [
+        2,
+        -190
+      ],
+      [
+        -218,
+        -146
+      ]
+    ],
+    "12. Deep Ecology Education": [
+      [
+        -711,
+        231
+      ],
+      [
+        -770,
+        278
+      ],
+      [
+        -813,
+        287
+      ],
+      [
+        -885,
+        296
+      ],
+      [
+        -949,
+        234
+      ],
+      [
+        -953,
+        130
+      ],
+      [
+        -832,
+        124
+      ],
+      [
+        -749,
+        156
+      ]
+    ],
+    "54. Indigenous-led Spiritual Communities & Networks": [
+      [
+        -42,
+        -54
+      ],
+      [
+        -234,
+        -12
+      ],
+      [
+        -262,
+        -5
+      ],
+      [
+        -290,
+        -12
+      ],
+      [
+        -417,
+        -41
+      ],
+      [
+        -324,
+        -72
+      ],
+      [
+        -262,
+        -81
+      ],
+      [
+        -152,
+        -73
+      ]
+    ],
+    "47. Narrative Change": [
+      [
+        -282,
+        1103
+      ],
+      [
+        -91,
+        1095
+      ],
+      [
+        35,
+        1106
+      ],
+      [
+        -15,
+        1239
+      ]
+    ],
+    "narrative change": [
+      [
+        -284,
+        1114
+      ],
+      [
+        -94,
+        1081
+      ],
+      [
+        48,
+        1093
+      ],
+      [
+        -17,
+        1250
+      ]
+    ],
+    "1. Wisdom Traditions": [
+      [
+        -1579,
+        -95
+      ],
+      [
+        -1580,
+        -254
+      ],
+      [
+        -1465,
+        -261
+      ],
+      [
+        -1386,
+        -249
+      ],
+      [
+        -1310,
+        -296
+      ],
+      [
+        -1189,
+        -302
+      ],
+      [
+        -1147,
+        -269
+      ],
+      [
+        -1061,
+        -242
+      ],
+      [
+        -1073,
+        -98
+      ],
+      [
+        -1188,
+        -28
+      ],
+      [
+        -1312,
+        29
+      ],
+      [
+        -1449,
+        -26
+      ]
+    ],
+    "wisdom traditions": [
+      [
+        -1579,
+        -95
+      ],
+      [
+        -1580,
+        -254
+      ],
+      [
+        -1465,
+        -261
+      ],
+      [
+        -1386,
+        -249
+      ],
+      [
+        -1310,
+        -296
+      ],
+      [
+        -1189,
+        -302
+      ],
+      [
+        -1147,
+        -269
+      ],
+      [
+        -1061,
+        -242
+      ],
+      [
+        -1073,
+        -98
+      ],
+      [
+        -1188,
+        -28
+      ],
+      [
+        -1312,
+        29
+      ],
+      [
+        -1449,
+        -26
+      ]
+    ],
+    "46. sociocultural education,": [
+      [
+        -737,
+        1169
+      ],
+      [
+        -747,
+        1197
+      ],
+      [
+        -775,
+        1204
+      ],
+      [
+        -803,
+        1197
+      ],
+      [
+        -813,
+        1169
+      ],
+      [
+        -800,
+        1144
+      ],
+      [
+        -775,
+        1128
+      ],
+      [
+        -750,
+        1144
+      ]
+    ],
+    "sociocultural education,": [
+      [
+        -737,
+        1169
+      ],
+      [
+        -747,
+        1197
+      ],
+      [
+        -775,
+        1204
+      ],
+      [
+        -803,
+        1197
+      ],
+      [
+        -813,
+        1169
+      ],
+      [
+        -800,
+        1144
+      ],
+      [
+        -775,
+        1128
+      ],
+      [
+        -750,
+        1144
+      ]
+    ],
+    "grassroots communities": [
+      [
+        11,
+        -56
+      ],
+      [
+        -6,
+        -83
+      ],
+      [
+        17,
+        -141
+      ],
+      [
+        316,
+        -187
+      ],
+      [
+        319,
+        -270
+      ],
+      [
+        411,
+        -561
+      ],
+      [
+        494,
+        66
+      ],
+      [
+        136,
+        -39
+      ]
+    ],
+    "9. Depth Psychological Education": [
+      [
+        -1018,
+        -433
+      ],
+      [
+        -1134,
+        -551
+      ],
+      [
+        -1395,
+        -519
+      ],
+      [
+        -1222,
+        -367
+      ]
+    ],
+    "depth psychological education": [
+      [
+        -1006,
+        -431
+      ],
+      [
+        -1122,
+        -549
+      ],
+      [
+        -1383,
+        -517
+      ],
+      [
+        -1210,
+        -365
+      ]
+    ],
+    "23. Ethical Technology Education": [
+      [
+        -32,
+        -174
+      ],
+      [
+        13,
+        -258
+      ],
+      [
+        -7,
+        -440
+      ],
+      [
+        180,
+        -442
+      ],
+      [
+        239,
+        -357
+      ],
+      [
+        253,
+        -227
+      ],
+      [
+        258,
+        -146
+      ],
+      [
+        210,
+        -169
+      ]
+    ],
+    "ethical technology education": [
+      [
+        -32,
+        -174
+      ],
+      [
+        13,
+        -258
+      ],
+      [
+        -7,
+        -440
+      ],
+      [
+        180,
+        -442
+      ],
+      [
+        239,
+        -357
+      ],
+      [
+        253,
+        -227
+      ],
+      [
+        258,
+        -146
+      ],
+      [
+        210,
+        -169
+      ]
+    ],
+    "19. Metacrisis Research & Education": [
+      [
+        -213,
+        539
+      ],
+      [
+        -305,
+        419
+      ],
+      [
+        -225,
+        25
+      ],
+      [
+        -131,
+        62
+      ],
+      [
+        -15,
+        207
+      ],
+      [
+        85,
+        220
+      ],
+      [
+        161,
+        256
+      ],
+      [
+        178,
+        306
+      ],
+      [
+        164,
+        371
+      ],
+      [
+        142,
+        529
+      ],
+      [
+        42,
+        587
+      ],
+      [
+        -116,
+        597
+      ]
+    ],
+    "46. Civic Infrastructure": [
+      [
+        407,
+        790
+      ],
+      [
+        397,
+        818
+      ],
+      [
+        369,
+        825
+      ],
+      [
+        341,
+        818
+      ],
+      [
+        331,
+        790
+      ],
+      [
+        344,
+        765
+      ],
+      [
+        369,
+        749
+      ],
+      [
+        394,
+        765
+      ]
+    ],
+    "civic infrastructure": [
+      [
+        407,
+        790
+      ],
+      [
+        397,
+        818
+      ],
+      [
+        369,
+        825
+      ],
+      [
+        341,
+        818
+      ],
+      [
+        331,
+        790
+      ],
+      [
+        344,
+        765
+      ],
+      [
+        369,
+        749
+      ],
+      [
+        394,
+        765
+      ]
+    ],
+    "17. Tropical Education": [
+      [
+        -860,
+        388
+      ],
+      [
+        -874,
+        449
+      ],
+      [
+        -925,
+        445
+      ],
+      [
+        -994,
+        449
+      ],
+      [
+        -983,
+        386
+      ],
+      [
+        -988,
+        335
+      ],
+      [
+        -934,
+        342
+      ],
+      [
+        -890,
+        340
+      ]
+    ],
+    "28. Decolonial Education": [
+      [
+        -748,
+        818
+      ],
+      [
+        -561,
+        742
+      ],
+      [
+        -204,
+        756
+      ],
+      [
+        -89,
+        741
+      ],
+      [
+        -56,
+        819
+      ],
+      [
+        -88,
+        878
+      ],
+      [
+        -245,
+        1001
+      ],
+      [
+        -412,
+        1057
+      ],
+      [
+        -565,
+        956
+      ]
+    ],
+    "5. Archipelago of Inner Transformation": [
+      [
+        -14,
+        97
+      ],
+      [
+        -24,
+        125
+      ],
+      [
+        -52,
+        132
+      ],
+      [
+        -80,
+        125
+      ],
+      [
+        -90,
+        97
+      ],
+      [
+        -77,
+        72
+      ],
+      [
+        -52,
+        56
+      ],
+      [
+        -27,
+        72
+      ]
+    ],
+    "20. Leadership Education": [
+      [
+        1106,
+        -313
+      ],
+      [
+        1123,
+        -398
+      ],
+      [
+        1185,
+        -456
+      ],
+      [
+        1286,
+        -430
+      ],
+      [
+        1381,
+        -389
+      ],
+      [
+        1392,
+        -306
+      ],
+      [
+        1448,
+        -13
+      ],
+      [
+        1085,
+        -35
+      ]
+    ],
+    "leadership education": [
+      [
+        1106,
+        -313
+      ],
+      [
+        1123,
+        -398
+      ],
+      [
+        1185,
+        -456
+      ],
+      [
+        1286,
+        -430
+      ],
+      [
+        1381,
+        -389
+      ],
+      [
+        1392,
+        -306
+      ],
+      [
+        1448,
+        -13
+      ],
+      [
+        1085,
+        -35
+      ]
+    ],
+    "9. Living Systems Education": [
+      [
+        -913,
+        538
+      ],
+      [
+        -851,
+        676
+      ],
+      [
+        -1070,
+        762
+      ],
+      [
+        -1151,
+        656
+      ],
+      [
+        -1139,
+        557
+      ],
+      [
+        -1035,
+        524
+      ],
+      [
+        -1006,
+        515
+      ],
+      [
+        -959,
+        510
+      ]
+    ],
+    "10. Nature-based Education": [
+      [
+        -776,
+        -157
+      ],
+      [
+        -782,
+        -124
+      ],
+      [
+        -812,
+        -79
+      ],
+      [
+        -881,
+        -60
+      ],
+      [
+        -933,
+        -75
+      ],
+      [
+        -949,
+        -135
+      ],
+      [
+        -824,
+        -194
+      ],
+      [
+        -794,
+        -172
+      ]
+    ],
+    "24. Alternative Economics": [
+      [
+        657,
+        171
+      ],
+      [
+        667,
+        127
+      ],
+      [
+        765,
+        61
+      ],
+      [
+        941,
+        -30
+      ],
+      [
+        1115,
+        -12
+      ],
+      [
+        1297,
+        134
+      ],
+      [
+        1292,
+        203
+      ],
+      [
+        1260,
+        264
+      ],
+      [
+        1126,
+        297
+      ],
+      [
+        975,
+        309
+      ],
+      [
+        805,
+        249
+      ]
+    ],
+    "21. Sociocultural Education,": [
+      [
+        -737,
+        1169
+      ],
+      [
+        -747,
+        1197
+      ],
+      [
+        -775,
+        1204
+      ],
+      [
+        -803,
+        1197
+      ],
+      [
+        -813,
+        1169
+      ],
+      [
+        -800,
+        1144
+      ],
+      [
+        -775,
+        1128
+      ],
+      [
+        -750,
+        1144
+      ]
+    ],
+    "nature-based education": [
+      [
+        -776,
+        -157
+      ],
+      [
+        -782,
+        -124
+      ],
+      [
+        -812,
+        -79
+      ],
+      [
+        -881,
+        -60
+      ],
+      [
+        -933,
+        -75
+      ],
+      [
+        -949,
+        -135
+      ],
+      [
+        -824,
+        -194
+      ],
+      [
+        -794,
+        -172
+      ]
+    ],
+    "4. Contemplative Education": [
+      [
+        -1006,
+        -278
+      ],
+      [
+        -989,
+        -408
+      ],
+      [
+        -956,
+        -543
+      ],
+      [
+        -907,
+        -649
+      ],
+      [
+        -837,
+        -728
+      ],
+      [
+        -742,
+        -757
+      ],
+      [
+        -651,
+        -734
+      ],
+      [
+        -577,
+        -641
+      ],
+      [
+        -521,
+        -515
+      ],
+      [
+        -531,
+        -412
+      ],
+      [
+        -552,
+        -313
+      ],
+      [
+        -650,
+        -272
+      ],
+      [
+        -755,
+        -245
+      ],
+      [
+        -884,
+        -255
+      ]
+    ],
+    "44. Complex Systems Education": [
+      [
+        65,
+        1001
+      ],
+      [
+        198,
+        982
+      ],
+      [
+        340,
+        955
+      ],
+      [
+        392,
+        1067
+      ],
+      [
+        403,
+        1217
+      ],
+      [
+        252,
+        1270
+      ],
+      [
+        73,
+        1293
+      ],
+      [
+        35,
+        1149
+      ]
+    ],
+    "16. Community of Practice": [
+      [
+        -674,
+        217
+      ],
+      [
+        -654,
+        159
+      ],
+      [
+        -622,
+        93
+      ],
+      [
+        -542,
+        39
+      ],
+      [
+        -454,
+        -1
+      ],
+      [
+        -361,
+        35
+      ],
+      [
+        -284,
+        81
+      ],
+      [
+        -347,
+        132
+      ],
+      [
+        -428,
+        182
+      ],
+      [
+        -554,
+        208
+      ]
+    ],
+    "community of practice": [
+      [
+        -674,
+        217
+      ],
+      [
+        -654,
+        159
+      ],
+      [
+        -622,
+        93
+      ],
+      [
+        -542,
+        39
+      ],
+      [
+        -454,
+        -1
+      ],
+      [
+        -361,
+        35
+      ],
+      [
+        -284,
+        81
+      ],
+      [
+        -347,
+        132
+      ],
+      [
+        -428,
+        182
+      ],
+      [
+        -554,
+        208
+      ]
+    ],
+    "50. climate science": [
+      [
+        -97,
+        1300
+      ],
+      [
+        -107,
+        1328
+      ],
+      [
+        -135,
+        1335
+      ],
+      [
+        -163,
+        1328
+      ],
+      [
+        -173,
+        1300
+      ],
+      [
+        -160,
+        1275
+      ],
+      [
+        -135,
+        1259
+      ],
+      [
+        -110,
+        1275
+      ]
+    ],
+    "climate science": [
+      [
+        -97,
+        1300
+      ],
+      [
+        -107,
+        1328
+      ],
+      [
+        -135,
+        1335
+      ],
+      [
+        -163,
+        1328
+      ],
+      [
+        -173,
+        1300
+      ],
+      [
+        -160,
+        1275
+      ],
+      [
+        -135,
+        1259
+      ],
+      [
+        -110,
+        1275
+      ]
+    ],
+    "6. Developmental Practice": [
+      [
+        -529,
+        -534
+      ],
+      [
+        -395,
+        -606
+      ],
+      [
+        -248,
+        -668
+      ],
+      [
+        -158,
+        -610
+      ],
+      [
+        -83,
+        -546
+      ],
+      [
+        -218,
+        -474
+      ],
+      [
+        -365,
+        -411
+      ],
+      [
+        -454,
+        -469
+      ]
+    ],
+    "developmental practice": [
+      [
+        -529,
+        -534
+      ],
+      [
+        -395,
+        -606
+      ],
+      [
+        -248,
+        -668
+      ],
+      [
+        -158,
+        -610
+      ],
+      [
+        -83,
+        -546
+      ],
+      [
+        -218,
+        -474
+      ],
+      [
+        -365,
+        -411
+      ],
+      [
+        -454,
+        -469
+      ]
+    ],
+    "23. Ethical Tech Education": [
+      [
+        -1019,
+        1895
+      ],
+      [
+        -990,
+        1715
+      ],
+      [
+        -934,
+        1533
+      ],
+      [
+        -779,
+        1468
+      ],
+      [
+        -622,
+        1430
+      ],
+      [
+        -563,
+        1664
+      ],
+      [
+        -532,
+        1902
+      ],
+      [
+        -777,
+        1912
+      ]
+    ],
+    "23. Climate Education": [
+      [
+        -715,
+        40
+      ],
+      [
+        -725,
+        68
+      ],
+      [
+        -753,
+        75
+      ],
+      [
+        -781,
+        68
+      ],
+      [
+        -791,
+        40
+      ],
+      [
+        -778,
+        15
+      ],
+      [
+        -753,
+        -1
+      ],
+      [
+        -728,
+        15
+      ]
+    ],
+    "climate education": [
+      [
+        -715,
+        40
+      ],
+      [
+        -725,
+        68
+      ],
+      [
+        -753,
+        75
+      ],
+      [
+        -781,
+        68
+      ],
+      [
+        -791,
+        40
+      ],
+      [
+        -778,
+        15
+      ],
+      [
+        -753,
+        -1
+      ],
+      [
+        -728,
+        15
+      ]
+    ],
+    "indigenous allyship": [
+      [
+        421,
+        -418
+      ],
+      [
+        555,
+        -450
+      ],
+      [
+        691,
+        -466
+      ],
+      [
+        726,
+        -342
+      ],
+      [
+        769,
+        -189
+      ],
+      [
+        919,
+        -19
+      ],
+      [
+        686,
+        6
+      ],
+      [
+        570,
+        -166
+      ],
+      [
+        495,
+        -340
+      ]
+    ],
+    "indigenous-led spiritual communities & networks": [
+      [
+        -42,
+        -54
+      ],
+      [
+        -234,
+        -12
+      ],
+      [
+        -262,
+        -5
+      ],
+      [
+        -290,
+        -12
+      ],
+      [
+        -417,
+        -41
+      ],
+      [
+        -324,
+        -72
+      ],
+      [
+        -262,
+        -81
+      ],
+      [
+        -152,
+        -73
+      ]
+    ],
+    "activism": [
+      [
+        20,
+        965
+      ],
+      [
+        -3,
+        1001
+      ],
+      [
+        -44,
+        1016
+      ],
+      [
+        -91,
+        999
+      ],
+      [
+        -100,
+        970
+      ],
+      [
+        -87,
+        921
+      ],
+      [
+        -50,
+        890
+      ],
+      [
+        -4,
+        919
+      ]
+    ],
+    "38. Education": [
+      [
+        501,
+        -619
+      ],
+      [
+        427,
+        -538
+      ],
+      [
+        374,
+        -573
+      ],
+      [
+        340,
+        -631
+      ],
+      [
+        402,
+        -678
+      ],
+      [
+        468,
+        -665
+      ]
+    ],
+    "education": [
+      [
+        501,
+        -619
+      ],
+      [
+        427,
+        -538
+      ],
+      [
+        374,
+        -573
+      ],
+      [
+        340,
+        -631
+      ],
+      [
+        402,
+        -678
+      ],
+      [
+        468,
+        -665
+      ]
+    ],
+    "31. Philanthropy": [
+      [
+        1285,
+        21
+      ],
+      [
+        1351,
+        -57
+      ],
+      [
+        1494,
+        -95
+      ],
+      [
+        1609,
+        81
+      ],
+      [
+        1648,
+        130
+      ],
+      [
+        1573,
+        298
+      ],
+      [
+        1339,
+        154
+      ],
+      [
+        1294,
+        133
+      ]
+    ],
+    "philanthropy": [
+      [
+        1285,
+        21
+      ],
+      [
+        1351,
+        -57
+      ],
+      [
+        1494,
+        -95
+      ],
+      [
+        1609,
+        81
+      ],
+      [
+        1648,
+        130
+      ],
+      [
+        1573,
+        298
+      ],
+      [
+        1339,
+        154
+      ],
+      [
+        1294,
+        133
+      ]
+    ],
+    "living systems education": [
+      [
+        -913,
+        538
+      ],
+      [
+        -851,
+        676
+      ],
+      [
+        -1070,
+        762
+      ],
+      [
+        -1151,
+        656
+      ],
+      [
+        -1139,
+        557
+      ],
+      [
+        -1035,
+        524
+      ],
+      [
+        -1006,
+        515
+      ],
+      [
+        -959,
+        510
+      ]
+    ],
+    "contemplative education": [
+      [
+        -1006,
+        -278
+      ],
+      [
+        -989,
+        -408
+      ],
+      [
+        -956,
+        -543
+      ],
+      [
+        -907,
+        -649
+      ],
+      [
+        -837,
+        -728
+      ],
+      [
+        -742,
+        -757
+      ],
+      [
+        -651,
+        -734
+      ],
+      [
+        -577,
+        -641
+      ],
+      [
+        -521,
+        -515
+      ],
+      [
+        -531,
+        -412
+      ],
+      [
+        -552,
+        -313
+      ],
+      [
+        -650,
+        -272
+      ],
+      [
+        -755,
+        -245
+      ],
+      [
+        -884,
+        -255
+      ]
+    ],
+    "deep ecology education": [
+      [
+        -711,
+        231
+      ],
+      [
+        -770,
+        278
+      ],
+      [
+        -813,
+        287
+      ],
+      [
+        -885,
+        296
+      ],
+      [
+        -949,
+        234
+      ],
+      [
+        -953,
+        130
+      ],
+      [
+        -832,
+        124
+      ],
+      [
+        -749,
+        156
+      ]
+    ],
+    "37. Alternative Education": [
+      [
+        187,
+        -560
+      ],
+      [
+        145,
+        -538
+      ],
+      [
+        102,
+        -527
+      ],
+      [
+        59,
+        -538
+      ],
+      [
+        43,
+        -581
+      ],
+      [
+        63,
+        -620
+      ],
+      [
+        102,
+        -645
+      ],
+      [
+        141,
+        -620
+      ]
+    ],
+    "48. Systemic Investing": [
+      [
+        1205,
+        394
+      ],
+      [
+        1276,
+        332
+      ],
+      [
+        1339,
+        328
+      ],
+      [
+        1428,
+        337
+      ],
+      [
+        1507,
+        400
+      ],
+      [
+        1477,
+        462
+      ],
+      [
+        1386,
+        554
+      ],
+      [
+        1257,
+        496
+      ]
+    ],
+    "35. Civic Organization": [
+      [
+        180,
+        811
+      ],
+      [
+        170,
+        839
+      ],
+      [
+        142,
+        846
+      ],
+      [
+        114,
+        839
+      ],
+      [
+        104,
+        811
+      ],
+      [
+        117,
+        786
+      ],
+      [
+        142,
+        770
+      ],
+      [
+        167,
+        786
+      ]
+    ],
+    "32. Consultancies": [
+      [
+        1015,
+        -337
+      ],
+      [
+        968,
+        -307
+      ],
+      [
+        940,
+        -300
+      ],
+      [
+        912,
+        -307
+      ],
+      [
+        817,
+        -320
+      ],
+      [
+        854,
+        -383
+      ],
+      [
+        940,
+        -376
+      ],
+      [
+        973,
+        -373
+      ]
+    ],
+    "consultancies": [
+      [
+        1015,
+        -337
+      ],
+      [
+        968,
+        -307
+      ],
+      [
+        940,
+        -300
+      ],
+      [
+        912,
+        -307
+      ],
+      [
+        817,
+        -320
+      ],
+      [
+        854,
+        -383
+      ],
+      [
+        940,
+        -376
+      ],
+      [
+        973,
+        -373
+      ]
+    ],
+    "decolonial education": [
+      [
+        -748,
+        818
+      ],
+      [
+        -561,
+        742
+      ],
+      [
+        -204,
+        756
+      ],
+      [
+        -89,
+        741
+      ],
+      [
+        -56,
+        819
+      ],
+      [
+        -88,
+        878
+      ],
+      [
+        -245,
+        1001
+      ],
+      [
+        -412,
+        1057
+      ],
+      [
+        -565,
+        956
+      ]
+    ],
+    "indigenous education": [
+      [
+        -977,
+        62
+      ],
+      [
+        -1029,
+        102
+      ],
+      [
+        -1087,
+        161
+      ],
+      [
+        -1169,
+        145
+      ],
+      [
+        -1197,
+        62
+      ],
+      [
+        -1160,
+        -10
+      ],
+      [
+        -1087,
+        -58
+      ],
+      [
+        -1014,
+        -10
+      ]
+    ],
+    "25. Psychedelic Research": [
+      [
+        -335,
+        -902
+      ],
+      [
+        -563,
+        -888
+      ],
+      [
+        -775,
+        -945
+      ],
+      [
+        -569,
+        -764
+      ]
+    ],
+    "psychedelic research": [
+      [
+        -335,
+        -902
+      ],
+      [
+        -563,
+        -888
+      ],
+      [
+        -775,
+        -945
+      ],
+      [
+        -569,
+        -764
+      ]
+    ],
+    "2. Spiritual Lineage": [
+      [
+        -464,
+        -126
+      ],
+      [
+        -500,
+        -247
+      ],
+      [
+        -745,
+        -238
+      ],
+      [
+        -729,
+        -33
+      ]
+    ],
+    "regenerative practice": [
+      [
+        598,
+        197
+      ],
+      [
+        474,
+        158
+      ],
+      [
+        269,
+        155
+      ],
+      [
+        432,
+        465
+      ]
+    ],
+    "complex systems education": [
+      [
+        65,
+        1001
+      ],
+      [
+        198,
+        982
+      ],
+      [
+        340,
+        955
+      ],
+      [
+        392,
+        1067
+      ],
+      [
+        358,
+        1203
+      ],
+      [
+        252,
+        1270
+      ],
+      [
+        73,
+        1293
+      ],
+      [
+        35,
+        1149
+      ]
+    ],
+    "alternative economics": [
+      [
+        657,
+        171
+      ],
+      [
+        667,
+        127
+      ],
+      [
+        706,
+        33
+      ],
+      [
+        941,
+        -30
+      ],
+      [
+        1115,
+        -12
+      ],
+      [
+        1297,
+        134
+      ],
+      [
+        1292,
+        203
+      ],
+      [
+        1260,
+        264
+      ],
+      [
+        1126,
+        297
+      ],
+      [
+        975,
+        309
+      ],
+      [
+        805,
+        249
+      ]
+    ],
+    "sociocultural education": [
+      [
+        -692,
+        1130
+      ],
+      [
+        -529,
+        1109
+      ],
+      [
+        -413,
+        1058
+      ],
+      [
+        -310,
+        1119
+      ],
+      [
+        -219,
+        1190
+      ],
+      [
+        -237,
+        1254
+      ],
+      [
+        -270,
+        1313
+      ],
+      [
+        -372,
+        1302
+      ],
+      [
+        -478,
+        1321
+      ],
+      [
+        -669,
+        1328
+      ]
+    ],
+    "58. archipelago of inner transformation": [
+      [
+        -14,
+        97
+      ],
+      [
+        -24,
+        125
+      ],
+      [
+        -52,
+        132
+      ],
+      [
+        -80,
+        125
+      ],
+      [
+        -90,
+        97
+      ],
+      [
+        -77,
+        72
+      ],
+      [
+        -52,
+        56
+      ],
+      [
+        -27,
+        72
+      ]
+    ],
+    "archipelago of inner transformation": [
+      [
+        -14,
+        97
+      ],
+      [
+        -24,
+        125
+      ],
+      [
+        -52,
+        132
+      ],
+      [
+        -80,
+        125
+      ],
+      [
+        -90,
+        97
+      ],
+      [
+        -77,
+        72
+      ],
+      [
+        -52,
+        56
+      ],
+      [
+        -27,
+        72
+      ]
+    ],
+    "22. Regenerative Education": [
+      [
+        -863,
+        425
+      ],
+      [
+        -810,
+        356
+      ],
+      [
+        -706,
+        385
+      ],
+      [
+        -623,
+        395
+      ],
+      [
+        -504,
+        426
+      ],
+      [
+        -423,
+        397
+      ],
+      [
+        -360,
+        373
+      ],
+      [
+        -312,
+        370
+      ],
+      [
+        -282,
+        466
+      ],
+      [
+        -289,
+        502
+      ],
+      [
+        -66,
+        739
+      ],
+      [
+        -621,
+        706
+      ]
+    ],
+    "spiritual lineage": [
+      [
+        -464,
+        -126
+      ],
+      [
+        -500,
+        -247
+      ],
+      [
+        -745,
+        -238
+      ],
+      [
+        -729,
+        -33
+      ]
+    ],
+    "human development": [
+      [
+        -155,
+        -709
+      ],
+      [
+        -9,
+        -955
+      ],
+      [
+        -208,
+        -933
+      ],
+      [
+        -371,
+        -793
+      ]
+    ],
+    "53. Regenerative Coordination": [
+      [
+        222,
+        505
+      ],
+      [
+        304,
+        453
+      ],
+      [
+        392,
+        416
+      ],
+      [
+        436,
+        497
+      ],
+      [
+        466,
+        586
+      ],
+      [
+        389,
+        651
+      ],
+      [
+        306,
+        701
+      ],
+      [
+        151,
+        642
+      ]
+    ],
+    "regenerative coordination": [
+      [
+        222,
+        505
+      ],
+      [
+        304,
+        453
+      ],
+      [
+        392,
+        416
+      ],
+      [
+        436,
+        497
+      ],
+      [
+        466,
+        586
+      ],
+      [
+        389,
+        651
+      ],
+      [
+        306,
+        701
+      ],
+      [
+        257,
+        607
+      ]
+    ],
+    "tropical education": [
+      [
+        -860,
+        388
+      ],
+      [
+        -874,
+        449
+      ],
+      [
+        -925,
+        445
+      ],
+      [
+        -994,
+        449
+      ],
+      [
+        -983,
+        386
+      ],
+      [
+        -988,
+        335
+      ],
+      [
+        -934,
+        342
+      ],
+      [
+        -890,
+        340
+      ]
+    ],
+    "59. Retreat Center": [
+      [
+        -339,
+        -1017
+      ],
+      [
+        -349,
+        -989
+      ],
+      [
+        -377,
+        -982
+      ],
+      [
+        -405,
+        -989
+      ],
+      [
+        -415,
+        -1017
+      ],
+      [
+        -402,
+        -1042
+      ],
+      [
+        -377,
+        -1058
+      ],
+      [
+        -352,
+        -1042
+      ]
+    ],
+    "retreat center": [
+      [
+        -339,
+        -1017
+      ],
+      [
+        -349,
+        -989
+      ],
+      [
+        -377,
+        -982
+      ],
+      [
+        -405,
+        -989
+      ],
+      [
+        -415,
+        -1017
+      ],
+      [
+        -402,
+        -1042
+      ],
+      [
+        -377,
+        -1058
+      ],
+      [
+        -352,
+        -1042
+      ]
+    ],
+    "metacrisis research & education": [
+      [
+        -213,
+        539
+      ],
+      [
+        -305,
+        419
+      ],
+      [
+        -225,
+        25
+      ],
+      [
+        -131,
+        62
+      ],
+      [
+        -15,
+        207
+      ],
+      [
+        85,
+        220
+      ],
+      [
+        161,
+        256
+      ],
+      [
+        178,
+        306
+      ],
+      [
+        164,
+        371
+      ],
+      [
+        142,
+        529
+      ],
+      [
+        42,
+        587
+      ],
+      [
+        -116,
+        597
+      ]
+    ],
+    "regenerative technology design & development": [
+      [
+        534,
+        497
+      ],
+      [
+        705,
+        407
+      ],
+      [
+        892,
+        368
+      ],
+      [
+        1072,
+        463
+      ],
+      [
+        1093,
+        563
+      ],
+      [
+        1065,
+        691
+      ],
+      [
+        862,
+        773
+      ],
+      [
+        714,
+        832
+      ],
+      [
+        544,
+        721
+      ]
+    ],
+    "regenerative education": [
+      [
+        -863,
+        425
+      ],
+      [
+        -810,
+        356
+      ],
+      [
+        -706,
+        385
+      ],
+      [
+        -623,
+        395
+      ],
+      [
+        -504,
+        426
+      ],
+      [
+        -423,
+        397
+      ],
+      [
+        -360,
+        373
+      ],
+      [
+        -312,
+        370
+      ],
+      [
+        -282,
+        466
+      ],
+      [
+        -289,
+        502
+      ],
+      [
+        -66,
+        739
+      ],
+      [
+        -621,
+        706
+      ]
+    ],
+    "civic organization": [
+      [
+        180,
+        811
+      ],
+      [
+        170,
+        839
+      ],
+      [
+        142,
+        846
+      ],
+      [
+        114,
+        839
+      ],
+      [
+        104,
+        811
+      ],
+      [
+        117,
+        786
+      ],
+      [
+        142,
+        770
+      ],
+      [
+        167,
+        786
+      ]
+    ],
+    "systemic investing": [
+      [
+        1205,
+        394
+      ],
+      [
+        1276,
+        332
+      ],
+      [
+        1339,
+        328
+      ],
+      [
+        1428,
+        337
+      ],
+      [
+        1507,
+        400
+      ],
+      [
+        1477,
+        462
+      ],
+      [
+        1386,
+        554
+      ],
+      [
+        1257,
+        496
+      ]
+    ],
+    "alternative education": [
+      [
+        187,
+        -560
+      ],
+      [
+        145,
+        -538
+      ],
+      [
+        102,
+        -527
+      ],
+      [
+        59,
+        -538
+      ],
+      [
+        43,
+        -581
+      ],
+      [
+        63,
+        -620
+      ],
+      [
+        102,
+        -645
+      ],
+      [
+        141,
+        -620
+      ]
+    ],
+    "50. Climate Science": [
+      [
+        -97,
+        1300
+      ],
+      [
+        -107,
+        1328
+      ],
+      [
+        -135,
+        1335
+      ],
+      [
+        -163,
+        1328
+      ],
+      [
+        -173,
+        1300
+      ],
+      [
+        -160,
+        1275
+      ],
+      [
+        -135,
+        1259
+      ],
+      [
+        -110,
+        1275
+      ]
+    ]
+  },
+  "archipelagoMetadata": {
+    "14. Relational Education": {
+      "titleCurvature": 0.7,
+      "subTitleCurvature": 0.7,
+      "labelRotation": -30,
+      "subLabelOffset": {
+        "x": -89,
+        "y": 86
+      },
+      "labelOffset": {
+        "y": 87,
+        "x": -118
+      }
+    },
+    "39. Regenerative Practice": {
+      "labelOffset": {
+        "y": 7,
+        "x": 10
+      },
+      "subLabelOffset": {
+        "x": 15,
+        "y": 17
+      }
+    },
+    "25. Psychedelic Research": {
+      "labelOffset": {
+        "y": 18,
+        "x": 7
+      },
+      "quadrant": "Inner"
+    },
+    "23. Climate Education": {
+      "quadrant": "Cultural"
+    },
+    "52. Regenerative Technology Design & Development": {
+      "labelOffset": {
+        "x": -4,
+        "y": 21
+      }
+    },
+    "54. Indigenous-led Spiritual Communities & Networks": {
+      "quadrant": "Inner"
+    },
+    "30. Grassroots Communities": {
+      "labelOffset": {
+        "x": 119,
+        "y": 93
+      },
+      "quadrant": "Social"
+    },
+    "10. Nature-based Education": {
+      "labelRotation": -15,
+      "labelOffset": {
+        "y": 18,
+        "x": -25
+      }
+    },
+    "12. Deep Ecology Education": {
+      "labelRotation": 15,
+      "labelOffset": {
+        "x": 25,
+        "y": 5
+      },
+      "quadrant": "Cultural"
+    },
+    "28. Decolonial Education": {
+      "subLabelRotation": -2,
+      "subLabelOffset": {
+        "y": 28,
+        "x": 8
+      },
+      "labelOffset": {
+        "x": 10,
+        "y": 24
+      }
+    },
+    "35. Civic Organization": {
+      "quadrant": "Systems"
+    },
+    "19. Metacrisis Research & Education": {
+      "titleCurvature": 0.35,
+      "labelOffset": {
+        "x": 106,
+        "y": 138
+      },
+      "subLabelOffset": {
+        "x": 85,
+        "y": 130
+      },
+      "quadrant": "Cultural",
+      "subTitleCurvature": 0.35,
+      "labelRotation": 30
+    },
+    "10. Deep Ecology Education": {
+      "quadrant": "Cultural"
+    },
+    "44. Complex Systems Education": {
+      "subLabelOffset": {
+        "x": 4,
+        "y": 21
+      },
+      "labelOffset": {
+        "y": 11,
+        "x": 11
+      }
+    },
+    "17. Tropical Education": {
+      "subLabelOffset": {
+        "x": -2,
+        "y": 8
+      },
+      "quadrant": "Cultural",
+      "labelOffset": {
+        "y": 12,
+        "x": 6
+      }
+    },
+    "47. Narrative Change": {
+      "subLabelOffset": {
+        "y": -5,
+        "x": 30
+      },
+      "quadrant": "Cultural",
+      "labelOffset": {
+        "y": -6,
+        "x": 32
+      }
+    },
+    "27. Indigenous Education": {
+      "quadrant": "Cultural",
+      "subLabelOffset": {
+        "y": 2,
+        "x": 15
+      },
+      "labelOffset": {
+        "y": 3,
+        "x": 9
+      }
+    },
+    "53. Regenerative Coordination": {
+      "subLabelOffset": {
+        "y": 13,
+        "x": 35
+      },
+      "labelOffset": {
+        "y": 9,
+        "x": 30
+      }
+    },
+    "8. Integral Education": {
+      "labelOffset": {
+        "y": 40,
+        "x": -45
+      },
+      "labelRotation": -15,
+      "quadrant": "Inner"
+    },
+    "22. Regenerative Education": {
+      "labelOffset": {
+        "y": 30,
+        "x": -96
+      },
+      "quadrant": "Cultural"
+    },
+    "34. Activism": {
+      "quadrant": "Cultural"
+    },
+    "26. Indigenous Allyship": {
+      "labelOffset": {
+        "x": 77,
+        "y": 5
+      },
+      "labelRotation": 15,
+      "subLabelOffset": {
+        "y": 5,
+        "x": 61
+      }
+    },
+    "2. Spiritual Lineage": {
+      "labelOffset": {
+        "y": 2,
+        "x": -14
+      },
+      "subLabelOffset": {
+        "y": 14,
+        "x": -6
+      }
+    },
+    "16. Community of Practice": {
+      "labelRotation": -30,
+      "labelOffset": {
+        "y": 47,
+        "x": -83
+      },
+      "quadrant": "Cultural"
+    },
+    "21. Sociocultural Education": {
+      "quadrant": "Cultural",
+      "labelOffset": {
+        "y": 8,
+        "x": -17
+      }
+    },
+    "15. Psychoterapeutic Modality": {
+      "quadrant": "Inner",
+      "labelOffset": {
+        "x": 2,
+        "y": 8
+      }
+    },
+    "23. Ethical Technology Education": {
+      "labelOffset": {
+        "x": -31,
+        "y": -1
+      },
+      "subLabelOffset": {
+        "x": -31,
+        "y": 14
+      }
+    },
+    "13. Human Development": {
+      "subLabelOffset": {
+        "x": -3,
+        "y": 8
+      },
+      "quadrant": "Inner",
+      "labelOffset": {
+        "y": 11,
+        "x": -9
+      },
+      "labelRotation": -15
+    },
+    "31. Philanthropy": {
+      "quadrant": "Systems",
+      "description": ""
+    },
+    "19. Climate Science": {
+      "quadrant": "Cultural"
+    },
+    "62. Public Sensemaking": {
+      "quadrant": "Cultural"
+    },
+    "integral education": {
+      "quadrant": "Inner"
+    },
+    "37. Alternative Education": {
+      "quadrant": "Social"
+    },
+    "alternative education": {
+      "quadrant": "Social"
+    },
+    "grassroots communities": {
+      "quadrant": "Social"
+    },
+    "32. Consultancies": {
+      "quadrant": "Social"
+    },
+    "consultancies": {
+      "quadrant": "Social"
+    },
+    "regenerative education": {
+      "quadrant": "Cultural"
+    }
+  },
+  "layerQuadrantSizes": {
+    "1": {
+      "Systems": {
+        "height": 1302,
+        "width": 1650
+      },
+      "Inner": {
+        "width": 1600,
+        "height": 1175
+      },
+      "Social": {
+        "width": 1650,
+        "height": 875
+      },
+      "Cultural": {
+        "width": 1675,
+        "height": 1475
+      }
+    },
+    "2": {
+      "Social": {
+        "width": 1400,
+        "height": 1400
+      },
+      "Systems": {
+        "width": 1400,
+        "height": 1400
+      },
+      "Inner": {
+        "width": 1400,
+        "height": 1400
+      },
+      "Cultural": {
+        "width": 1400,
+        "height": 1400
+      }
+    },
+    "3": {
+      "Systems": {
+        "height": 1600,
+        "width": 1600
+      },
+      "Social": {
+        "height": 1600,
+        "width": 1600
+      },
+      "Cultural": {
+        "height": 1600,
+        "width": 1600
+      },
+      "Inner": {
+        "width": 1600,
+        "height": 1600
+      }
+    },
+    "all": {
+      "Social": {
+        "height": 1600,
+        "width": 1600
+      },
+      "Systems": {
+        "height": 1600,
+        "width": 1600
+      },
+      "Inner": {
+        "width": 1600,
+        "height": 1600
+      },
+      "Cultural": {
+        "height": 1600,
+        "width": 1600
+      }
+    }
+  }
+}
