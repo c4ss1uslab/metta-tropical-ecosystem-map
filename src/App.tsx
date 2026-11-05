@@ -23,7 +23,9 @@ import {
   isEntityPrimaryToArchipelago,
   calculateFocusArchipelagoPositions,
   calculateExpandedContinentHull,
-  fitContinentTightlyAroundEntities
+  fitContinentTightlyAroundEntities,
+  organizeLayerEntitiesByTags,
+  generateFieldContinentsFromEntities
 } from './utils/layoutGenerator';
 import { exportEntities, ExportFormat, sanitizeEntityObsoleteFields, getEntitySpreadsheetField, splitLanguageValues, entityMatchesRelationship, ensureUniqueEntityIds, getSocialMediaReachTier } from './utils/excelParser';
 import { sanitizeEntitySocialProfiles } from './utils/socialMedia';
@@ -52,7 +54,8 @@ import {
   getLayer1Relationships, 
   getLayer2Relationships,
   doesArchipelagoAppearInLayer,
-  getArchipelagoLayerEntities
+  getArchipelagoLayerEntities,
+  isEntityInLayer
 } from './utils/layerClassifier';
 
 const LOCAL_STORAGE_KEY = 'metta_ecosystem_custom_positions_v3';
@@ -62,6 +65,7 @@ const UNCOMMITTED_CHANGES_KEY = 'metta_has_uncommitted_cloud_changes';
 const ARCHIPELAGO_METADATA_STORAGE_KEY = 'metta_ecosystem_archipelago_metadata_v1';
 const COMMITTED_BASELINE_KEY = 'metta_ecosystem_committed_baseline_v1';
 const LAYER_QUADRANTS_STORAGE_KEY = 'metta_ecosystem_layer_quadrants_v1';
+const LAYER_FIELDS_STORAGE_KEY = 'metta_ecosystem_layer_fields_v1';
 
 export default function App() {
   // Custom continent shape control points
@@ -129,6 +133,20 @@ export default function App() {
       console.warn('Failed to parse layer quadrant sizes from localStorage', e);
     }
     return INITIAL_LAYER_QUADRANT_SIZES ? { ...DEFAULT_LAYER_QUADRANT_SIZES, ...INITIAL_LAYER_QUADRANT_SIZES } : DEFAULT_LAYER_QUADRANT_SIZES;
+  });
+
+  // Layer 2 and Layer 3 Field Continents (clusters based on tags)
+  const [layerFieldContinents, setLayerFieldContinents] = useState<Record<number, ContinentInfo[]>>(() => {
+    try {
+      const saved = localStorage.getItem(LAYER_FIELDS_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') return parsed;
+      }
+    } catch (e) {
+      console.warn('Failed to parse layer fields from localStorage', e);
+    }
+    return {};
   });
 
   // Initialize dataset & calculate layout with guaranteed anti-overlap clearance
@@ -1934,9 +1952,89 @@ export default function App() {
     const targetFocusArchipelago = selectedContinentName || (activeListScope?.type === 'continent' ? activeListScope.name : null);
     const activeLayer = filterState.activeLayer ?? 1;
 
-    // In Layer 2 and Layer 3: stop showing archipelagos completely
+    // In Layer 2 and Layer 3: show Field clusters (named "fields", looking just like archipelagos)
     if (activeLayer === 2 || activeLayer === 3) {
-      return [];
+      const storedFields = layerFieldContinents[activeLayer];
+      const rawFieldsForLayer = (storedFields && storedFields.length > 0)
+        ? storedFields
+        : generateFieldContinentsFromEntities(entities, activeLayer);
+
+      if (!rawFieldsForLayer || rawFieldsForLayer.length === 0) {
+        return [];
+      }
+
+      // Heal and ensure 100% strictly unique names across fieldsForLayer
+      const seenNames = new Set<string>();
+      const fieldsForLayer = rawFieldsForLayer.map(cont => {
+        let uniqueName = cont.name;
+        if (seenNames.has(uniqueName)) {
+          uniqueName = `${cont.category} ${cont.name}`;
+        }
+        let counter = 2;
+        while (seenNames.has(uniqueName)) {
+          uniqueName = `${cont.category} ${cont.name} ${counter}`;
+          counter++;
+        }
+        seenNames.add(uniqueName);
+        return uniqueName === cont.name ? cont : { ...cont, name: uniqueName };
+      });
+
+      return fieldsForLayer.map(cont => {
+        const customPoints = customContinentShapes[cont.name];
+        let pathData = cont.pathData;
+        let controlPoints = cont.controlPoints;
+        let minX = cont.minX;
+        let maxX = cont.maxX;
+        let minY = cont.minY;
+        let maxY = cont.maxY;
+        let isCustomShape = cont.isCustomShape;
+
+        if (customPoints && customPoints.length >= 3) {
+          controlPoints = customPoints;
+          pathData = createPathFromControlPoints(customPoints);
+          let cMinX = Infinity, cMaxX = -Infinity, cMinY = Infinity, cMaxY = -Infinity;
+          customPoints.forEach(([px, py]) => {
+            cMinX = Math.min(cMinX, px);
+            cMaxX = Math.max(cMaxX, px);
+            cMinY = Math.min(cMinY, py);
+            cMaxY = Math.max(cMaxY, py);
+          });
+          minX = cMinX - 50;
+          maxX = cMaxX + 50;
+          minY = cMinY - 50;
+          maxY = cMaxY + 50;
+          isCustomShape = true;
+        }
+
+        const displayedEntities = filteredEntities.filter(e => isEntityPrimaryToArchipelago(e, cont.name));
+        const layerCount = displayedEntities.length;
+
+        const subLabelPath = generateContinentLabelPath(
+          cont.centerX,
+          cont.centerY,
+          minX,
+          maxX,
+          minY,
+          maxY,
+          controlPoints,
+          -22,
+          cont.subTitleCurvature !== undefined ? cont.subTitleCurvature : 0.7,
+          `${layerCount} ${layerCount === 1 ? 'entity' : 'entities'}`
+        );
+
+        return {
+          ...cont,
+          controlPoints,
+          pathData,
+          minX,
+          maxX,
+          minY,
+          maxY,
+          isCustomShape,
+          count: layerCount,
+          subLabelPath
+        };
+      });
     }
 
     // Filter baseContinents according to activeLayer rule:
@@ -2039,7 +2137,7 @@ export default function App() {
         subLabelPath
       };
     });
-  }, [baseContinents, selectedContinentName, activeListScope, filteredEntities, editMode, entities, filterState.activeLayer]);
+  }, [baseContinents, selectedContinentName, activeListScope, filteredEntities, editMode, entities, filterState.activeLayer, layerFieldContinents, customContinentShapes]);
 
   // Check if an archipelago is currently focused (selected without an individual entity)
   const targetFocusArchipelagoName = selectedContinentName || (activeListScope?.type === 'continent' ? activeListScope.name : null);
@@ -3293,6 +3391,44 @@ export default function App() {
     } catch {}
   }, [saveToLocalStorage, pushHistorySnapshot]);
 
+  // Automatically organize Layer 2 or Layer 3 entities based on tags into quadrants and field clusters
+  const handleOrganizeFieldsByTags = useCallback((targetLayer?: 2 | 3) => {
+    const layer = targetLayer ?? ((filterState.activeLayer === 3 ? 3 : 2) as 2 | 3);
+    pushHistorySnapshot(`Organize Layer ${layer} fields by tags`);
+
+    setEntities(prev => {
+      const { updatedEntities, fieldContinents } = organizeLayerEntitiesByTags(
+        prev,
+        layer,
+        activeQuadrantSizes
+      );
+
+      const uniqueUpdated = ensureUniqueEntityIds(updatedEntities);
+      saveToLocalStorage(uniqueUpdated);
+
+      setLayerFieldContinents(prevFields => {
+        const next = { ...prevFields, [layer]: fieldContinents };
+        try {
+          localStorage.setItem(LAYER_FIELDS_STORAGE_KEY, JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+
+      const targetEntsCount = uniqueUpdated.filter(e => isEntityInLayer(e, layer)).length;
+      setUndoToastMessage(`Organized ${targetEntsCount} Layer ${layer} entities into ${fieldContinents.length} Fields across 4 quadrants`);
+      setTimeout(() => {
+        setUndoToastMessage(null);
+      }, 4500);
+
+      return uniqueUpdated;
+    });
+
+    setHasUncommittedChanges(true);
+    try {
+      localStorage.setItem(UNCOMMITTED_CHANGES_KEY, 'true');
+    } catch {}
+  }, [filterState.activeLayer, activeQuadrantSizes, pushHistorySnapshot, saveToLocalStorage]);
+
   // Reset positions to cluster auto-layout
   const handleResetLayout = useCallback(() => {
     localStorage.removeItem(LOCAL_STORAGE_KEY);
@@ -3590,6 +3726,7 @@ export default function App() {
           onResetLayout={handleResetLayout}
           onAutoArrange={handleAutoArrange}
           onRecalculateLayout={handleRecalculateLayout}
+          onOrganizeFieldsByTags={handleOrganizeFieldsByTags}
           onFlyToContinent={handleFlyToContinent}
           totalFilteredCount={filteredEntities.length}
           totalCount={entities.length}
@@ -3681,6 +3818,7 @@ export default function App() {
             }
           }}
           onRecalculateLayout={handleRecalculateLayout}
+          onOrganizeFieldsByTags={handleOrganizeFieldsByTags}
           quadrantSizes={activeQuadrantSizes}
           onUpdateQuadrantSizes={handleUpdateQuadrantSizes}
           activeLayer={filterState.activeLayer ?? 1}

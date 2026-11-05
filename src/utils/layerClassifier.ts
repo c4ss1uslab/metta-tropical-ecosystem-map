@@ -276,21 +276,21 @@ export function getArchipelagoLayerEntities(
   primaryOnly: boolean = false
 ): EcosystemEntity[] {
   if (!archipelagoName || !entities || entities.length === 0) return [];
-  // In Layer 2 and Layer 3: archipelagos are stopped/hidden completely
-  if (layer === 2 || layer === 3) return [];
   const assigned = primaryOnly
     ? entities.filter(e => isEntityPrimaryToArchipelago(e, archipelagoName))
     : entities.filter(e => entityMatchesArchipelago(e, archipelagoName));
   if (layer === 'all') return assigned;
   if (layer === 1) return assigned.filter(e => isEntityInRelationshipLevels1to6(e));
+  if (layer === 2) return assigned.filter(e => isEntityInRelationshipLevels7to9(e));
+  if (layer === 3) return assigned.filter(e => isEntityInRelationshipLevels10to11(e));
   return [];
 }
 
 /**
- * Determines whether an archipelago should appear in the given map layer.
- * Specifically for Layer 1: it ONLY appears if it has at least one entity assigned
- * with a relationship level between 1 and 6.
- * In Layer 2 and Layer 3: archipelagos stop showing completely.
+ * Determines whether an archipelago or field cluster should appear in the given map layer.
+ * Specifically for Layer 1: appears if it has at least one entity assigned with relationship levels 1 to 6.
+ * For Layer 2: appears if it has at least one entity assigned with relationship levels 7 to 9.
+ * For Layer 3: appears if it has at least one entity assigned with relationship levels 10 to 11.
  */
 export function doesArchipelagoAppearInLayer(
   archipelagoName: string,
@@ -298,12 +298,12 @@ export function doesArchipelagoAppearInLayer(
   layer: 1 | 2 | 3 | 'all' | number = 1
 ): boolean {
   if (!archipelagoName || !entities || entities.length === 0) return false;
-  // In Layer 2 and Layer 3: archipelagos stop showing completely
-  if (layer === 2 || layer === 3) return false;
   const assigned = entities.filter(e => entityMatchesArchipelago(e, archipelagoName));
   if (assigned.length === 0) return false;
   if (layer === 'all') return true;
   if (layer === 1) return assigned.some(e => isEntityInRelationshipLevels1to6(e));
+  if (layer === 2) return assigned.some(e => isEntityInRelationshipLevels7to9(e));
+  if (layer === 3) return assigned.some(e => isEntityInRelationshipLevels10to11(e));
   return false;
 }
 

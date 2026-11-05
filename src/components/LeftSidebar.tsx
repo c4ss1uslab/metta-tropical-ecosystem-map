@@ -61,6 +61,7 @@ interface LeftSidebarProps {
   onResetLayout: () => void;
   onAutoArrange?: () => void;
   onRecalculateLayout?: (resetCustom?: boolean) => void;
+  onOrganizeFieldsByTags?: (layer?: 2 | 3) => void;
   onFlyToContinent?: (continent: ContinentInfo) => void;
   totalFilteredCount: number;
   totalCount: number;
@@ -110,6 +111,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   onResetLayout,
   onAutoArrange,
   onRecalculateLayout,
+  onOrganizeFieldsByTags,
   onFlyToContinent,
   totalFilteredCount,
   totalCount,
@@ -428,14 +430,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
 
   // Map Layers (Layer 1, Layer 2, Layer 3)
   const activeLayer = filterState.activeLayer ?? 1;
-  const showArchipelagos = !(activeLayer === 2 || activeLayer === 3);
-
-  // Automatically switch away from archipelagos tab if layer 2 or 3 is activated
-  useEffect(() => {
-    if (!showArchipelagos && activeTab === 'continents') {
-      setActiveTab('filters');
-    }
-  }, [showArchipelagos, activeTab]);
+  const isFieldLayer = activeLayer === 2 || activeLayer === 3;
+  const showArchipelagos = !isFieldLayer;
 
   const [isLayerSectionOpen, setIsLayerSectionOpen] = useState(false);
   const [isLayerModalOpen, setIsLayerModalOpen] = useState(false);
@@ -1603,18 +1599,16 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
               >
                 General
               </button>
-              {showArchipelagos && (
-                <button
-                  onClick={() => setActiveTab('continents')}
-                  className={`py-1.5 font-medium border-b-2 transition-all truncate px-1 ${
-                    activeTab === 'continents'
-                      ? 'border-[#111827] text-[#111827] bg-[#FAF8F5]'
-                      : 'border-transparent text-[#8C877F] hover:text-[#111827]'
-                  }`}
-                >
-                  Archipelagos
-                </button>
-              )}
+              <button
+                onClick={() => setActiveTab('continents')}
+                className={`py-1.5 font-medium border-b-2 transition-all truncate px-1 ${
+                  activeTab === 'continents'
+                    ? 'border-[#111827] text-[#111827] bg-[#FAF8F5]'
+                    : 'border-transparent text-[#8C877F] hover:text-[#111827]'
+                }`}
+              >
+                {isFieldLayer ? 'Fields' : 'Archipelagos'}
+              </button>
               <button
                 onClick={() => setActiveTab('fields')}
                 className={`py-1.5 font-medium border-b-2 transition-all truncate px-1 ${
@@ -3001,13 +2995,13 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
               </>
             )}
 
-            {showArchipelagos && activeTab === 'continents' && (
+            {activeTab === 'continents' && (
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-1.5">
                     <Globe className="w-4 h-4 text-[#111827]" />
                     <h3 className="font-editorial text-sm font-semibold text-[#111827]">
-                      Archipelagos ({continents.length})
+                      {isFieldLayer ? `Fields (Layer ${activeLayer})` : 'Archipelagos'} ({continents.length})
                     </h3>
                   </div>
                   <div className="flex space-x-2 text-[11px] font-sans">
@@ -3028,7 +3022,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                 </div>
 
                 <p className="font-sans text-xs text-[#4B5563] leading-relaxed mb-3">
-                  Archipelagos group nodes by thematic landmasses (either stated in spreadsheet or auto-suggested). Toggle visibility or fly to any archipelago.
+                  {isFieldLayer
+                    ? `Fields group Layer ${activeLayer} initiatives automatically by tags within each quadrant into archipelago-like clusters.`
+                    : 'Archipelagos group nodes by thematic landmasses (either stated in spreadsheet or auto-suggested). Toggle visibility or fly to any archipelago.'}
                 </p>
 
                 <input
@@ -3393,7 +3389,20 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  {onRecalculateLayout && (
+                  {(activeLayer === 2 || activeLayer === 3) && onOrganizeFieldsByTags && (
+                    <button
+                      type="button"
+                      id="sidebar-organize-fields-btn"
+                      onClick={() => onOrganizeFieldsByTags(activeLayer === 3 ? 3 : 2)}
+                      className="w-full flex items-center justify-center space-x-2 py-2.5 px-3 bg-[#D9C01B] hover:bg-[#c9b218] text-[#111827] rounded-[4px] text-xs font-sans font-semibold transition-all shadow-xs cursor-pointer animate-in fade-in duration-200"
+                      title={`Organize Layer ${activeLayer} entities automatically into Field clusters based on tags within each quadrant`}
+                    >
+                      <Sparkles className="w-4 h-4 text-[#111827]" />
+                      <span>Organize Fields by Tags (Layer {activeLayer})</span>
+                    </button>
+                  )}
+
+                  {!(activeLayer === 2 || activeLayer === 3) && onRecalculateLayout && (
                     <button
                       type="button"
                       onClick={() => onRecalculateLayout(true)}

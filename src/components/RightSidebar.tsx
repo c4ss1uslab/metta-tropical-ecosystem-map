@@ -1848,6 +1848,9 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
         }
       };
 
+      const isFieldLayer = activeLayer === 2 || activeLayer === 3;
+      const continentTerm = isFieldLayer ? 'Field' : 'Archipelago';
+
       return (
         <aside className="w-96 bg-white border-l border-[#E5E7EB] flex flex-col h-full z-30 shadow-lg relative select-text">
           {/* Header */}
@@ -1882,7 +1885,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                         className="px-2 py-0.5 text-[10px] font-technical uppercase font-semibold text-white rounded-[2px]"
                         style={{ backgroundColor: badgeBg }}
                       >
-                        {currentQuadrant} Archipelago
+                        {currentQuadrant} {continentTerm}
                       </span>
                     )}
                   </div>
@@ -1980,7 +1983,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 )}
 
                 <p className="font-technical text-[10.5px] text-[#716C64] uppercase tracking-wide mt-0.5">
-                  Thematic Archipelago Landmass
+                  Thematic {continentTerm} Landmass
                 </p>
               </div>
 
@@ -2002,7 +2005,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 className="w-full flex items-center justify-center space-x-1.5 py-1.5 px-3 bg-[#111827] text-white rounded-[4px] text-xs font-sans hover:bg-[#20293a] transition-all shadow-xs cursor-pointer"
               >
                 <Navigation className="w-3.5 h-3.5 text-[#D9C01B]" />
-                <span>Fly Camera to Archipelago on Map</span>
+                <span>Fly Camera to {continentTerm} on Map</span>
               </button>
 
               {isArchipelagoEditable && activeContinent?.isCustomShape && onResetContinentShape && (
@@ -2026,7 +2029,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
               <div className="flex items-center justify-between">
                 <span className="font-technical text-[11px] uppercase font-bold text-[#111827] tracking-wider flex items-center gap-1.5">
                   <Layers className="w-3.5 h-3.5" style={{ color: badgeBg }} />
-                  Archipelago Quadrant
+                  {continentTerm} Quadrant
                 </span>
                 <span
                   className="px-2 py-0.5 text-[9.5px] font-technical uppercase font-bold text-white rounded-[2px] shadow-2xs"
@@ -2103,7 +2106,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
             <div className="p-3 bg-[#FAF8F5] border border-[#E5E7EB] rounded-[4px] space-y-2">
               <span className="font-technical text-[11px] uppercase font-bold text-[#111827] tracking-wider flex items-center gap-1.5">
                 <Compass className="w-3.5 h-3.5 text-[#5B21B6]" />
-                Archipelago Description
+                {continentTerm} Description
               </span>
 
               {isArchipelagoEditable ? (
@@ -2875,7 +2878,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
             <div className="space-y-3 pt-1">
               <div className="flex items-center justify-between font-technical text-[11px] text-[#8C877F] uppercase tracking-wider px-0.5">
                 <span className="font-bold text-[#111827]">
-                  Archipelago Entities ({listEntities.length})
+                  {continentTerm} Entities ({listEntities.length})
                 </span>
                 <span>{isArchipelagoEditable ? 'Edit Membership' : 'Click to inspect'}</span>
               </div>
@@ -4447,17 +4450,17 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
           </div>
         )}
 
-        {/* Archipelago Territory & Landmass Info */}
+        {/* Archipelago / Field Territory & Landmass Info */}
         <div className="p-3 bg-[#FAF8F5] border border-[#E5E7EB] rounded-[4px]">
           <div className="flex items-center justify-between mb-1.5">
             <span className="font-technical text-[11px] text-[#8C877F] uppercase tracking-wider flex items-center space-x-1">
               <Globe className="w-3.5 h-3.5 text-[#5B21B6]" />
-              <span>Archipelago</span>
+              <span>{activeLayer === 2 || activeLayer === 3 ? 'Field' : 'Archipelago'}</span>
             </span>
             {editMode && (
               <button
                 onClick={handleAutoSuggestContinent}
-                title="Auto-suggest archipelago based on entity fields & category"
+                title={`Auto-suggest ${activeLayer === 2 || activeLayer === 3 ? 'field' : 'archipelago'} based on entity fields & category`}
                 className="font-technical text-[10px] text-[#5B21B6] hover:underline flex items-center space-x-1"
               >
                 <Wand2 className="w-3 h-3" />
@@ -4472,11 +4475,11 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 type="text"
                 value={entity.continent || ''}
                 onChange={(e) => handleFieldChange('continent', e.target.value)}
-                placeholder="Archipelago name (e.g. Commonwealth of the Commons)..."
+                placeholder={activeLayer === 2 || activeLayer === 3 ? 'Field name (e.g. Regenerative Agriculture)...' : 'Archipelago name (e.g. Commonwealth of the Commons)...'}
                 className="w-full bg-white border border-[#E5E7EB] text-xs font-sans px-2 py-1.5 rounded-[4px] outline-none"
               />
               <span className="font-technical text-[10px] text-[#8C877F] mt-1 block">
-                Leave empty or click Auto-Suggest to calculate archipelago from tags.
+                Leave empty or click Auto-Suggest to calculate {activeLayer === 2 || activeLayer === 3 ? 'field' : 'archipelago'} from tags.
               </span>
             </div>
           ) : (
@@ -4500,7 +4503,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                       }}
                       className="font-technical text-[10px] text-[#5B21B6] hover:underline font-semibold cursor-pointer"
                     >
-                      View Archipelago Overview →
+                      View {activeLayer === 2 || activeLayer === 3 ? 'Field' : 'Archipelago'} Overview →
                     </button>
                   )}
                 </>
@@ -6144,17 +6147,17 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                       )}
                     </div>
 
-                    {/* Archipelago Territory & Landmass Info */}
+                    {/* Archipelago / Field Territory & Landmass Info */}
                     <div className="p-3.5 bg-[#FAF8F5] border border-[#E5E7EB] rounded-[4px]">
                       <div className="flex items-center justify-between mb-1.5">
                         <span className="font-technical text-[11px] text-[#8C877F] uppercase tracking-wider flex items-center space-x-1">
                           <Globe className="w-3.5 h-3.5 text-[#5B21B6]" />
-                          <span>Archipelago</span>
+                          <span>{activeLayer === 2 || activeLayer === 3 ? 'Field' : 'Archipelago'}</span>
                         </span>
                         {isModalEditMode && (
                           <button
                             onClick={handleAutoSuggestContinent}
-                            title="Auto-suggest archipelago based on entity fields & category"
+                            title={`Auto-suggest ${activeLayer === 2 || activeLayer === 3 ? 'field' : 'archipelago'} based on entity fields & category`}
                             className="font-technical text-[10px] text-[#5B21B6] hover:underline flex items-center space-x-1 cursor-pointer"
                           >
                             <Wand2 className="w-3 h-3" />
@@ -6169,7 +6172,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                             type="text"
                             value={modalEntity.continent || ''}
                             onChange={(e) => handleModalFieldChange('continent', e.target.value)}
-                            placeholder="Archipelago name..."
+                            placeholder={activeLayer === 2 || activeLayer === 3 ? 'Field name...' : 'Archipelago name...'}
                             className="w-full bg-white border border-[#E5E7EB] text-xs font-sans px-2.5 py-1.5 rounded-[4px] outline-none"
                           />
                         </div>
@@ -6192,7 +6195,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                               }}
                               className="font-technical text-[10px] text-[#5B21B6] hover:underline font-semibold cursor-pointer"
                             >
-                              View Archipelago Overview →
+                              View {activeLayer === 2 || activeLayer === 3 ? 'Field' : 'Archipelago'} Overview →
                             </button>
                           )}
                         </div>

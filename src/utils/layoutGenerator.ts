@@ -1,4 +1,4 @@
-import { CategoryQuadrant, ContinentInfo, EcosystemEntity, EcotoneCorridorInfo, FieldCluster } from '../types';
+import { CategoryQuadrant, ContinentInfo, EcosystemEntity, EcotoneCorridorInfo, FieldCluster, LayerQuadrantSizes } from '../types';
 
 export const QUADRANT_CENTERS: Record<CategoryQuadrant, { x: number; y: number; label: string; color: string; darkColor: string }> = {
   Inner: { 
@@ -1784,7 +1784,7 @@ export function suggestContinent(entity: Partial<EcosystemEntity>): string {
 /**
  * Computes 2D Convex Hull for a set of points (Monotone Chain algorithm)
  */
-function getConvexHull(points: [number, number][]): [number, number][] {
+export function getConvexHull(points: [number, number][]): [number, number][] {
   if (points.length <= 2) return points;
 
   const sorted = points.slice().sort((a, b) => a[0] === b[0] ? a[1] - b[1] : a[0] - b[0]);
@@ -2974,4 +2974,570 @@ export function calculateEcotoneCorridors(entities: EcosystemEntity[]): EcotoneC
   });
 
   return corridorList;
+}
+
+/**
+ * Extracts and normalizes all thematic tags, keywords, approaches, and topics for an entity.
+ */
+export function extractEntityTagList(entity: EcosystemEntity): string[] {
+  const rawList: string[] = [];
+
+  if (Array.isArray(entity.fields) && entity.fields.length > 0) {
+    rawList.push(...entity.fields);
+  }
+
+  const fromKw = entity.extraFields?.['Keywords/Topics'] || entity.categorizedFields?.['Overview']?.['Keywords/Topics'];
+  if (fromKw && typeof fromKw === 'string') {
+    rawList.push(...fromKw.split(/[,;\n|]+/));
+  }
+
+  if (Array.isArray(entity.approach) && entity.approach.length > 0) {
+    rawList.push(...entity.approach);
+  }
+  const fromApp = entity.extraFields?.['Approach'] || entity.categorizedFields?.['Overview']?.['Approach'];
+  if (fromApp && typeof fromApp === 'string') {
+    rawList.push(...fromApp.split(/[,;\n|]+/));
+  }
+
+  if (Array.isArray(entity.issues) && entity.issues.length > 0) {
+    rawList.push(...entity.issues);
+  }
+  const fromIss = entity.extraFields?.['Issues'] || entity.categorizedFields?.['Overview']?.['Issues'];
+  if (fromIss && typeof fromIss === 'string') {
+    rawList.push(...fromIss.split(/[,;\n|]+/));
+  }
+
+  if (Array.isArray(entity.activities) && entity.activities.length > 0) {
+    rawList.push(...entity.activities);
+  }
+  const fromAct = entity.extraFields?.['Activities'] || entity.categorizedFields?.['Overview']?.['Activities'];
+  if (fromAct && typeof fromAct === 'string') {
+    rawList.push(...fromAct.split(/[,;\n|]+/));
+  }
+
+  const fromLife = entity.extraFields?.['Area of Response (Life Itself)'] || entity.categorizedFields?.['Overview']?.['Area of Response (Life Itself)'];
+  if (fromLife && typeof fromLife === 'string') {
+    rawList.push(...fromLife.split(/[,;\n|]+/));
+  }
+
+  const fromSec = entity.societalSector || entity.extraFields?.['Societal Sector'] || entity.categorizedFields?.['Overview']?.['Societal Sector'];
+  if (fromSec && typeof fromSec === 'string') {
+    rawList.push(...fromSec.split(/[,;\n|]+/));
+  }
+
+  if (entity.stream) rawList.push(entity.stream);
+  if (Array.isArray(entity.streams)) rawList.push(...entity.streams);
+
+  const cleanList: string[] = [];
+  const seen = new Set<string>();
+
+  for (const item of rawList) {
+    if (!item) continue;
+    let s = String(item).trim().replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/^["']|["']$/g, '').trim();
+    if (s.length < 2 || s.length > 60) continue;
+    // Format nicely in Title Case
+    s = s.replace(/\b[a-z]/g, c => c.toUpperCase());
+    const k = s.toLowerCase();
+    if (!seen.has(k)) {
+      seen.add(k);
+      cleanList.push(s);
+    }
+  }
+
+  return cleanList;
+}
+
+/**
+ * Checks if an entity belongs to layer 2 or layer 3 based on relationship
+ */
+export function isEntityInTargetLayer(entity: EcosystemEntity, layer: 2 | 3): boolean {
+  const raw =
+    entity.ourRelationship ||
+    (entity.extraFields?.['Our Relationship'] as string) ||
+    (entity.extraFields?.['S2'] as string) ||
+    (entity.extraFields?.['U2'] as string) ||
+    (entity.categorizedFields?.['Overview']?.['Our Relationship'] as string);
+
+  if (!raw || typeof raw !== 'string') return false;
+  const str = raw.trim().toLowerCase();
+
+  const numMatch = str.match(/(?:^|[\r\n;,]|\s)(\d{1,2})[\).\:\-\s]/) || str.match(/^(\d{1,2})/);
+  if (numMatch) {
+    const num = parseInt(numMatch[1], 10);
+    if (layer === 2) return num >= 7 && num <= 9;
+    if (layer === 3) return num >= 10;
+  }
+
+  if (layer === 2) {
+    return (
+      str.includes('aware of') ||
+      str.includes('aware') ||
+      (str.includes('following') && !str.includes('following closely')) ||
+      str.includes('exploring') ||
+      str.includes('interested in')
+    );
+  }
+
+  if (layer === 3) {
+    return str.includes('unaware') || str.includes('crowdsource') || str.includes('out of scope');
+  }
+
+  return false;
+}
+
+/**
+ * Automatically organizes entities of Layer 2 or Layer 3 based on tags:
+ * 1. Places them first in their designated quadrant (Inner, Social, Cultural, Systems).
+ * 2. Groups them by thematic tags within each quadrant, forming cohesive field clusters.
+ * 3. Spaces out the field clusters with guaranteed non-overlapping clearance.
+ * 4. Arranges entities in each field in an organic phyllotaxis spiral.
+ * 5. Builds organic landmass polygons and curved perimeter labels named "fields" that look just like archipelagos.
+ */
+export function organizeLayerEntitiesByTags(
+  allEntities: EcosystemEntity[],
+  targetLayer: 2 | 3,
+  quadrantSizes?: LayerQuadrantSizes
+): {
+  updatedEntities: EcosystemEntity[];
+  fieldContinents: ContinentInfo[];
+} {
+  const targetEntities = allEntities.filter(e => isEntityInTargetLayer(e, targetLayer));
+  if (targetEntities.length === 0) {
+    return { updatedEntities: allEntities, fieldContinents: [] };
+  }
+
+  const targetMap = new Map<string, EcosystemEntity>();
+  targetEntities.forEach(e => targetMap.set(e.id, { ...e }));
+
+  const byQuadrant: Record<CategoryQuadrant, EcosystemEntity[]> = {
+    Inner: [],
+    Social: [],
+    Cultural: [],
+    Systems: []
+  };
+
+  targetEntities.forEach(ent => {
+    let q = ent.quadrant;
+    if (!q || !byQuadrant[q]) {
+      q = ent.category;
+    }
+    if (!q || !byQuadrant[q]) {
+      q = getArchipelagoQuadrant(ent.name) || 'Inner';
+    }
+    byQuadrant[q].push(ent);
+  });
+
+  const fieldContinents: ContinentInfo[] = [];
+  const broadTags = new Set(['Society', 'Soil', 'Soul', 'Systems']);
+
+  const quadrantConfig: Record<CategoryQuadrant, {
+    signX: number;
+    signY: number;
+    minAngleDeg: number;
+    maxAngleDeg: number;
+  }> = {
+    Inner: { signX: -1, signY: -1, minAngleDeg: -165, maxAngleDeg: -105 },
+    Social: { signX: 1, signY: -1, minAngleDeg: -75, maxAngleDeg: -15 },
+    Cultural: { signX: -1, signY: 1, minAngleDeg: 105, maxAngleDeg: 165 },
+    Systems: { signX: 1, signY: 1, minAngleDeg: 15, maxAngleDeg: 75 }
+  };
+
+  // Step 1: Discover clusters for each quadrant
+  const rawClustersByQuad = new Map<CategoryQuadrant, { tagName: string; members: EcosystemEntity[] }[]>();
+  const tagCountAcrossQuadrants: Record<string, number> = {};
+
+  (Object.keys(byQuadrant) as CategoryQuadrant[]).forEach(quad => {
+    const entsInQuad = byQuadrant[quad];
+    if (entsInQuad.length === 0) return;
+
+    // Count tag frequencies in this quadrant
+    const tagFreq: Record<string, number> = {};
+    entsInQuad.forEach(e => {
+      const tags = extractEntityTagList(e);
+      tags.forEach(t => {
+        tagFreq[t] = (tagFreq[t] || 0) + 1;
+      });
+    });
+
+    const clusterBuckets = new Map<string, EcosystemEntity[]>();
+
+    entsInQuad.forEach(e => {
+      const tags = extractEntityTagList(e);
+      let bestTag: string | null = null;
+      let maxFreq = -1;
+
+      // 1. Choose specific tag with frequency >= 2 in quadrant
+      for (const t of tags) {
+        if (!broadTags.has(t) && tagFreq[t] >= 2 && tagFreq[t] > maxFreq) {
+          bestTag = t;
+          maxFreq = tagFreq[t];
+        }
+      }
+
+      // 2. Fallback to any specific tag (not broad)
+      if (!bestTag) {
+        for (const t of tags) {
+          if (!broadTags.has(t)) {
+            bestTag = t;
+            break;
+          }
+        }
+      }
+
+      // 3. Fallback to quadrant theme (avoiding raw 'Soil', 'Society', 'Systems' singletons)
+      if (!bestTag) {
+        bestTag = (
+          quad === 'Inner' ? 'Contemplative Inquiry'
+          : quad === 'Social' ? 'Civic Commons'
+          : quad === 'Cultural' ? 'Regenerative Culture'
+          : 'Systemic Transition'
+        );
+      }
+
+      if (!clusterBuckets.has(bestTag)) clusterBuckets.set(bestTag, []);
+      clusterBuckets.get(bestTag)!.push(e);
+    });
+
+    // Merge singletons into larger clusters if they share secondary tags
+    const clusterEntries = Array.from(clusterBuckets.entries());
+    clusterEntries.forEach(([tagName, members]) => {
+      if (members.length === 1 && clusterEntries.length > 5) {
+        const singleEnt = members[0];
+        const tags = extractEntityTagList(singleEnt);
+        const altTag = tags.find(
+          t => t !== tagName && !broadTags.has(t) && clusterBuckets.has(t) && (clusterBuckets.get(t)?.length || 0) >= 2
+        );
+        if (altTag) {
+          clusterBuckets.get(altTag)!.push(singleEnt);
+          clusterBuckets.delete(tagName);
+        }
+      }
+    });
+
+    const list = Array.from(clusterBuckets.entries())
+      .map(([tagName, members]) => ({ tagName, members }))
+      .sort((a, b) => b.members.length - a.members.length);
+
+    rawClustersByQuad.set(quad, list);
+
+    list.forEach(c => {
+      tagCountAcrossQuadrants[c.tagName] = (tagCountAcrossQuadrants[c.tagName] || 0) + 1;
+    });
+  });
+
+  const usedFieldNames = new Set<string>();
+
+  // Step 2: Lay out clusters inside their designated quadrant with unique non-colliding names
+  (Object.keys(byQuadrant) as CategoryQuadrant[]).forEach(quad => {
+    const rawList = rawClustersByQuad.get(quad);
+    if (!rawList || rawList.length === 0) return;
+
+    // Disambiguate names if a tag appears across multiple quadrants
+    const sortedClusters = rawList.map(({ tagName, members }) => {
+      let fieldName = tagName;
+      const isMultiQuad = (tagCountAcrossQuadrants[tagName] || 0) > 1;
+      const quadLower = quad.toLowerCase();
+      const tagLower = tagName.toLowerCase();
+
+      if (isMultiQuad && !tagLower.includes(quadLower)) {
+        fieldName = `${quad} ${tagName}`;
+      }
+
+      if (usedFieldNames.has(fieldName)) {
+        let counter = 2;
+        while (usedFieldNames.has(`${fieldName} ${counter}`)) {
+          counter++;
+        }
+        fieldName = `${fieldName} ${counter}`;
+      }
+      usedFieldNames.add(fieldName);
+
+      return { name: fieldName, members };
+    });
+
+    const cfg = quadrantConfig[quad];
+
+    // Compute spacious centers radiating in arcs inside the quadrant
+    const placedCenters: { name: string; x: number; y: number; members: EcosystemEntity[] }[] = [];
+    const baseW = quadrantSizes?.[quad]?.width || (targetLayer === 2 ? 1400 : 1600);
+    const baseH = quadrantSizes?.[quad]?.height || (targetLayer === 2 ? 1400 : 1600);
+    const maxTerritoryRadius = Math.min(baseW, baseH) * 0.95;
+
+    const candidateRadii = [
+      Math.round(maxTerritoryRadius * 0.32),
+      Math.round(maxTerritoryRadius * 0.55),
+      Math.round(maxTerritoryRadius * 0.78),
+      Math.round(maxTerritoryRadius * 0.96)
+    ];
+    const angleSteps = 8;
+
+    sortedClusters.forEach(({ name: fieldName, members }) => {
+      let bestX = cfg.signX * Math.round(maxTerritoryRadius * 0.45);
+      let bestY = cfg.signY * Math.round(maxTerritoryRadius * 0.45);
+      let maxMinDist = -1;
+
+      for (const r of candidateRadii) {
+        for (let i = 0; i <= angleSteps; i++) {
+          const t = i / angleSteps;
+          const angleDeg = cfg.minAngleDeg + t * (cfg.maxAngleDeg - cfg.minAngleDeg);
+          const rad = (angleDeg * Math.PI) / 180;
+          const candX = Math.round(Math.cos(rad) * r);
+          const candY = Math.round(Math.sin(rad) * r);
+
+          if (Math.sign(candX) !== cfg.signX || Math.sign(candY) !== cfg.signY) continue;
+          if (Math.abs(candX) < 120 || Math.abs(candY) < 120) continue;
+
+          let minDist = 999999;
+          for (const pc of placedCenters) {
+            const d = Math.hypot(candX - pc.x, candY - pc.y);
+            if (d < minDist) minDist = d;
+          }
+
+          if (minDist > maxMinDist) {
+            maxMinDist = minDist;
+            bestX = candX;
+            bestY = candY;
+          }
+        }
+      }
+      placedCenters.push({ name: fieldName, x: bestX, y: bestY, members });
+    });
+
+    // Relaxation ensuring generous clearance between cluster centers
+    const minClearance = 440;
+    for (let iter = 0; iter < 32; iter++) {
+      let collided = false;
+      for (let i = 0; i < placedCenters.length; i++) {
+        for (let j = i + 1; j < placedCenters.length; j++) {
+          const c1 = placedCenters[i];
+          const c2 = placedCenters[j];
+          const dx = c2.x - c1.x;
+          const dy = c2.y - c1.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < minClearance) {
+            collided = true;
+            const push = (minClearance - dist) / 2;
+            const nx = dx / (dist || 1);
+            const ny = dy / (dist || 1);
+            c1.x = Math.round(c1.x - nx * push);
+            c1.y = Math.round(c1.y - ny * push);
+            c2.x = Math.round(c2.x + nx * push);
+            c2.y = Math.round(c2.y + ny * push);
+          }
+        }
+      }
+      placedCenters.forEach(c => {
+        if (cfg.signX < 0 && c.x > -90) c.x = -90;
+        if (cfg.signX > 0 && c.x < 90) c.x = 90;
+        if (cfg.signY < 0 && c.y > -90) c.y = -90;
+        if (cfg.signY > 0 && c.y < 90) c.y = 90;
+      });
+      if (!collided) break;
+    }
+
+    // Place entities in each field cluster with phyllotaxis spiral
+    placedCenters.forEach(cluster => {
+      const { name: fieldName, x: cx, y: cy, members } = cluster;
+      const points: [number, number][] = [];
+
+      members.forEach((m, mIdx) => {
+        const phi = 1.61803398875;
+        const angle = mIdx * phi * Math.PI * 2 + (mIdx % 2 === 0 ? 0.25 : -0.25);
+        const dist = mIdx === 0 ? 0 : (24 + Math.sqrt(mIdx) * 38);
+        const posX = Math.round(cx + Math.cos(angle) * dist);
+        const posY = Math.round(cy + Math.sin(angle) * dist);
+
+        points.push([posX, posY]);
+
+        targetMap.set(m.id, {
+          ...m,
+          x: posX,
+          y: posY,
+          category: quad,
+          quadrant: quad,
+          continent: fieldName,
+          isCustomPosition: true
+        });
+      });
+
+      const pointsForHull = points.length > 0 ? points : [
+        [cx - 65, cy - 65] as [number, number],
+        [cx + 65, cy - 65] as [number, number],
+        [cx + 65, cy + 65] as [number, number],
+        [cx - 65, cy + 65] as [number, number]
+      ];
+
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+      pointsForHull.forEach(([px, py]) => {
+        minX = Math.min(minX, px);
+        maxX = Math.max(maxX, px);
+        minY = Math.min(minY, py);
+        maxY = Math.max(maxY, py);
+      });
+
+      const hull = getConvexHull(pointsForHull);
+      const initialPadding = points.length <= 2 ? 38 : 50;
+      const { path: pathData, controlPoints } = createOrganicContinentPath(
+        hull.length > 0 ? hull : pointsForHull,
+        initialPadding
+      );
+
+      const margin = points.length <= 2 ? 38 : 55;
+      const safeMinX = minX === Infinity ? cx - 90 : minX - margin;
+      const safeMaxX = maxX === -Infinity ? cx + 90 : maxX + margin;
+      const safeMinY = minY === Infinity ? cy - 90 : minY - margin;
+      const safeMaxY = maxY === -Infinity ? cy + 90 : maxY + margin;
+
+      const labelPath = generateContinentLabelPath(
+        cx, cy, safeMinX, safeMaxX, safeMinY, safeMaxY, controlPoints, 0, 0.7, fieldName
+      );
+      const subLabelPath = generateContinentLabelPath(
+        cx, cy, safeMinX, safeMaxX, safeMinY, safeMaxY, controlPoints, -22, 0.7, `${members.length} ${members.length === 1 ? 'entity' : 'entities'}`
+      );
+
+      fieldContinents.push({
+        name: fieldName,
+        category: quad,
+        color: QUADRANT_CENTERS[quad].color,
+        count: members.length,
+        centerX: cx,
+        centerY: cy,
+        minX: safeMinX,
+        maxX: safeMaxX,
+        minY: safeMinY,
+        maxY: safeMaxY,
+        hullPoints: hull,
+        controlPoints,
+        pathData,
+        labelPath,
+        subLabelPath,
+        visible: true
+      });
+    });
+  });
+
+  const updatedTargetEntities = Array.from(targetMap.values());
+  const resolved = resolveEntityOverlaps(
+    updatedTargetEntities,
+    fieldContinents.map(f => ({ x: f.centerX, y: f.centerY }))
+  );
+
+  const finalMap = new Map<string, EcosystemEntity>();
+  allEntities.forEach(e => finalMap.set(e.id, e));
+  resolved.forEach(e => finalMap.set(e.id, e));
+
+  return {
+    updatedEntities: Array.from(finalMap.values()),
+    fieldContinents
+  };
+}
+
+/**
+ * Constructs Field ContinentInfo landmasses from existing entities that have already been assigned to fields.
+ */
+export function generateFieldContinentsFromEntities(
+  entities: EcosystemEntity[],
+  layer: 2 | 3
+): ContinentInfo[] {
+  const layerEntities = entities.filter(e => isEntityInTargetLayer(e, layer));
+  if (layerEntities.length === 0) return [];
+
+  const fieldMap = new Map<string, {
+    fieldName: string;
+    category: CategoryQuadrant;
+    points: [number, number][];
+    count: number;
+    sumX: number;
+    sumY: number;
+  }>();
+
+  layerEntities.forEach(e => {
+    if (!e.continent) return;
+    const quad = e.quadrant || e.category || 'Inner';
+    const compoundKey = `${quad}:::${e.continent}`;
+    if (!fieldMap.has(compoundKey)) {
+      fieldMap.set(compoundKey, {
+        fieldName: e.continent,
+        category: quad,
+        points: [],
+        count: 0,
+        sumX: 0,
+        sumY: 0
+      });
+    }
+    const data = fieldMap.get(compoundKey)!;
+    data.points.push([e.x, e.y]);
+    data.sumX += e.x;
+    data.sumY += e.y;
+    data.count++;
+  });
+
+  const fields: ContinentInfo[] = [];
+  const usedNames = new Set<string>();
+
+  fieldMap.forEach((data) => {
+    if (data.points.length === 0) return;
+    let fieldName = data.fieldName;
+    if (usedNames.has(fieldName)) {
+      fieldName = `${data.category} ${data.fieldName}`;
+    }
+    let counter = 2;
+    while (usedNames.has(fieldName)) {
+      fieldName = `${data.category} ${data.fieldName} ${counter}`;
+      counter++;
+    }
+    usedNames.add(fieldName);
+
+    const cx = Math.round(data.sumX / data.points.length);
+    const cy = Math.round(data.sumY / data.points.length);
+
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    data.points.forEach(([px, py]) => {
+      minX = Math.min(minX, px);
+      maxX = Math.max(maxX, px);
+      minY = Math.min(minY, py);
+      maxY = Math.max(maxY, py);
+    });
+
+    const hull = getConvexHull(data.points);
+    const initialPadding = data.points.length <= 2 ? 38 : 50;
+    const { path: pathData, controlPoints } = createOrganicContinentPath(
+      hull.length > 0 ? hull : data.points,
+      initialPadding
+    );
+
+    const margin = data.points.length <= 2 ? 38 : 55;
+    const safeMinX = minX === Infinity ? cx - 90 : minX - margin;
+    const safeMaxX = maxX === -Infinity ? cx + 90 : maxX + margin;
+    const safeMinY = minY === Infinity ? cy - 90 : minY - margin;
+    const safeMaxY = maxY === -Infinity ? cy + 90 : maxY + margin;
+
+    const labelPath = generateContinentLabelPath(
+      cx, cy, safeMinX, safeMaxX, safeMinY, safeMaxY, controlPoints, 0, 0.7, fieldName
+    );
+    const subLabelPath = generateContinentLabelPath(
+      cx, cy, safeMinX, safeMaxX, safeMinY, safeMaxY, controlPoints, -22, 0.7, `${data.count} ${data.count === 1 ? 'entity' : 'entities'}`
+    );
+
+    fields.push({
+      name: fieldName,
+      category: data.category,
+      color: QUADRANT_CENTERS[data.category]?.color || '#111827',
+      count: data.count,
+      centerX: cx,
+      centerY: cy,
+      minX: safeMinX,
+      maxX: safeMaxX,
+      minY: safeMinY,
+      maxY: safeMaxY,
+      hullPoints: hull,
+      controlPoints,
+      pathData,
+      labelPath,
+      subLabelPath,
+      visible: true
+    });
+  });
+
+  return fields;
 }

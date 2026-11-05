@@ -119,6 +119,7 @@ interface RpgMapCanvasProps {
   focusedEntityId?: string | null;
   onExitFocus?: () => void;
   onRecalculateLayout?: (resetCustom?: boolean) => void;
+  onOrganizeFieldsByTags?: (layer?: 2 | 3) => void;
   quadrantSizes?: LayerQuadrantSizes;
   onUpdateQuadrantSizes?: (newSizes: LayerQuadrantSizes, targetLayer?: 1 | 2 | 3 | 'all') => void;
   activeLayer?: 1 | 2 | 3 | 'all';
@@ -183,6 +184,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
   focusedEntityId,
   onExitFocus,
   onRecalculateLayout,
+  onOrganizeFieldsByTags,
   quadrantSizes,
   onUpdateQuadrantSizes,
   activeLayer = 1,
@@ -1166,18 +1168,33 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
   }, [onSelectIntersectionZone, clearPendingClick]);
 
 
-  // Archipelagos are stopped/hidden when in Layer 2 or Layer 3
-  const isArchipelagoHiddenInLayer = activeLayer === 2 || activeLayer === 3;
-  const effectiveShowContinents = showContinents && !isArchipelagoHiddenInLayer;
+  // Archipelagos in Layer 1; Fields in Layer 2 and Layer 3 (look just like archipelagos)
+  const isFieldLayer = activeLayer === 2 || activeLayer === 3;
+  const effectiveShowContinents = showContinents;
 
-  // Visible continents (ensuring archipelagos strictly follow activeLayer relationship level rules)
+  // Visible continents (ensuring archipelagos and fields strictly follow activeLayer relationship level rules)
   const visibleContinentsList = useMemo(() => {
-    if (isArchipelagoHiddenInLayer) return [];
-    return continents.filter(c => {
+    const raw = continents.filter(c => {
       if (hiddenContinents.includes(c.name)) return false;
+      if (isFieldLayer) return true;
       return doesArchipelagoAppearInLayer(c.name, entities, activeLayer);
     });
-  }, [continents, hiddenContinents, activeLayer, entities, isArchipelagoHiddenInLayer]);
+
+    const seen = new Set<string>();
+    return raw.map(c => {
+      let uniqueName = c.name;
+      if (seen.has(uniqueName)) {
+        uniqueName = `${c.category} ${c.name}`;
+      }
+      let counter = 2;
+      while (seen.has(uniqueName)) {
+        uniqueName = `${c.category} ${c.name} ${counter}`;
+        counter++;
+      }
+      seen.add(uniqueName);
+      return uniqueName === c.name ? c : { ...c, name: uniqueName };
+    });
+  }, [continents, hiddenContinents, activeLayer, entities, isFieldLayer]);
 
   // Calculate connection lines for selected or hovered entity or all relationships across all quadrants
   const activeFocusEntity = focusedEntity || hoveredEntity || selectedEntity;
@@ -1689,9 +1706,10 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
             ))}
 
             {/* Curved Path Definitions for Continent Names & Entity Counts Circling the Perimeter */}
-            {effectiveShowContinents && visibleContinentsList.map(cont => {
-              const pathId = `continent-label-path-${sanitizeId(cont.name)}`;
-              const subPathId = `continent-sublabel-path-${sanitizeId(cont.name)}`;
+            {effectiveShowContinents && visibleContinentsList.map((cont, contIdx) => {
+              const contKey = `${cont.category}-${cont.name}-${contIdx}`;
+              const pathId = `continent-label-path-${sanitizeId(cont.category)}-${sanitizeId(cont.name)}`;
+              const subPathId = `continent-sublabel-path-${sanitizeId(cont.category)}-${sanitizeId(cont.name)}`;
               const titleCurv = cont.titleCurvature !== undefined ? cont.titleCurvature : 0.7;
               const subTitleCurv = cont.subTitleCurvature !== undefined ? cont.subTitleCurvature : 0.7;
 
@@ -1734,7 +1752,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
               );
 
               return (
-                <React.Fragment key={`def-paths-${cont.name}`}>
+                <React.Fragment key={`def-paths-${contKey}`}>
                   <path id={pathId} d={labelPathD} fill="none" />
                   <path id={subPathId} d={subLabelPathD} fill="none" />
                 </React.Fragment>
@@ -1816,8 +1834,9 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
             })}
 
             {/* 1. Archipelagos Organic Landmasses & Circling Archipelago Names */}
-            {effectiveShowContinents && visibleContinentsList.map(cont => {
+            {effectiveShowContinents && visibleContinentsList.map((cont, contIdx) => {
               if (!cont.pathData) return null;
+              const contKey = `${cont.category}-${cont.name}-${contIdx}`;
               const isHovered = editMode && hoveredContinent === cont.name;
               const isSelected = selectedContinentName === cont.name ||
                 Boolean(selectedContinentName && (
@@ -1852,8 +1871,8 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
                 : '#0284C7';
 
               const darkTextColor = getDarkerContinentColor(cont.category);
-              const pathId = `continent-label-path-${sanitizeId(cont.name)}`;
-              const subPathId = `continent-sublabel-path-${sanitizeId(cont.name)}`;
+              const pathId = `continent-label-path-${sanitizeId(cont.category)}-${sanitizeId(cont.name)}`;
+              const subPathId = `continent-sublabel-path-${sanitizeId(cont.category)}-${sanitizeId(cont.name)}`;
 
               const titleCenter = getContinentLabelCenter(cont, false);
               const subTitleCenter = getContinentLabelCenter(cont, true);
@@ -1870,7 +1889,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
                 : (cont.subLabelRotation !== undefined ? cont.subLabelRotation : (cont.labelRotation || 0));
 
               return (
-                <g key={`continent-hull-${cont.name}`} transform={dragTransform}>
+                <g key={`continent-hull-${contKey}`} transform={dragTransform}>
                   {/* Outer Coastline / Shoreline Contour */}
                   <path
                     d={cont.pathData}
@@ -1990,7 +2009,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
                           textAnchor="middle"
                           spacing="auto"
                         >
-                          {cont.name}
+                          {isFieldLayer ? `FIELD • ${cont.name.toUpperCase()}` : cont.name}
                         </textPath>
                       </text>
 
@@ -2255,8 +2274,9 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
             ))}
 
             {/* 3. EDIT MODE: Continent Perimeter Reshape Handles (Control Vertices & '+' Midpoints) */}
-            {editMode && effectiveShowContinents && visibleContinentsList.map(cont => {
+            {editMode && effectiveShowContinents && visibleContinentsList.map((cont, contIdx) => {
               if (!cont.controlPoints || cont.controlPoints.length === 0) return null;
+              const contKey = `${cont.category}-${cont.name}-${contIdx}`;
               const isBeingMoved = draggingContinentName === cont.name;
               const isContinentActive = selectedContinentName === cont.name || hoveredContinent === cont.name || draggingVertex?.continentName === cont.name || isBeingMoved;
               const dragTransform = isBeingMoved && continentDragDelta
@@ -2272,7 +2292,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
                 : '#0284C7';
 
               return (
-                <g key={`continent-edit-controls-${cont.name}`} transform={dragTransform}>
+                <g key={`continent-edit-controls-${contKey}`} transform={dragTransform}>
                   {/* Vertex Control Points to Pull and Reshape */}
                   {cont.controlPoints.map(([px, py], pIdx) => {
                     const isVertexBeingDragged = draggingVertex?.continentName === cont.name && draggingVertex.pointIndex === pIdx;
@@ -3235,7 +3255,19 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
               <span>Snapshot</span>
             </button>
           )}
-          {onRecalculateLayout && (
+          {(activeLayer === 2 || activeLayer === 3) && onOrganizeFieldsByTags && (
+            <button
+              type="button"
+              id="canvas-organize-fields-btn"
+              onClick={() => onOrganizeFieldsByTags(activeLayer === 3 ? 3 : 2)}
+              className="ml-1 px-3 py-1 bg-[#D9C01B] hover:bg-[#c9b218] text-[#111827] font-semibold text-[11px] rounded-[3px] transition-all whitespace-nowrap cursor-pointer shadow-xs flex items-center space-x-1.5 shrink-0 animate-in fade-in duration-200"
+              title={`Organize Layer ${activeLayer} entities automatically into Field clusters based on tags within each quadrant`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-[#111827]" />
+              <span>Organize Fields by Tags</span>
+            </button>
+          )}
+          {!(activeLayer === 2 || activeLayer === 3) && onRecalculateLayout && (
             <button
               onClick={() => onRecalculateLayout(true)}
               className="ml-1 px-3 py-1 bg-[#D9C01B] hover:bg-[#c9b218] text-[#111827] font-semibold text-[11px] rounded-[3px] transition-all whitespace-nowrap cursor-pointer shadow-xs flex items-center space-x-1.5 shrink-0"
