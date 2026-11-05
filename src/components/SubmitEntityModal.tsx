@@ -9,6 +9,20 @@ import { saveContributionSubmission } from '../utils/contributionPipeline';
 import { formatClusterWithNumber, suggestContinent, QUADRANT_CENTERS, CANONICAL_CLUSTER_MAP, getEntityOtherArchipelagos } from '../utils/layoutGenerator';
 import { getEntityCompleteness } from '../types';
 import { FieldCommentInfo } from './FieldCommentInfo';
+import { OptionsMultiSelect } from './OptionsMultiSelect';
+import {
+  SITUATIONAL_ASSESSMENT_OPTIONS,
+  RESPONSE_ORIENTATION_OPTIONS,
+  CRISIS_OF_RESPONSE_OPTIONS,
+  ALT_PROPOSED_GTA_OPTIONS,
+  ALT_PROPOSED_PLURIVERSE_OPTIONS,
+  VALUE_MEME_OPTIONS,
+  THEORY_OF_CHANGE_GTDF_OPTIONS,
+  THEORY_OF_CHANGE_IAM_OPTIONS,
+  SDGS_SOCIAL_ISSUES_OPTIONS,
+  IDGS_OPTIONS,
+  INTELLECTUAL_LINEAGE_OPTIONS
+} from '../utils/fieldOptions';
 
 // Natural numerical comparison: sorts archipelagos strictly 1 to 99+
 export function extractArchipelagoNumber(archName: string): number {
@@ -760,6 +774,7 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
   const [theoryOfChangeIAM, setTheoryOfChangeIAM] = useState('');
   const [crisisOfResponse, setCrisisOfResponse] = useState('');
   const [relevantResources, setRelevantResources] = useState('');
+  const [sdgsSocialIssues, setSdgsSocialIssues] = useState('');
   const [idgsInnerCapacities, setIdgsInnerCapacities] = useState('');
   const [innerWorkModalities, setInnerWorkModalities] = useState('');
 
@@ -772,10 +787,6 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
   const [hypotheses, setHypotheses] = useState('');
   const [analystCommentary, setAnalystCommentary] = useState('');
 
-  // Warm Data
-  const [pointOfContact, setPointOfContact] = useState('');
-  const [warmDataEmail, setWarmDataEmail] = useState('');
-  const [matchingDatabase, setMatchingDatabase] = useState('');
   const [ourRelationship, setOurRelationship] = useState('');
 
   // Submitter Relationship Question & Email Modal
@@ -793,7 +804,6 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
     'relationships': true,
     'worldview': true,
     'discourse': true,
-    'warmData': true,
     'governance': true
   });
 
@@ -939,6 +949,7 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
     setTheoryOfChangeIAM('');
     setCrisisOfResponse('');
     setRelevantResources('');
+    setSdgsSocialIssues('');
     setIdgsInnerCapacities('');
     setInnerWorkModalities('');
     setConcepts('');
@@ -948,9 +959,6 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
     setEvidenceSources('');
     setHypotheses('');
     setAnalystCommentary('');
-    setPointOfContact('');
-    setWarmDataEmail('');
-    setMatchingDatabase('');
     setOurRelationship('');
     setSubmitterRelationship('');
     setSubmitterEmail('');
@@ -1141,6 +1149,7 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
           'Theory of Change (IAM)': theoryOfChangeIAM.trim(),
           'Crisis of Response': crisisOfResponse.trim(),
           'Featured Resources': featuredResources.trim(),
+          'SDGs/Social Issues (Conscious Change Collective)': sdgsSocialIssues.trim(),
           'Relevant Resources': relevantResources.trim(),
           'IDGs/Inner Capacities': idgsInnerCapacities.trim(),
           'Inner Work Modalities (Conscious Change Collective)': innerWorkModalities.trim()
@@ -1153,11 +1162,6 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
           'Evidence/Sources': evidenceSources.trim(),
           'Hypotheses': hypotheses.trim(),
           'Analyst Commentary': analystCommentary.trim()
-        },
-        'Warm Data': {
-          'Point of Contact(s)': pointOfContact.trim(),
-          'Email': warmDataEmail.trim(),
-          'Matching Database': matchingDatabase.trim()
         }
       };
 
@@ -1197,6 +1201,7 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
         'Theory of Change (GTDF)': theoryOfChangeGTDF.trim(),
         'Theory of Change (IAM)': theoryOfChangeIAM.trim(),
         'Crisis of Response': crisisOfResponse.trim(),
+        'SDGs/Social Issues (Conscious Change Collective)': sdgsSocialIssues.trim(),
         'Relevant Resources': relevantResources.trim(),
         'IDGs/Inner Capacities': idgsInnerCapacities.trim(),
         'Inner Work Modalities': innerWorkModalities.trim(),
@@ -1206,10 +1211,7 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
         'Arguments/Claims': argumentsClaims.trim(),
         'Evidence/Sources': evidenceSources.trim(),
         'Hypotheses': hypotheses.trim(),
-        'Analyst Commentary': analystCommentary.trim(),
-        'Point of Contact': pointOfContact.trim(),
-        'Warm Data Email': warmDataEmail.trim(),
-        'Matching Database': matchingDatabase.trim()
+        'Analyst Commentary': analystCommentary.trim()
       };
 
       const proposedEntity: EcosystemEntity = {
@@ -1583,6 +1585,21 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
                   />
                 </div>
 
+                {/* Relevant Resources */}
+                <div className="rounded-[6px] border border-[#E5E7EB] bg-white p-4 space-y-2.5 shadow-2xs">
+                  <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5">
+                    <span>Relevant Resources</span>
+                    <FieldCommentInfo fieldName="Relevant Resources" />
+                  </label>
+                  <input
+                    type="text"
+                    value={relevantResources}
+                    onChange={(e) => setRelevantResources(e.target.value)}
+                    placeholder="Markdown link [Title](url) or URLs..."
+                    className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
+                  />
+                </div>
+
                 {/* Ecotones (Intersections) */}
                 <div className="p-4 border border-[#E5E7EB] rounded-[6px] bg-white shadow-2xs space-y-3">
                   <div className="flex items-center justify-between">
@@ -1638,11 +1655,11 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
                 </div>
 
                 {/* Worldview & Change Orientation Accordion (All possible fields available) */}
-                <div className="border border-[#E5E7EB] rounded-[6px] overflow-hidden bg-white shadow-2xs">
+                <div className="border border-[#E5E7EB] rounded-[6px] bg-white shadow-2xs">
                   <button
                     type="button"
                     onClick={() => toggleSection('worldview')}
-                    className="w-full px-4 py-3 bg-[#FAF8F5] border-l-4 border-[#3F6212] flex items-center justify-between text-left hover:bg-[#F4F1EA] transition-colors cursor-pointer"
+                    className={`w-full px-4 py-3 rounded-t-[6px] ${openSections.worldview ? '' : 'rounded-b-[6px]'} bg-[#FAF8F5] border-l-4 border-[#3F6212] flex items-center justify-between text-left hover:bg-[#F4F1EA] transition-colors cursor-pointer`}
                   >
                     <div className="flex items-center space-x-2">
                       <span className="text-base">🧭</span>
@@ -1691,19 +1708,18 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
                             <span>Situational Assessment</span>
                             <FieldCommentInfo fieldName="Situational Assessment" />
                           </label>
-                          <input
-                            type="text"
+                          <OptionsMultiSelect
                             value={situationalAssessment}
-                            onChange={(e) => setSituationalAssessment(e.target.value)}
-                            placeholder="e.g. Polycrisis diagnosis, Metacrisis framing..."
-                            className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
+                            onChange={setSituationalAssessment}
+                            options={SITUATIONAL_ASSESSMENT_OPTIONS}
+                            allowCustom
+                            placeholder="Select or type your own..."
                           />
                         </div>
 
                         <div>
                           <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-1">
                             <span>Situational Assessment Comments/Description</span>
-                            <FieldCommentInfo fieldName="Situational Assessment Comments/Description" />
                           </label>
                           <textarea
                             value={situationalAssessmentComments}
@@ -1719,12 +1735,12 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
                             <span>Response Orientation</span>
                             <FieldCommentInfo fieldName="Response Orientation" />
                           </label>
-                          <input
-                            type="text"
+                          <OptionsMultiSelect
                             value={responseOrientation}
-                            onChange={(e) => setResponseOrientation(e.target.value)}
-                            placeholder="e.g. Regenerative, Mitigation, Adaptation, Resistance..."
-                            className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
+                            onChange={setResponseOrientation}
+                            options={RESPONSE_ORIENTATION_OPTIONS}
+                            allowCustom
+                            placeholder="Select or type your own..."
                           />
                         </div>
 
@@ -1734,12 +1750,11 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
                               <span>Alternative(s) Proposed (GTA)</span>
                               <FieldCommentInfo fieldName="Alternative(s) Proposed (GTA)" />
                             </label>
-                            <input
-                              type="text"
+                            <OptionsMultiSelect
                               value={altProposedGTA}
-                              onChange={(e) => setAltProposedGTA(e.target.value)}
-                              placeholder="Global Tapestry of Alternatives..."
-                              className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
+                              onChange={setAltProposedGTA}
+                              options={ALT_PROPOSED_GTA_OPTIONS}
+                              placeholder="Select..."
                             />
                           </div>
 
@@ -1748,12 +1763,11 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
                               <span>Alternative(s) Proposed (Pluriverse)</span>
                               <FieldCommentInfo fieldName="Alternative(s) Proposed (Pluriverse dictionary)" />
                             </label>
-                            <input
-                              type="text"
+                            <OptionsMultiSelect
                               value={altProposedPluriverse}
-                              onChange={(e) => setAltProposedPluriverse(e.target.value)}
-                              placeholder="Pluriverse dictionary alternatives..."
-                              className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
+                              onChange={setAltProposedPluriverse}
+                              options={ALT_PROPOSED_PLURIVERSE_OPTIONS}
+                              placeholder="Select..."
                             />
                           </div>
                         </div>
@@ -1776,7 +1790,6 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
                           <div>
                             <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-1">
                               <span>Alternative(s) Proposed (General)</span>
-                              <FieldCommentInfo fieldName="Alternative(s) Proposed" />
                             </label>
                             <input
                               type="text"
@@ -1793,12 +1806,11 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
                             <span>Value Meme / Ethical Orientation</span>
                             <FieldCommentInfo fieldName="Value Meme / Ethical Orientation" />
                           </label>
-                          <input
-                            type="text"
+                          <OptionsMultiSelect
                             value={valueMeme}
-                            onChange={(e) => setValueMeme(e.target.value)}
-                            placeholder="e.g. Commons-based, Indigenous cosmovision, Metamodern, Integral..."
-                            className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
+                            onChange={setValueMeme}
+                            options={VALUE_MEME_OPTIONS}
+                            placeholder="Select..."
                           />
                         </div>
 
@@ -1808,12 +1820,11 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
                               <span>Theory of Change (GTDF)</span>
                               <FieldCommentInfo fieldName="Theory of Change (GTDF)" />
                             </label>
-                            <input
-                              type="text"
+                            <OptionsMultiSelect
                               value={theoryOfChangeGTDF}
-                              onChange={(e) => setTheoryOfChangeGTDF(e.target.value)}
-                              placeholder="Gesturing Towards Decolonial Futures..."
-                              className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
+                              onChange={setTheoryOfChangeGTDF}
+                              options={THEORY_OF_CHANGE_GTDF_OPTIONS}
+                              placeholder="Select..."
                             />
                           </div>
 
@@ -1822,12 +1833,11 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
                               <span>Theory of Change (IAM)</span>
                               <FieldCommentInfo fieldName="Theory of Change (IAM)" />
                             </label>
-                            <input
-                              type="text"
+                            <OptionsMultiSelect
                               value={theoryOfChangeIAM}
-                              onChange={(e) => setTheoryOfChangeIAM(e.target.value)}
-                              placeholder="IAM theory of change..."
-                              className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
+                              onChange={setTheoryOfChangeIAM}
+                              options={THEORY_OF_CHANGE_IAM_OPTIONS}
+                              placeholder="Select..."
                             />
                           </div>
                         </div>
@@ -1838,26 +1848,25 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
                               <span>Crisis of Response</span>
                               <FieldCommentInfo fieldName="Crisis of Response" />
                             </label>
-                            <input
-                              type="text"
+                            <OptionsMultiSelect
                               value={crisisOfResponse}
-                              onChange={(e) => setCrisisOfResponse(e.target.value)}
-                              placeholder="Crisis dynamics..."
-                              className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
+                              onChange={setCrisisOfResponse}
+                              options={CRISIS_OF_RESPONSE_OPTIONS}
+                              allowCustom
+                              placeholder="Select or type your own..."
                             />
                           </div>
 
                           <div>
                             <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-1">
-                              <span>Relevant Resources</span>
-                              <FieldCommentInfo fieldName="Relevant Resources" />
+                              <span>SDGs / Social Issues</span>
+                              <FieldCommentInfo fieldName="SDGs/Social Issues (Conscious Change Collective)" />
                             </label>
-                            <input
-                              type="text"
-                              value={relevantResources}
-                              onChange={(e) => setRelevantResources(e.target.value)}
-                              placeholder="Markdown link [Title](url) or URLs..."
-                              className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
+                            <OptionsMultiSelect
+                              value={sdgsSocialIssues}
+                              onChange={setSdgsSocialIssues}
+                              options={SDGS_SOCIAL_ISSUES_OPTIONS}
+                              placeholder="Select..."
                             />
                           </div>
                         </div>
@@ -1868,12 +1877,11 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
                               <span>IDGs / Inner Capacities</span>
                               <FieldCommentInfo fieldName="IDGs/Inner Capacities" />
                             </label>
-                            <input
-                              type="text"
+                            <OptionsMultiSelect
                               value={idgsInnerCapacities}
-                              onChange={(e) => setIdgsInnerCapacities(e.target.value)}
-                              placeholder="e.g. Self-awareness, Sense-making..."
-                              className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
+                              onChange={setIdgsInnerCapacities}
+                              options={IDGS_OPTIONS}
+                              placeholder="Select..."
                             />
                           </div>
 
@@ -1891,129 +1899,6 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
                             />
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Discourse Analysis / Argument Mapping Accordion */}
-                <div className="border border-[#E5E7EB] rounded-[6px] overflow-hidden bg-white shadow-2xs">
-                  <button
-                    type="button"
-                    onClick={() => toggleSection('discourse')}
-                    className="w-full px-4 py-3 bg-[#FAF8F5] border-l-4 border-[#B45309] flex items-center justify-between text-left hover:bg-[#F4F1EA] transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <span className="text-base">💬</span>
-                      <span className="font-editorial text-sm font-semibold text-[#111827]">
-                        Discourse Analysis & Argument Mapping
-                      </span>
-                    </div>
-                    <span className="text-[#8C877F]">
-                      {openSections.discourse ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </span>
-                  </button>
-
-                  {openSections.discourse && (
-                    <div className="p-4 space-y-3 bg-white border-t border-[#E5E7EB] text-xs font-sans">
-                      <div>
-                        <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-1">
-                          <span>Concepts</span>
-                          <FieldCommentInfo fieldName="Concepts" />
-                        </label>
-                        <input
-                          type="text"
-                          value={concepts}
-                          onChange={(e) => setConcepts(e.target.value)}
-                          placeholder="Key conceptual contributions or vocabulary..."
-                          className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-1">
-                          <span>Frameworks</span>
-                          <FieldCommentInfo fieldName="Frameworks" />
-                        </label>
-                        <input
-                          type="text"
-                          value={frameworks}
-                          onChange={(e) => setFrameworks(e.target.value)}
-                          placeholder="Analytical or explanatory models..."
-                          className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-1">
-                          <span>Definitions</span>
-                          <FieldCommentInfo fieldName="Definitions" />
-                        </label>
-                        <input
-                          type="text"
-                          value={definitions}
-                          onChange={(e) => setDefinitions(e.target.value)}
-                          placeholder="Core term definitions..."
-                          className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-1">
-                          <span>Arguments / Claims</span>
-                          <FieldCommentInfo fieldName="Arguments/Claims" />
-                        </label>
-                        <textarea
-                          value={argumentsClaims}
-                          onChange={(e) => setArgumentsClaims(e.target.value)}
-                          placeholder="Primary thesis, core propositions or claims..."
-                          rows={2}
-                          className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        <div>
-                          <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-1">
-                            <span>Evidence / Sources</span>
-                            <FieldCommentInfo fieldName="Evidence/Sources" />
-                          </label>
-                          <input
-                            type="text"
-                            value={evidenceSources}
-                            onChange={(e) => setEvidenceSources(e.target.value)}
-                            placeholder="Foundational texts, research, citations..."
-                            className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-1">
-                            <span>Hypotheses</span>
-                            <FieldCommentInfo fieldName="Hypotheses" />
-                          </label>
-                          <input
-                            type="text"
-                            value={hypotheses}
-                            onChange={(e) => setHypotheses(e.target.value)}
-                            placeholder="Guiding bets or exploratory hypotheses..."
-                            className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-1">
-                          <span>Analyst Commentary / Curator Notes</span>
-                          <FieldCommentInfo fieldName="Analyst Commentary" />
-                        </label>
-                        <textarea
-                          value={analystCommentary}
-                          onChange={(e) => setAnalystCommentary(e.target.value)}
-                          placeholder="Curator commentary or notes on significance..."
-                          rows={2}
-                          className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
-                        />
                       </div>
                     </div>
                   )}
@@ -2430,12 +2315,12 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
                             <span>Intellectual Lineage (IAM)</span>
                             <FieldCommentInfo fieldName="Intellectual Lineage (IAM)" />
                           </label>
-                          <input
-                            type="text"
+                          <OptionsMultiSelect
                             value={intellectualLineage}
-                            onChange={(e) => setIntellectualLineage(e.target.value)}
-                            placeholder="e.g. Systems dynamics, Complexity..."
-                            className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
+                            onChange={setIntellectualLineage}
+                            options={INTELLECTUAL_LINEAGE_OPTIONS}
+                            allowCustom
+                            placeholder="Select or type your own..."
                           />
                         </div>
                       </div>
@@ -2521,65 +2406,125 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
                     </div>
                   )}
                 </div>
+              </div>
 
-                {/* Warm Data Accordion */}
+              <div className="lg:col-span-12">
+                {/* Discourse Analysis / Argument Mapping Accordion (full width) */}
                 <div className="border border-[#E5E7EB] rounded-[6px] overflow-hidden bg-white shadow-2xs">
                   <button
                     type="button"
-                    onClick={() => toggleSection('warmData')}
-                    className="w-full px-4 py-3 bg-[#FAF8F5] border-l-4 border-[#6B21A8] flex items-center justify-between text-left hover:bg-[#F4F1EA] transition-colors cursor-pointer"
+                    onClick={() => toggleSection('discourse')}
+                    className="w-full px-4 py-3 bg-[#FAF8F5] border-l-4 border-[#B45309] flex items-center justify-between text-left hover:bg-[#F4F1EA] transition-colors cursor-pointer"
                   >
                     <div className="flex items-center space-x-2">
-                      <span className="text-base">🌿</span>
+                      <span className="text-base">💬</span>
                       <span className="font-editorial text-sm font-semibold text-[#111827]">
-                        Warm Data & Point of Contact
+                        Discourse Analysis & Argument Mapping
                       </span>
                     </div>
                     <span className="text-[#8C877F]">
-                      {openSections.warmData ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                      {openSections.discourse ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                     </span>
                   </button>
 
-                  {openSections.warmData && (
-                    <div className="p-4 space-y-3 bg-white border-t border-[#E5E7EB] text-xs font-sans">
+                  {openSections.discourse && (
+                    <div className="p-4 grid grid-cols-1 lg:grid-cols-2 gap-3 items-start bg-white border-t border-[#E5E7EB] text-xs font-sans">
                       <div>
-                        <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-0.5">
-                          <span>Point of Contact(s)</span>
-                          <FieldCommentInfo fieldName="Point of Contact(s)" />
+                        <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-1">
+                          <span>Concepts</span>
+                          <FieldCommentInfo fieldName="Concepts" />
                         </label>
                         <input
                           type="text"
-                          value={pointOfContact}
-                          onChange={(e) => setPointOfContact(e.target.value)}
-                          placeholder="Name of focal point / contact person..."
+                          value={concepts}
+                          onChange={(e) => setConcepts(e.target.value)}
+                          placeholder="Key conceptual contributions or vocabulary..."
                           className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
                         />
                       </div>
 
                       <div>
-                        <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-0.5">
-                          <span>Warm Data Contact Email</span>
-                          <FieldCommentInfo fieldName="Email" />
+                        <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-1">
+                          <span>Frameworks</span>
+                          <FieldCommentInfo fieldName="Frameworks" />
                         </label>
                         <input
-                          type="email"
-                          value={warmDataEmail}
-                          onChange={(e) => setWarmDataEmail(e.target.value)}
-                          placeholder="warmdata@example.org"
+                          type="text"
+                          value={frameworks}
+                          onChange={(e) => setFrameworks(e.target.value)}
+                          placeholder="Analytical or explanatory models..."
                           className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
                         />
                       </div>
 
                       <div>
-                        <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-0.5">
-                          <span>Matching / Source Database</span>
-                          <FieldCommentInfo fieldName="Matching Database" />
+                        <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-1">
+                          <span>Definitions</span>
+                          <FieldCommentInfo fieldName="Definitions" />
                         </label>
                         <input
                           type="text"
-                          value={matchingDatabase}
-                          onChange={(e) => setMatchingDatabase(e.target.value)}
-                          placeholder="e.g. Catalist, Life Itself, GTA database..."
+                          value={definitions}
+                          onChange={(e) => setDefinitions(e.target.value)}
+                          placeholder="Core term definitions..."
+                          className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-1">
+                          <span>Arguments / Claims</span>
+                          <FieldCommentInfo fieldName="Arguments/Claims" />
+                        </label>
+                        <textarea
+                          value={argumentsClaims}
+                          onChange={(e) => setArgumentsClaims(e.target.value)}
+                          placeholder="Primary thesis, core propositions or claims..."
+                          rows={2}
+                          className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div>
+                          <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-1">
+                            <span>Evidence / Sources</span>
+                            <FieldCommentInfo fieldName="Evidence/Sources" />
+                          </label>
+                          <input
+                            type="text"
+                            value={evidenceSources}
+                            onChange={(e) => setEvidenceSources(e.target.value)}
+                            placeholder="Foundational texts, research, citations..."
+                            className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-1">
+                            <span>Hypotheses</span>
+                            <FieldCommentInfo fieldName="Hypotheses" />
+                          </label>
+                          <input
+                            type="text"
+                            value={hypotheses}
+                            onChange={(e) => setHypotheses(e.target.value)}
+                            placeholder="Guiding bets or exploratory hypotheses..."
+                            className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-1">
+                          <span>Analyst Commentary / Curator Notes</span>
+                          <FieldCommentInfo fieldName="Analyst Commentary" />
+                        </label>
+                        <textarea
+                          value={analystCommentary}
+                          onChange={(e) => setAnalystCommentary(e.target.value)}
+                          placeholder="Curator commentary or notes on significance..."
+                          rows={2}
                           className="w-full bg-white border border-[#E5E7EB] p-2 rounded-[4px] text-xs outline-none focus:border-[#111827]"
                         />
                       </div>

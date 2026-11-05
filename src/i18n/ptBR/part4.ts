@@ -68,7 +68,7 @@ export const PART4: Record<string, string> = {
   "No archipelagos match \"": "Nenhum arquipélago corresponde a \"",
   "No changelog items found": "Nenhum item encontrado no registro de alterações",
   "No columns match the current filter.": "Nenhuma coluna corresponde ao filtro atual.",
-  "No comment attached to cell {0} in the uploaded spreadsheet.": "Nenhum comentário anexado à célula {0} na planilha enviada.",
+  "No description available.": "Nenhuma descrição disponível.",
   "No commits found in the specified repository branch.": "Nenhum commit encontrado na branch do repositório informado.",
   "No community notes added yet. Feel free to add more information or your experience with this": "Ainda não há notas da comunidade. Fique à vontade para acrescentar informações ou sua experiência com este(a)",
   "No custom description set for this archipelago.": "Nenhuma descrição personalizada definida para este arquipélago.",

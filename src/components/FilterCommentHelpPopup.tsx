@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { X, FileSpreadsheet } from 'lucide-react';
+import { X } from 'lucide-react';
 import { getColumnComment, useColumnComment, cleanSpreadsheetComment } from '../utils/columnComments';
 
 export interface FilterCommentHelpPopupProps {
@@ -140,7 +140,7 @@ export const FilterCommentHelpPopup: React.FC<FilterCommentHelpPopupProps> = ({
     };
   }, [isOpen, updatePosition]);
 
-  const displayComment = comment || `No comment attached to cell ${cellRef} in the uploaded spreadsheet.`;
+  const displayComment = comment || 'No description available.';
 
   return (
     <>
@@ -155,8 +155,8 @@ export const FilterCommentHelpPopup: React.FC<FilterCommentHelpPopupProps> = ({
             ? 'bg-[#111827] text-white shadow-2xs'
             : 'bg-[#E5E7EB] hover:bg-[#D1D5DB] text-[#4B5563] hover:text-[#111827]'
         } ${className}`}
-        aria-label={`Spreadsheet note: ${fieldName} (${cellRef})`}
-        title={`Click or hover to view spreadsheet header note (${cellRef})`}
+        aria-label={`Note: ${fieldName}`}
+        title="Click or hover to view note"
       >
         ?
       </button>
@@ -184,9 +184,6 @@ export const FilterCommentHelpPopup: React.FC<FilterCommentHelpPopupProps> = ({
                 </span>
               </div>
               <div className="flex items-center space-x-1.5 shrink-0 ml-1">
-                <span className="font-technical text-[9px] font-bold text-[#5B21B6] bg-[#F3E8FF] border border-[#DDD6FE] px-1.5 py-0.5 rounded-[2px]">
-                  Cell {cellRef}
-                </span>
                 <button
                   type="button"
                   onClick={(e) => {
@@ -203,13 +200,11 @@ export const FilterCommentHelpPopup: React.FC<FilterCommentHelpPopupProps> = ({
             </div>
 
             {/* Category / Subtitle */}
-            <div className="mb-2 flex items-center justify-between text-[10px] font-technical text-[#6B7280]">
-              <span className="flex items-center space-x-1 text-[#5B21B6] font-medium">
-                <FileSpreadsheet className="w-3 h-3" />
-                <span>Spreadsheet Cell Note</span>
-              </span>
-              {category && <span className="text-[#8C877F]">{category}</span>}
-            </div>
+            {category && (
+              <div className="mb-2 flex items-center justify-end text-[10px] font-technical text-[#8C877F]">
+                <span>{category}</span>
+              </div>
+            )}
 
             {/* Comment Body */}
             <div className="space-y-1.5 max-h-[260px] overflow-y-auto pr-1">
@@ -231,8 +226,7 @@ export const FilterCommentHelpPopup: React.FC<FilterCommentHelpPopupProps> = ({
             </div>
 
             {/* Footer */}
-            <div className="mt-2.5 pt-2 border-t border-[#F3F4F6] flex items-center justify-between text-[9.5px] font-technical text-[#8C877F]">
-              <span>Spreadsheet Cell Note ({cellRef})</span>
+            <div className="mt-2.5 pt-2 border-t border-[#F3F4F6] flex items-center justify-end text-[9.5px] font-technical text-[#8C877F]">
               <span>{isPinned ? 'Pinned (click to close)' : 'Hover or click to pin'}</span>
             </div>
           </div>,

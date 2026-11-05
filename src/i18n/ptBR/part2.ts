@@ -68,7 +68,7 @@ export const PART2: Record<string, string> = {
   "Click card to inspect": "Clique no cartão para inspecionar",
   "Click or drop updated spreadsheet here": "Clique ou solte aqui a planilha atualizada",
   "Click or hover to view Data Completeness standards": "Clique ou passe o mouse para ver os critérios de completude dos dados",
-  "Click or hover to view spreadsheet header note ({0})": "Clique ou passe o mouse para ver a nota do cabeçalho da planilha ({0})",
+  "Click or hover to view note": "Clique ou passe o mouse para ver a nota",
   "Click result to view & fly": "Clique no resultado para ver e navegar até ele",
   "Click tags to filter the map. Select multiple tags simultaneously to display all of them.": "Clique nas tags para filtrar o mapa. Selecione várias tags ao mesmo tempo para exibir todas.",
   "Click to add a new coastline vertex": "Clique para adicionar um novo vértice à costa",
