@@ -1,6 +1,6 @@
 # Metta Map Changelog Rules & Assistant Change-Logging Protocol
 
-## Mandatory Rule for AI Studio Assistant and Developers
+## Mandatory Rule for AI Assistants and Developers
 Whenever any code change, feature, fix, or update is made to this project and a response is provided:
 
 1. **Log Your Change in the Map Changelog**:

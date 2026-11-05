@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 import { EcosystemEntity, CategoryQuadrant, FieldCluster, MapViewport, ContinentInfo, EcotoneCorridorInfo, getEntityCompleteness, DATA_COMPLETENESS_CONFIG, getCompletenessConfig, LayerQuadrantSizes, LayerQuadrantConfig, DEFAULT_LAYER_QUADRANT_SIZES, getQuadrantSizesForLayer } from '../types';
 import { QUADRANT_CENTERS, generateContinentLabelPath, getContinentLabelCenter, isEntityDomainElevation, getEntityIntersectionZone, getEntityQuadrantGradient, INTERSECTION_ZONES, calculateEcotoneCorridors, getEntityClusterWithNumber, formatClusterWithNumber, normalizeArchipelagoBaseName, isEntityPrimaryToArchipelago, entityMatchesArchipelago, buildPrimaryArchipelagoCounter } from '../utils/layoutGenerator';
-import { calculateAutoFitQuadrantSizes, doesArchipelagoAppearInLayer, getEntityRelationshipNumber } from '../utils/layerClassifier';
+import { calculateAutoFitQuadrantSizes, doesArchipelagoAppearInLayer, getEntityRelationshipNumber, DEFAULT_LAYER_1_RELATIONSHIPS, DEFAULT_LAYER_2_RELATIONSHIPS, DEFAULT_LAYER_3_RELATIONSHIPS } from '../utils/layerClassifier';
 import { ChangelogWidget } from './ChangelogWidget';
 import { getConnectedEntityIds } from '../utils/socialMedia';
 import { areEntitiesDirectlyLinked, ensureUniqueEntityIds, getEntitySpreadsheetField } from '../utils/excelParser';
@@ -2572,7 +2572,14 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
           // Our Relationship level (1-11) badge
           const relationshipNumber = getEntityRelationshipNumber(entity);
           const relationshipRaw = (getEntitySpreadsheetField(entity, 'Our Relationship') || entity.ourRelationship || '').toString().trim();
-          const relationshipTooltip = `Our Relationship: ${relationshipRaw || relationshipNumber}`;
+          const relationshipDefaultLabel = relationshipNumber !== null
+            ? [...DEFAULT_LAYER_1_RELATIONSHIPS, ...DEFAULT_LAYER_2_RELATIONSHIPS, ...DEFAULT_LAYER_3_RELATIONSHIPS]
+                .find(l => l.startsWith(`${relationshipNumber})`))
+            : undefined;
+          const relationshipLabel = (relationshipDefaultLabel || relationshipRaw)
+            .replace(/^\s*\d{1,2}\s*[\).:\-]?\s*/, '')
+            .trim();
+          const relationshipTooltip = `Our Relationship with this Entity: ${relationshipNumber}: ${relationshipLabel}`;
 
           // Category ring color
           const ringColor = 
@@ -2750,16 +2757,45 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
 
                 {/* Our Relationship Level Badge (Bottom Left) */}
                 {relationshipNumber !== null && (
-                  <span
-                    className="absolute -bottom-1.5 -left-1.5 min-w-[13px] h-[13px] px-[2px] rounded-full z-30 flex items-center justify-center bg-white text-[#111827] font-technical text-[8px] font-bold leading-none select-none pointer-events-auto transition-transform hover:scale-125"
-                    style={{
-                      border: '1.5px solid #111827',
-                      boxShadow: '0 1px 2px rgba(0,0,0,0.25)'
-                    }}
-                    title={relationshipTooltip}
-                  >
-                    {relationshipNumber}
-                  </span>
+                  <div className="absolute -bottom-[7px] -left-[7px] z-30 group/reltip pointer-events-auto">
+                    {/* SVG keeps the digit optically centred regardless of font metrics */}
+                    <svg
+                      width={15}
+                      height={15}
+                      viewBox="0 0 15 15"
+                      className="block select-none transition-transform group-hover/reltip:scale-125 drop-shadow-[0_1px_1.5px_rgba(0,0,0,0.35)]"
+                      aria-label={relationshipTooltip}
+                    >
+                      <circle cx="7.5" cy="7.5" r="6.75" fill="#111827" stroke="#374151" strokeWidth="1.5" />
+                      <text
+                        x="7.5"
+                        y="7.5"
+                        textAnchor="middle"
+                        dominantBaseline="central"
+                        fill="#D9C01B"
+                        fontSize={relationshipNumber >= 10 ? 7 : 8.5}
+                        fontWeight={700}
+                        fontFamily="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+                        letterSpacing={relationshipNumber >= 10 ? -0.4 : 0}
+                      >
+                        {relationshipNumber}
+                      </text>
+                    </svg>
+
+                    {/* Tooltip on hover showing the relationship level */}
+                    <div className="absolute top-1/2 right-full mr-1.5 -translate-y-1/2 hidden group-hover/reltip:flex items-center z-[100] pointer-events-none drop-shadow-xl">
+                      <div className="bg-[#111827] text-white text-[9px] font-sans py-1.5 px-2.5 rounded-[4px] shadow-2xl border border-[#374151] whitespace-nowrap min-w-[110px] max-w-[260px] text-left">
+                        <div className="font-technical text-[7.5px] text-[#9CA3AF] uppercase mb-1 tracking-wider font-semibold border-b border-white/10 pb-0.5">
+                          Our Relationship with this Entity
+                        </div>
+                        <div className="text-[8.5px] font-medium text-white/90 truncate">
+                          <span className="text-[#D9C01B] font-bold">{relationshipNumber}:</span> {relationshipLabel}
+                        </div>
+                      </div>
+                      {/* Rightward pointer caret */}
+                      <div className="w-1.5 h-1.5 bg-[#111827] border-r border-t border-[#374151] transform rotate-45 -ml-1 z-10"></div>
+                    </div>
+                  </div>
                 )}
 
                 {/* Data Quality Indicator Dot (Bottom Right) */}

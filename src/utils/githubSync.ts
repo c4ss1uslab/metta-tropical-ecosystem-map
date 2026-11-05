@@ -27,7 +27,7 @@ export const DEFAULT_CHANGELOG_CONFIG: ChangelogConfig = {
         'Organization and people names are never translated'
       ],
       tag: 'feature',
-      author: 'Claude Code',
+      author: 'Metta Tropical Cartography Team',
       source: 'manual'
     },
     {
@@ -43,7 +43,7 @@ export const DEFAULT_CHANGELOG_CONFIG: ChangelogConfig = {
         'Updated layer change handlers to cleanly toggle between Layer 1 (1-6) and Layer 2 (7-9) relationship filter presets'
       ],
       tag: 'fix',
-      author: 'AI Studio Assistant',
+      author: 'Metta Tropical Cartography Team',
       source: 'manual'
     },
     {
@@ -59,7 +59,7 @@ export const DEFAULT_CHANGELOG_CONFIG: ChangelogConfig = {
         'Updated real-time subscription listener and offline backup scripts to seamlessly hydrate chunked cloud datasets'
       ],
       tag: 'fix',
-      author: 'AI Studio Assistant',
+      author: 'Metta Tropical Cartography Team',
       source: 'manual'
     },
     {
@@ -75,7 +75,7 @@ export const DEFAULT_CHANGELOG_CONFIG: ChangelogConfig = {
         'Added instant Changelog Edit Mode unlock toggle directly inside the changelog widget for seamless updates'
       ],
       tag: 'feature',
-      author: 'AI Studio Assistant',
+      author: 'Metta Tropical Cartography Team',
       source: 'manual'
     },
     {
@@ -91,7 +91,7 @@ export const DEFAULT_CHANGELOG_CONFIG: ChangelogConfig = {
         'Removed redundant Positions Snapshot button from the top navigation header in Edit Mode for a cleaner bar'
       ],
       tag: 'ui',
-      author: 'AI Studio Assistant',
+      author: 'Metta Tropical Cartography Team',
       source: 'manual'
     },
     {
@@ -107,7 +107,7 @@ export const DEFAULT_CHANGELOG_CONFIG: ChangelogConfig = {
         'Protected baseline snapshots and diff calculations to guarantee deletions stay committed permanently'
       ],
       tag: 'fix',
-      author: 'AI Studio Assistant',
+      author: 'Metta Tropical Cartography Team',
       source: 'manual'
     },
     {
@@ -123,7 +123,7 @@ export const DEFAULT_CHANGELOG_CONFIG: ChangelogConfig = {
         'Added automatic change-logging protocol for all AI Studio assistant modifications with automatic cloud saving'
       ],
       tag: 'feature',
-      author: 'AI Studio Assistant',
+      author: 'Metta Tropical Cartography Team',
       source: 'manual'
     },
     {
@@ -263,6 +263,19 @@ export function saveCommittedChangelogBaseline(config: ChangelogConfig): void {
 }
 
 /**
+ * Legacy assistant signatures that must be displayed as the official team signature.
+ * See CHANGELOG_RULES.md — all changelog entries are signed 'Metta Tropical Cartography Team'.
+ */
+export const CHANGELOG_TEAM_AUTHOR = 'Metta Tropical Cartography Team';
+const LEGACY_ASSISTANT_AUTHORS = new Set(['Claude Code', 'Claude', 'AI Studio Assistant']);
+
+export function normalizeChangelogAuthors(entries: ChangelogItem[]): ChangelogItem[] {
+  return entries.map(e =>
+    e.author && LEGACY_ASSISTANT_AUTHORS.has(e.author.trim()) ? { ...e, author: CHANGELOG_TEAM_AUTHOR } : e
+  );
+}
+
+/**
  * Merges loaded changelog with the latest code-defined defaults so newly published assistant or codebase entries
  * are automatically included without discarding user edits or resurrecting user-deleted entries.
  */
@@ -284,7 +297,7 @@ export function mergeWithCodeDefaults(incoming: ChangelogConfig): ChangelogConfi
   }
 
   // Ensure no deleted entries sneak in from incoming
-  const filteredIncomingEntries = incoming.entries.filter(e => !deletedSet.has(e.id));
+  const filteredIncomingEntries = normalizeChangelogAuthors(incoming.entries.filter(e => !deletedSet.has(e.id)));
 
   return {
     appVersion,
@@ -472,6 +485,18 @@ export async function fetchChangelogConfigFromFirestore(): Promise<ChangelogConf
           entries: filteredEntries,
           deletedEntryIds
         };
+        // One-time migration: if the cloud copy still carries legacy assistant signatures,
+        // rewrite it with the team signature. Self-limiting — once the cloud doc is clean this never fires again.
+        const hasLegacyAuthors = filteredEntries.some(
+          e => e.author && LEGACY_ASSISTANT_AUTHORS.has(e.author.trim())
+        );
+        if (hasLegacyAuthors) {
+          await persistChangelogConfigToFirestore(
+            { ...decoded, entries: normalizeChangelogAuthors(filteredEntries) },
+            'Migrate legacy changelog authors to Metta Tropical Cartography Team'
+          );
+        }
+
         const merged = mergeWithCodeDefaults(decoded);
         saveCommittedChangelogBaseline(merged);
         saveChangelogConfig(merged);
@@ -505,7 +530,9 @@ export function subscribeToChangelogConfig(
           if (data && Array.isArray(data.entries)) {
             const deletedEntryIds = Array.isArray(data.deletedEntryIds) ? (data.deletedEntryIds as string[]) : [];
             const deletedSet = new Set(deletedEntryIds);
-            const filteredEntries = (data.entries as ChangelogItem[]).filter(e => !deletedSet.has(e.id));
+            const filteredEntries = normalizeChangelogAuthors(
+              (data.entries as ChangelogItem[]).filter(e => !deletedSet.has(e.id))
+            );
 
             const decoded: ChangelogConfig = {
               appVersion: data.appVersion || DEFAULT_CHANGELOG_CONFIG.appVersion,
@@ -559,7 +586,7 @@ export async function recordAssistantChangelogEntry(
     description: entry.description,
     changes: entry.changes,
     tag: entry.tag || 'fix',
-    author: entry.author || 'AI Studio Assistant',
+    author: CHANGELOG_TEAM_AUTHOR,
     source: 'manual'
   };
 
