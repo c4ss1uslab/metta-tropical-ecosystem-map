@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Info, X } from 'lucide-react';
 import { getColumnComment, useColumnComment, cleanSpreadsheetComment } from '../utils/columnComments';
+import { linkifyText } from '../utils/linkify';
 
 interface FieldCommentInfoProps {
   fieldName: string;
@@ -227,7 +228,7 @@ export const FieldCommentInfo: React.FC<FieldCommentInfoProps> = ({
                       isBullet ? 'pl-2 text-[#1F2937] font-medium' : ''
                     }`}
                   >
-                    {trimmed}
+                    {linkifyText(trimmed)}
                   </p>
                 );
               })}

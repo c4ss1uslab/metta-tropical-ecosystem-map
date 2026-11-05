@@ -5,6 +5,8 @@ export interface MultiSelectOption {
   value: string;
   label?: string;
   count?: number;
+  /** Indents the option under its parent in the dropdown list. */
+  sub?: boolean;
 }
 
 interface MultiSelectFilterDropdownProps {
@@ -296,7 +298,9 @@ export const MultiSelectFilterDropdown: React.FC<MultiSelectFilterDropdownProps>
                     key={opt.value}
                     type="button"
                     onClick={() => handleToggleValue(opt.value)}
-                    className={`w-full flex items-center justify-between px-2.5 py-1.5 text-xs text-left transition-colors cursor-pointer ${
+                    className={`w-full flex items-center justify-between pr-2.5 py-1.5 text-xs text-left transition-colors cursor-pointer ${
+                      opt.sub ? 'pl-6' : 'pl-2.5'
+                    } ${
                       isChecked
                         ? 'bg-[#F3F4F6] text-[#111827] font-normal'
                         : 'text-[#374151] hover:bg-[#FAF8F5]'

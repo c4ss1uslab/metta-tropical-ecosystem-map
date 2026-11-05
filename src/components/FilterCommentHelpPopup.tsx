@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { getColumnComment, useColumnComment, cleanSpreadsheetComment } from '../utils/columnComments';
+import { linkifyText } from '../utils/linkify';
 
 export interface FilterCommentHelpPopupProps {
   cellRef: string; // e.g. "BA2", "BH2", "BO2", "BP2", "BQ2", "CB2"
@@ -219,7 +220,7 @@ export const FilterCommentHelpPopup: React.FC<FilterCommentHelpPopupProps> = ({
                       isBullet ? 'pl-2 text-[#1F2937] font-medium' : ''
                     }`}
                   >
-                    {trimmed}
+                    {linkifyText(trimmed)}
                   </p>
                 );
               })}

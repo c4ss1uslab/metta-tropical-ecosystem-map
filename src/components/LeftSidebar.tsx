@@ -17,6 +17,7 @@ import {
 import { EditModePasswordModal } from './EditModePasswordModal';
 import { FilterCommentHelpPopup } from './FilterCommentHelpPopup';
 import { MultiSelectFilterDropdown } from './MultiSelectFilterDropdown';
+import { VALUE_MEME_OPTIONS } from '../utils/fieldOptions';
 import { MapLayersModal } from './MapLayersModal';
 import { 
   calculateLayerCounts, 
@@ -940,8 +941,20 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
         });
       }
     });
-    return Array.from(set).sort((a, b) => a.localeCompare(b));
+    // Same order as the submission form's canonical list; any values found in the
+    // data that aren't in that list are appended alphabetically.
+    const canonical = VALUE_MEME_OPTIONS.map(o => o.value);
+    const canonicalLower = new Set(canonical.map(v => v.toLowerCase()));
+    const extras = Array.from(set)
+      .filter(v => !canonicalLower.has(v.toLowerCase()))
+      .sort((a, b) => a.localeCompare(b));
+    return [...canonical, ...extras];
   }, [entities]);
+
+  const valueMemeSubSet = useMemo(
+    () => new Set(VALUE_MEME_OPTIONS.filter(o => o.sub).map(o => o.value)),
+    []
+  );
 
   // 3. Orientation to Change (Three Horizons) (Column BP in spreadsheet)
   const orientations3H = useMemo(() => {
@@ -2757,7 +2770,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                         options={valueMemes.map(vm => ({
                           value: vm,
                           label: vm,
-                          count: valueMemeCounts[vm] || 0
+                          count: valueMemeCounts[vm] || 0,
+                          sub: valueMemeSubSet.has(vm)
                         }))}
                         selectedValues={activeValueMemes}
                         onChange={(newVals) => {
