@@ -18,6 +18,20 @@ import { EditModePasswordModal } from './EditModePasswordModal';
 import { FilterCommentHelpPopup } from './FilterCommentHelpPopup';
 import { MultiSelectFilterDropdown } from './MultiSelectFilterDropdown';
 import { VALUE_MEME_OPTIONS } from '../utils/fieldOptions';
+
+// Value Meme values found in the data that aren't in VALUE_MEME_OPTIONS but
+// belong under one of its parent categories (keys lowercased).
+const VALUE_MEME_EXTRA_PARENTS: Record<string, string> = {
+  'rational optimistic enlightenment': 'Modern',
+  'techno-optimist (rational optimistic enlightenment)': 'Modern',
+  'anticapitalist/antifascist climate futures': 'Pluralistic',
+  'anticapitalist/antifascist futures': 'Pluralistic',
+  'academic lineage wisdom': 'Wisdom',
+  'spiritual lineage wisdom': 'Wisdom',
+};
+const VALUE_MEME_CANONICAL_SUBS = new Set(VALUE_MEME_OPTIONS.filter(o => o.sub).map(o => o.value));
+const isValueMemeSub = (v: string) =>
+  VALUE_MEME_CANONICAL_SUBS.has(v) || v.toLowerCase() in VALUE_MEME_EXTRA_PARENTS;
 import { MapLayersModal } from './MapLayersModal';
 import { 
   calculateLayerCounts, 
@@ -948,12 +962,27 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     const extras = Array.from(set)
       .filter(v => !canonicalLower.has(v.toLowerCase()))
       .sort((a, b) => a.localeCompare(b));
-    return [...canonical, ...extras];
+    // Non-canonical values with a known parent go at the end of that parent's
+    // sub-items; the rest stay at the bottom of the list.
+    const result = [...canonical];
+    const orphans: string[] = [];
+    extras.forEach(v => {
+      const parent = VALUE_MEME_EXTRA_PARENTS[v.toLowerCase()];
+      const parentIdx = parent ? result.indexOf(parent) : -1;
+      if (parentIdx === -1) {
+        orphans.push(v);
+        return;
+      }
+      let insertAt = parentIdx + 1;
+      while (insertAt < result.length && isValueMemeSub(result[insertAt])) insertAt++;
+      result.splice(insertAt, 0, v);
+    });
+    return [...result, ...orphans];
   }, [entities]);
 
   const valueMemeSubSet = useMemo(
-    () => new Set(VALUE_MEME_OPTIONS.filter(o => o.sub).map(o => o.value)),
-    []
+    () => new Set(valueMemes.filter(isValueMemeSub)),
+    [valueMemes]
   );
 
   // 3. Orientation to Change (Three Horizons) (Column BP in spreadsheet)

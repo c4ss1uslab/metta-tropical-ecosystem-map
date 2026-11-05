@@ -330,7 +330,9 @@ export function doesArchipelagoAppearInLayer(
   layer: 1 | 2 | 3 | 'all' | number = 1
 ): boolean {
   if (!archipelagoName || !entities || entities.length === 0) return false;
-  const assigned = entities.filter(e => entityMatchesArchipelago(e, archipelagoName));
+  // Only PRIMARY membership counts: an archipelago listed solely as a secondary
+  // ("Other Archipelagos") of entities in this layer would otherwise render empty.
+  const assigned = entities.filter(e => isEntityPrimaryToArchipelago(e, archipelagoName));
   if (assigned.length === 0) return false;
   if (layer === 'all') return true;
   if (layer === 1) return assigned.some(e => isEntityInRelationshipLevels1to6(e));

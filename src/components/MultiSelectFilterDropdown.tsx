@@ -306,14 +306,14 @@ export const MultiSelectFilterDropdown: React.FC<MultiSelectFilterDropdownProps>
                         : 'text-[#374151] hover:bg-[#FAF8F5]'
                     }`}
                   >
-                    <div className="flex items-center space-x-2 truncate pr-2">
+                    <div className="flex items-start space-x-2 min-w-0 pr-2">
                       <input
                         type="checkbox"
                         checked={isChecked}
                         readOnly
-                        className="rounded border-[#D1D5DB] text-[#111827] pointer-events-none cursor-pointer"
+                        className="rounded border-[#D1D5DB] text-[#111827] pointer-events-none cursor-pointer shrink-0 mt-px"
                       />
-                      <span className="truncate" title={optLabel}>
+                      <span className="min-w-0 break-words leading-snug" title={optLabel}>
                         {optLabel}
                       </span>
                     </div>
