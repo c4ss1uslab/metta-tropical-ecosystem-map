@@ -2868,11 +2868,11 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
 
                 {/* Our Relationship Level Badge (Bottom Left) */}
                 {relationshipNumber !== null && (
-                  <div className="absolute -bottom-[7px] -left-[7px] z-30 group/reltip pointer-events-auto">
+                  <div className="absolute -bottom-[6px] -left-[6px] z-30 group/reltip pointer-events-auto">
                     {/* SVG keeps the digit optically centred regardless of font metrics */}
                     <svg
-                      width={15}
-                      height={15}
+                      width={13}
+                      height={13}
                       viewBox="0 0 15 15"
                       className="block select-none transition-transform group-hover/reltip:scale-125 drop-shadow-[0_1px_1.5px_rgba(0,0,0,0.35)]"
                       aria-label={relationshipTooltip}
