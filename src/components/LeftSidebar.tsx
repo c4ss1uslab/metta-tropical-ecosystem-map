@@ -282,8 +282,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
 
   // Category Quadrant info
   const categoriesList: { key: CategoryQuadrant; label: string; color: string; desc: string }[] = [
-    { key: 'Inner', label: 'Spiritual Change', color: '#5B21B6', desc: 'Upper Left • Self & Contemplation' },
-    { key: 'Social', label: 'Social Change', color: '#111827', desc: 'Upper Right • Civic & Commons' },
+    { key: 'Inner', label: 'Spiritual Change', color: '#5B21B6', desc: 'Upper Left • Sacred & Self' },
+    { key: 'Social', label: 'Social Change', color: '#111827', desc: 'Upper Right • Civic & Grassroots' },
     { key: 'Cultural', label: 'Cultural Change', color: '#7D8764', desc: 'Bottom Left • Mythos & Narrative' },
     { key: 'Systems', label: 'Systems Change', color: '#0284C7', desc: 'Bottom Right • Ecosystems & Infrastructure' }
   ];
@@ -1005,7 +1005,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   const orientationsGtdf = useMemo(() => {
     const set = new Set<string>();
     entities.forEach(e => {
-      const val = getEntitySpreadsheetField(e, 'BQ') || getEntitySpreadsheetField(e, 'BQ2') || getEntitySpreadsheetField(e, 'BP') || getEntitySpreadsheetField(e, 'Orientation to Change (GTDF)');
+      const val = getEntitySpreadsheetField(e, 'BQ') || getEntitySpreadsheetField(e, 'BQ2') || getEntitySpreadsheetField(e, 'Orientation to Change (GTDF)');
       if (val) {
         splitAdvancedFilterValues(val).forEach(v => {
           if (v && v !== '-' && v.toLowerCase() !== 'n/a' && v.toLowerCase() !== 'none') {
@@ -1021,7 +1021,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   const orientationsCri = useMemo(() => {
     const set = new Set<string>();
     entities.forEach(e => {
-      const val = getEntitySpreadsheetField(e, 'BR') || getEntitySpreadsheetField(e, 'BR2') || getEntitySpreadsheetField(e, 'BQ') || getEntitySpreadsheetField(e, 'Orientation to Change (CRI)');
+      const val = getEntitySpreadsheetField(e, 'BR') || getEntitySpreadsheetField(e, 'BR2') || getEntitySpreadsheetField(e, 'Orientation to Change (CRI)');
       if (val) {
         splitAdvancedFilterValues(val).forEach(v => {
           if (v && v !== '-' && v.toLowerCase() !== 'n/a' && v.toLowerCase() !== 'none') {
@@ -1264,7 +1264,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     orientationsGtdf.forEach(og => {
       const ogLower = og.toLowerCase().trim();
       counts[og] = entities.filter(e => {
-        const val = getEntitySpreadsheetField(e, 'BQ') || getEntitySpreadsheetField(e, 'BQ2') || getEntitySpreadsheetField(e, 'BP') || getEntitySpreadsheetField(e, 'Orientation to Change (GTDF)');
+        const val = getEntitySpreadsheetField(e, 'BQ') || getEntitySpreadsheetField(e, 'BQ2') || getEntitySpreadsheetField(e, 'Orientation to Change (GTDF)');
         return val && val.toLowerCase().includes(ogLower);
       }).length;
     });
@@ -1276,7 +1276,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     orientationsCri.forEach(oc => {
       const ocLower = oc.toLowerCase().trim();
       counts[oc] = entities.filter(e => {
-        const val = getEntitySpreadsheetField(e, 'BR') || getEntitySpreadsheetField(e, 'BR2') || getEntitySpreadsheetField(e, 'BQ') || getEntitySpreadsheetField(e, 'Orientation to Change (CRI)');
+        const val = getEntitySpreadsheetField(e, 'BR') || getEntitySpreadsheetField(e, 'BR2') || getEntitySpreadsheetField(e, 'Orientation to Change (CRI)');
         return val && val.toLowerCase().includes(ocLower);
       }).length;
     });

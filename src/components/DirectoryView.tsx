@@ -902,13 +902,13 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({
         }
       }
       if (filterState.selectedOrientationGtdf && filterState.selectedOrientationGtdf !== 'All') {
-        const val = getEntitySpreadsheetField(ent, 'BQ') || getEntitySpreadsheetField(ent, 'BQ2') || getEntitySpreadsheetField(ent, 'BP') || getEntitySpreadsheetField(ent, 'Orientation to Change (GTDF)');
+        const val = getEntitySpreadsheetField(ent, 'BQ') || getEntitySpreadsheetField(ent, 'BQ2') || getEntitySpreadsheetField(ent, 'Orientation to Change (GTDF)');
         if (!val || !val.toLowerCase().includes(filterState.selectedOrientationGtdf.trim().toLowerCase())) {
           return false;
         }
       }
       if (filterState.selectedOrientationCri && filterState.selectedOrientationCri !== 'All') {
-        const val = getEntitySpreadsheetField(ent, 'BR') || getEntitySpreadsheetField(ent, 'BR2') || getEntitySpreadsheetField(ent, 'BQ') || getEntitySpreadsheetField(ent, 'Orientation to Change (CRI)');
+        const val = getEntitySpreadsheetField(ent, 'BR') || getEntitySpreadsheetField(ent, 'BR2') || getEntitySpreadsheetField(ent, 'Orientation to Change (CRI)');
         if (!val || !val.toLowerCase().includes(filterState.selectedOrientationCri.trim().toLowerCase())) {
           return false;
         }

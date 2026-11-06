@@ -1888,7 +1888,7 @@ export default function App() {
         ? filterState.selectedOrientationsGtdf.filter(og => og !== 'All')
         : (filterState.selectedOrientationGtdf && filterState.selectedOrientationGtdf !== 'All' ? [filterState.selectedOrientationGtdf] : []);
       if (activeGTDF.length > 0) {
-        const val = getEntitySpreadsheetField(ent, 'BQ') || getEntitySpreadsheetField(ent, 'BQ2') || getEntitySpreadsheetField(ent, 'BP') || getEntitySpreadsheetField(ent, 'Orientation to Change (GTDF)');
+        const val = getEntitySpreadsheetField(ent, 'BQ') || getEntitySpreadsheetField(ent, 'BQ2') || getEntitySpreadsheetField(ent, 'Orientation to Change (GTDF)');
         if (!val) return false;
         const valLower = val.trim().toLowerCase();
         const hasMatch = activeGTDF.some(og => valLower.includes(og.trim().toLowerCase()));
@@ -1900,7 +1900,7 @@ export default function App() {
         ? filterState.selectedOrientationsCri.filter(oc => oc !== 'All')
         : (filterState.selectedOrientationCri && filterState.selectedOrientationCri !== 'All' ? [filterState.selectedOrientationCri] : []);
       if (activeCRI.length > 0) {
-        const val = getEntitySpreadsheetField(ent, 'BR') || getEntitySpreadsheetField(ent, 'BR2') || getEntitySpreadsheetField(ent, 'BQ') || getEntitySpreadsheetField(ent, 'Orientation to Change (CRI)');
+        const val = getEntitySpreadsheetField(ent, 'BR') || getEntitySpreadsheetField(ent, 'BR2') || getEntitySpreadsheetField(ent, 'Orientation to Change (CRI)');
         if (!val) return false;
         const valLower = val.trim().toLowerCase();
         const hasMatch = activeCRI.some(oc => valLower.includes(oc.trim().toLowerCase()));

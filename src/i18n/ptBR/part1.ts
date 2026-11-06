@@ -166,6 +166,7 @@ export const PART1: Record<string, string> = {
   "Add long-term curator notes / analyst commentary...": "Adicione notas de curadoria de longo prazo / comentários de análise...",
   "Add new tag...": "Adicionar nova tag...",
   "Add new...": "Adicionar novo...",
+  "Add new": "Adicionar novo",
   "Add subtitle/description to this entry": "Adicionar subtítulo/descrição a esta entrada",
   "Add to Existing Data": "Adicionar aos dados existentes",
   "Add to Existing Data (+{0} new)": "Adicionar aos dados existentes (+{0} novos)",

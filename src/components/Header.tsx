@@ -372,7 +372,7 @@ export const Header: React.FC<HeaderProps> = ({
             Metta Tropical Ecosystem Map
           </h1>
           <p className="hidden sm:block font-technical text-[10px] sm:text-[11px] text-[#716C64] uppercase tracking-wider leading-[1.25] mt-1">
-            A Living Spiritual of Inner, Social,<br />
+            A Living Cartography of Spiritual, Social,<br />
             Cultural & Systems Transformation
           </p>
         </div>
@@ -651,7 +651,7 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="hidden sm:inline">About</span>
         </button>
 
-        {/* Contribute Button: icon-only on the right of About */}
+        {/* Contribute Button: icon-only on the right of About; shows "Add new" label on xl+ screens */}
         <button
           id="header-contribute-btn"
           type="button"
@@ -660,9 +660,10 @@ export const Header: React.FC<HeaderProps> = ({
           }}
           title="Contribute • Submit new entity"
           aria-label="Contribute • Submit new entity"
-          className="flex items-center justify-center p-1.5 text-xs font-sans bg-white hover:bg-[#FAF8F5] text-[#111827] border border-[#E5E7EB] hover:border-[#111827] rounded-[4px] shadow-xs transition-all font-medium cursor-pointer shrink-0"
+          className="flex items-center justify-center xl:space-x-1.5 p-1.5 xl:px-2.5 text-xs font-sans bg-white hover:bg-[#FAF8F5] text-[#111827] border border-[#E5E7EB] hover:border-[#111827] rounded-[4px] shadow-xs transition-all font-medium cursor-pointer shrink-0 whitespace-nowrap"
         >
           <PlusCircle className="w-3.5 h-3.5 shrink-0 text-[#111827]" />
+          <span className="hidden xl:inline">Add new</span>
         </button>
 
         {/* Fullscreen Button */}
