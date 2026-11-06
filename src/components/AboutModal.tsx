@@ -37,7 +37,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({
                 About Metta Tropical Ecosystem Map
               </h2>
               <p className="font-technical text-[10px] text-[#716C64] uppercase tracking-wider mt-0.5">
-                A Living Cartography of Inner, Social, Cultural & Systems Transformation
+                A Living Cartography of Spiritual, Social, Cultural & Systems Transformation
               </p>
             </div>
           </div>

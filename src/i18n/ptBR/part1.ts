@@ -132,9 +132,9 @@ export const PART1: Record<string, string> = {
   "9. transition & local resilience biome": "9. bioma da transição e da resiliência local",
   "A Curated Ecosystem of Initiatives Working Towards Inner, Social, Cultural and Systems Transformation In Service of Planetary Flourishing": "Um Ecossistema Curado de Iniciativas que Trabalham pela Transformação Interior, Social, Cultural e Sistêmica a Serviço do Florescimento Planetário",
   "A Fragmented Ecosystem of Initiatives Contributing to Wisdom-Centered Educational Responses to the Metacrisis": "Um Ecossistema Fragmentado de Iniciativas que Contribuem para Respostas Educacionais Centradas na Sabedoria diante da Metacrise",
-  "A Living Cartography of Inner, Social,": "Uma Cartografia Viva da Transformação Interior, Social,",
+  "A Living Cartography of Spiritual, Social,": "Uma Cartografia Viva da Transformação Espiritual, Social,",
   // Second header line continues the sentence above (see Header.tsx)
-  "A Living Cartography of Inner, Social, Cultural & Systems Transformation": "Uma Cartografia Viva da Transformação Interior, Social, Cultural e Sistêmica",
+  "A Living Cartography of Spiritual, Social, Cultural & Systems Transformation": "Uma Cartografia Viva da Transformação Espiritual, Social, Cultural e Sistêmica",
   "A Wide Range of Initiatives Possibly Working Towards Life-Affirming Futures": "Uma Ampla Gama de Iniciativas que Possivelmente Trabalham por Futuros que Afirmam a Vida",
   "A concept I know of": "Um conceito que conheço",
   "A media I know of": "Uma mídia que conheço",

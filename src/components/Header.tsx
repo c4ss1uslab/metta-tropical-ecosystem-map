@@ -372,7 +372,7 @@ export const Header: React.FC<HeaderProps> = ({
             Metta Tropical Ecosystem Map
           </h1>
           <p className="hidden sm:block font-technical text-[10px] sm:text-[11px] text-[#716C64] uppercase tracking-wider leading-[1.25] mt-1">
-            A Living Cartography of Inner, Social,<br />
+            A Living Spiritual of Inner, Social,<br />
             Cultural & Systems Transformation
           </p>
         </div>
