@@ -1525,7 +1525,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
             I. SPIRITUAL CHANGE
           </div>
           <div className="font-technical text-xs text-[#5B21B6]/60">
-            Self • Contemplation • Somatics • Trauma Healing
+            Inner • Embodied • Emotional • Developmental • Relational • Ontological • Sacred
           </div>
           {editMode && (
             <div className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-[#5B21B6]/10 text-[#5B21B6] text-[10px] font-technical font-semibold">
@@ -1550,7 +1550,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
             II. SOCIAL CHANGE
           </div>
           <div className="font-technical text-xs text-[#111827]/70">
-            Commons • Civic Action • Deliberative Democracy • Mutual Aid
+            Grassroots Organizing • Civic Action • Movement Building • Mutual Aid • Social Work
           </div>
           {editMode && (
             <div className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded bg-[#111827]/10 text-[#111827] text-[10px] font-technical font-semibold">
@@ -1575,7 +1575,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
             III. CULTURAL CHANGE
           </div>
           <div className="font-technical text-xs text-[#7D8764]/80">
-            Mythos • Storytelling • Transcontextual • Indigenous Wisdom
+            Mythos • Storytelling • Information • Practices • Worldviews
           </div>
           {editMode && (
             <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-[#7D8764]/10 text-[#7D8764] text-[10px] font-technical font-semibold">
@@ -1600,7 +1600,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
             IV. SYSTEMS CHANGE
           </div>
           <div className="font-technical text-xs text-[#006080]/70">
-            Macroeconomics • Planetary Boundaries • Doughnut Economics • Tech
+            Economics • Governance • Technology • Ecology • Institutional
           </div>
           {editMode && (
             <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-[#4FC1E0]/15 text-[#006080] text-[10px] font-technical font-semibold">

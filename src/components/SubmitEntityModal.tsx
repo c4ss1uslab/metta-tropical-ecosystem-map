@@ -1930,7 +1930,7 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
                   <div className="flex items-center justify-between">
                     <span className="font-technical text-xs text-[#111827] uppercase tracking-wider font-semibold flex items-center space-x-1.5">
                       <Globe className="w-3.5 h-3.5 text-[#5B21B6]" />
-                      <span>Archipelago Territory</span>
+                      <span>Archipelago</span>
                     </span>
                     <span className="text-[10px] font-technical text-[#8C877F]">Optional</span>
                   </div>
