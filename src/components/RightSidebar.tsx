@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { compareArchipelagoNumbers } from './SubmitEntityModal';
 import { 
   X, ExternalLink, MapPin, Globe, Tag, 
   Map, Edit3, Compass, RotateCcw, RotateCw, MessageSquare, Plus,
@@ -1690,7 +1691,8 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
     (allEntities || []).forEach(e => {
       (e.fields || []).forEach(f => { if (f?.trim()) set.add(f.trim()); });
     });
-    return Array.from(set).sort();
+    // Numbered archipelago tags first (1-99+), then the rest A-Z
+    return Array.from(set).sort(compareArchipelagoNumbers);
   }, [allEntities]);
 
   const allExistingApproaches = useMemo(() => {

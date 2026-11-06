@@ -54,7 +54,7 @@ export const PART2: Record<string, string> = {
   "City/State": "Cidade/Estado",
   "Civic Commons": "Bens comuns cívicos",
   "Civic Cooperation & Participatory Action": "Cooperação cívica e ação participativa",
-  "Classified by spreadsheet field completeness percentiles:": "Classificadas por percentis de completude dos campos da planilha:",
+  "Classified by field completeness percentiles:": "Classificadas por percentuais de completude dos campos:",
   "Clear": "Limpar",
   "Clear (": "Limpar (",
   "Clear (Esc)": "Limpar (Esc)",

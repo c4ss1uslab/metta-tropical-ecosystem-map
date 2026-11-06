@@ -2841,6 +2841,29 @@ export async function exportEntities(
 }
 
 /**
+ * Canonical (English) spelling for biome names that appear in the data in
+ * more than one language. Displayed labels are localized by the pt-BR
+ * dictionary (e.g. "Amazon" -> "Amazônia").
+ */
+const BIOME_ALIASES: Record<string, string> = {
+  'amazon': 'Amazon',
+  'amazônia': 'Amazon',
+  'amazonia': 'Amazon',
+};
+
+/** Normalizes a (possibly comma-separated) biome value to canonical names. */
+export function normalizeBiomeValue(raw: string): string {
+  return raw
+    .split(',')
+    .map(part => {
+      const t = part.trim();
+      return BIOME_ALIASES[t.toLowerCase()] ?? t;
+    })
+    .filter(Boolean)
+    .join(', ');
+}
+
+/**
  * Extracts a specific spreadsheet column value from an entity.
  * Supports both new and legacy column letters/codes (e.g. 'U2'/'S2', 'AD2'/'AA2', 'AE2'/'AB2')
  * and canonical field names (e.g. 'Our Relationship', 'Bioregion', 'Quadrant').
@@ -2863,7 +2886,7 @@ export function getEntitySpreadsheetField(
   }
   if (key === 'AE' || key === 'AE2' || key === 'BIOME' || key === 'BIOMES' || key === 'BIOREGION' || key === 'BIOREGIONS' || key === 'AB2') {
     const val = entity.biome || entity.bioregion || entity.categorizedFields?.['Logistic Info']?.['Biome'] || entity.categorizedFields?.['Logistic Info']?.['Bioregion'] || entity.extraFields?.['Biome'] || entity.extraFields?.['Bioregion'];
-    return val ? String(val).trim() : undefined;
+    return val ? normalizeBiomeValue(String(val)) : undefined;
   }
   if (key === 'AC2' || key === 'AG2' || key === 'AG' || key === 'CITY/STATE' || key === 'CITY, STATE' || key === 'CITY STATE') {
     const cs = entity.cityState || entity.categorizedFields?.['Logistic Info']?.['City/State'] || entity.extraFields?.['City/State'];

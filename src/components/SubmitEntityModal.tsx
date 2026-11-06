@@ -836,7 +836,8 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
       const val = f?.trim();
       if (val) set.add(val);
     }));
-    return Array.from(set).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+    // Numbered archipelago tags first (1-99+), then the rest A-Z
+    return Array.from(set).sort(compareArchipelagoNumbers);
   }, [allEntities]);
 
   const allExistingApproaches = useMemo(() => {
@@ -1878,7 +1879,7 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
 
                           <div>
                             <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-1">
-                              <span>SDGs / Social Issues</span>
+                              <span>SDGs / Social Issues (CCC)</span>
                               <FieldCommentInfo fieldName="SDGs/Social Issues (Conscious Change Collective)" />
                             </label>
                             <OptionsMultiSelect
@@ -1906,7 +1907,7 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
 
                           <div>
                             <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-1">
-                              <span>Inner Work Modalities</span>
+                              <span>Inner Work Modalities (CCC)</span>
                             </label>
                             <OptionsMultiSelect
                               value={innerWorkModalities}
@@ -2407,7 +2408,7 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
 
                       <div>
                         <label className="font-technical text-[10px] text-[#8C877F] uppercase font-semibold flex items-center space-x-1.5 mb-0.5">
-                          <span>Community Served</span>
+                          <span>Community Served (CCC)</span>
                         </label>
                         <OptionsMultiSelect
                           value={communityServed}

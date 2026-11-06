@@ -20,6 +20,11 @@ import { PART5 } from './ptBR/part5';
 
 /** Extra entries: common short labels and plural/case variants used by data-driven UI. */
 const EXTRA: Record<string, string> = {
+  // Biomes (data is normalized to English names; see normalizeBiomeValue)
+  'Amazon': 'Amazônia',
+  'Amazon, Cerrado': 'Amazônia, Cerrado',
+  'Amazon ({0})': 'Amazônia ({0})',
+  'Amazon, Cerrado ({0})': 'Amazônia, Cerrado ({0})',
   'Organizations & Initiatives': 'Organizações e iniciativas',
   'Persons': 'Pessoas',
   'Medias': 'Mídias',

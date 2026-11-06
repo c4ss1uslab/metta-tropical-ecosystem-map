@@ -903,7 +903,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   // Helper to split multi-value cells (comma, semicolon, newline, pipe)
   const splitAdvancedFilterValues = (raw: string): string[] => {
     if (!raw) return [];
-    const trimmed = raw.trim();
+    // Strip markdown links: "[Label](https://...)" -> "Label"
+    const trimmed = raw.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').trim();
     if (!trimmed) return [];
     if (trimmed.includes('\n') || trimmed.includes(';') || trimmed.includes('|')) {
       return trimmed.split(/[\n;|]+/).map(s => s.trim()).filter(Boolean);
@@ -3753,7 +3754,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
 
           {/* Description */}
           <p className="text-[11.5px] leading-relaxed text-[#4B5563] font-sans mb-2.5">
-            Classified by spreadsheet field completeness percentiles:
+            Classified by field completeness percentiles:
           </p>
 
           {/* 5 Standards List */}
