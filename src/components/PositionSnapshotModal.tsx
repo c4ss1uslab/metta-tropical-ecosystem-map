@@ -260,7 +260,7 @@ export const PositionSnapshotModal: React.FC<PositionSnapshotModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl bg-white border border-[#E5E7EB] rounded-lg shadow-2xl flex flex-col max-h-[90vh] overflow-hidden text-[#111827]">
+      <div className="relative w-full max-w-2xl bg-white border border-[#E5E7EB] rounded-lg shadow-2xl flex flex-col max-h-[90dvh] overflow-hidden text-[#111827]">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E7EB] bg-[#FAF8F5]">
           <div className="flex items-center space-x-2.5">

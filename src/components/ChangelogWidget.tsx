@@ -461,7 +461,7 @@ export const ChangelogWidget: React.FC<ChangelogWidgetProps> = ({ editMode }) =>
           onMouseUp={(e) => e.stopPropagation()}
           onTouchStart={(e) => e.stopPropagation()}
           onTouchMove={(e) => e.stopPropagation()}
-          className="absolute bottom-11 right-0 w-[calc(100vw-32px)] sm:w-[500px] max-h-[82vh] bg-white border border-[#E5E7EB] rounded-[6px] shadow-2xl z-40 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-150 text-[#111827] overscroll-contain select-text"
+          className="absolute bottom-11 right-0 w-[calc(100vw-32px)] sm:w-[500px] max-h-[82dvh] bg-white border border-[#E5E7EB] rounded-[6px] shadow-2xl z-40 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-150 text-[#111827] overscroll-contain select-text"
         >
           {/* Header */}
           <div className="p-3.5 bg-[#FAF8F5] border-b border-[#E5E7EB] flex items-center justify-between shrink-0">

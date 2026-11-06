@@ -74,6 +74,10 @@ const COMMITTED_BASELINE_KEY = 'metta_ecosystem_committed_baseline_v1';
 const LAYER_QUADRANTS_STORAGE_KEY = 'metta_ecosystem_layer_quadrants_v1';
 const LAYER_FIELDS_STORAGE_KEY = 'metta_ecosystem_layer_fields_v1';
 
+/** True on phone-width screens, where sidebars overlay the map instead of sitting beside it. */
+const isPhoneViewport = () =>
+  typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches;
+
 export default function App() {
   // Custom continent shape control points
   const [customContinentShapes, setCustomContinentShapes] = useState<Record<string, [number, number][]>>(() => {
@@ -511,7 +515,8 @@ export default function App() {
   const [selectedContinentName, setSelectedContinentName] = useState<string | null>(null);
   const [activeListScope, setActiveListScope] = useState<SidebarListScope | null>(null);
   const [viewport, setViewport] = useState<MapViewport>({ x: 0, y: 0, zoom: 0.75 });
-  const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false);
+  // Phones start with the filter sidebar collapsed so the map is usable immediately
+  const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(isPhoneViewport);
   const leftSidebarBeforeFocusRef = useRef<boolean>(false);
   const [editMode, setEditMode] = useState(false);
   const [showContinents, setShowContinents] = useState(true);
@@ -3064,7 +3069,7 @@ export default function App() {
       setActiveListScope(null);
       // Automatically open left sidebar back when leaving archipelago focus view
       if (!keepSidebarOpen) {
-        setLeftSidebarCollapsed(leftSidebarBeforeFocusRef.current !== undefined ? leftSidebarBeforeFocusRef.current : false);
+        setLeftSidebarCollapsed(leftSidebarBeforeFocusRef.current !== undefined ? leftSidebarBeforeFocusRef.current : isPhoneViewport());
       }
       if (previousViewport) {
         setViewport(previousViewport);
@@ -3756,7 +3761,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#FAF8F5] text-[#111827]">
+    <div className="flex flex-col h-dvh w-screen overflow-hidden bg-[#FAF8F5] text-[#111827]">
       {/* Top Header */}
       <Header
         entities={entities}
@@ -3857,6 +3862,15 @@ export default function App() {
           }}
         />
 
+        {/* Phones: the expanded filter sidebar overlays the map; tapping the map area closes it */}
+        {!leftSidebarCollapsed && (
+          <div
+            className="md:hidden absolute inset-0 z-[35] bg-black/25"
+            onClick={() => setLeftSidebarCollapsed(true)}
+            aria-hidden="true"
+          />
+        )}
+
         {/* Center Interactive RPG Map Canvas */}
         <RpgMapCanvas
           entities={filteredEntities}
@@ -3923,7 +3937,7 @@ export default function App() {
             if (selectedContinentName) {
               setSelectedContinentName(null);
               setActiveListScope(null);
-              setLeftSidebarCollapsed(leftSidebarBeforeFocusRef.current !== undefined ? leftSidebarBeforeFocusRef.current : false);
+              setLeftSidebarCollapsed(leftSidebarBeforeFocusRef.current !== undefined ? leftSidebarBeforeFocusRef.current : isPhoneViewport());
               if (previousViewport) {
                 setViewport(previousViewport);
                 setPreviousViewport(null);
@@ -3964,11 +3978,12 @@ export default function App() {
 
         {/* Right Sidebar Wrapper with smooth synchronized width slide-in/out transition */}
         <div
-          className={`h-full shrink-0 z-30 transition-all duration-300 ease-out overflow-hidden flex flex-col ${
-            hasActiveRightSidebar ? 'w-96 opacity-100' : 'w-0 opacity-0 pointer-events-none'
+          className={`h-full shrink-0 z-30 max-md:z-[45] max-md:absolute max-md:inset-y-0 max-md:right-0 max-md:shadow-2xl transition-all duration-300 ease-out overflow-hidden flex flex-col ${
+            hasActiveRightSidebar ? 'w-full md:w-96 opacity-100' : 'w-0 opacity-0 pointer-events-none'
           }`}
         >
-          <div className="w-96 h-full flex flex-col">
+          {/* Full-width sheet over the map on phones, fixed 24rem column on desktop */}
+          <div className="w-screen md:w-96 h-full flex flex-col">
             {(hasActiveRightSidebar || persistedRightSidebarScope) && (
               <RightSidebar
                 entity={selectedEntity || persistedRightSidebarScope?.entity || null}
@@ -3991,7 +4006,7 @@ export default function App() {
                     }));
                   }
                   if (wasFocusView) {
-                    setLeftSidebarCollapsed(leftSidebarBeforeFocusRef.current !== undefined ? leftSidebarBeforeFocusRef.current : false);
+                    setLeftSidebarCollapsed(leftSidebarBeforeFocusRef.current !== undefined ? leftSidebarBeforeFocusRef.current : isPhoneViewport());
                   }
                   if (previousViewport) {
                     setViewport(previousViewport);

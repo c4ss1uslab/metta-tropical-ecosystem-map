@@ -278,9 +278,9 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="min-h-16 sm:min-h-[4.5rem] py-2 sm:py-2.5 bg-[#FAF8F5] border-b border-[#E5E7EB] px-4 flex items-center justify-between sticky top-0 z-30 select-none">
+    <header className="min-h-16 sm:min-h-[4.5rem] py-2 sm:py-2.5 bg-[#FAF8F5] border-b border-[#E5E7EB] px-2 sm:px-4 gap-2 flex items-center justify-between sticky top-0 z-30 select-none">
       {/* Brand & Title */}
-      <div className="flex items-center space-x-2.5 sm:space-x-3 shrink-0">
+      <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 shrink">
         {/* Complete Sunflower Icon with Head & Vertical Stem Body */}
         <svg 
           viewBox="0 0 36 44" 
@@ -357,9 +357,9 @@ export const Header: React.FC<HeaderProps> = ({
           <circle cx="18" cy="13" r="3.7" stroke="#D97706" strokeWidth="0.5" strokeDasharray="1 1" fill="none" opacity="0.85" />
         </svg>
 
-        <div className="flex flex-col justify-center">
+        <div className="flex flex-col justify-center min-w-0">
           <h1 
-            className="font-cormorant-title text-[#111827] select-text"
+            className="font-cormorant-title text-[#111827] select-text max-[420px]:sr-only"
             style={{
               fontFamily: '"Cormorant Garamond", Georgia, serif',
               fontWeight: 500,
@@ -371,7 +371,7 @@ export const Header: React.FC<HeaderProps> = ({
           >
             Metta Tropical Ecosystem Map
           </h1>
-          <p className="font-technical text-[10px] sm:text-[11px] text-[#716C64] uppercase tracking-wider leading-[1.25] mt-1">
+          <p className="hidden sm:block font-technical text-[10px] sm:text-[11px] text-[#716C64] uppercase tracking-wider leading-[1.25] mt-1">
             A Living Cartography of Inner, Social,<br />
             Cultural & Systems Transformation
           </p>
@@ -522,23 +522,23 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Right Controls & Actions */}
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-1 sm:space-x-2 shrink-0">
         {/* Toggle Archipelagos & Relationships: Stacked vertically on small screens, side-by-side on sm+ screens */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1 sm:gap-1.5">
+        <div className="flex flex-row items-center gap-1 sm:gap-1.5">
           {/* Toggle Archipelagos (Layer 1) or Fields (Layer 2 & 3) */}
           <button
             onClick={() => setShowContinents(prev => !prev)}
             title={showContinents 
               ? `Hide ${(activeLayer === 2 || activeLayer === 3) ? 'Field' : 'Archipelago'} Landmasses & Territories` 
               : `Show ${(activeLayer === 2 || activeLayer === 3) ? 'Field' : 'Archipelago'} Landmasses & Territories`}
-            className={`flex items-center justify-center space-x-1.5 text-[11px] sm:text-xs font-sans px-2 py-0.5 sm:py-1.5 border rounded-[4px] transition-all cursor-pointer whitespace-nowrap ${
+            className={`flex items-center justify-center space-x-1.5 text-[11px] sm:text-xs font-sans px-2 py-1.5 border rounded-[4px] transition-all cursor-pointer whitespace-nowrap ${
               showContinents
                 ? 'bg-[#111827] text-white border-[#111827] shadow-xs'
                 : 'bg-white text-[#111827] border-[#E5E7EB] hover:bg-[#FAF8F5]'
             }`}
           >
             <Globe className="w-3.5 h-3.5 shrink-0" />
-            <span>{(activeLayer === 2 || activeLayer === 3) ? 'Fields' : 'Archipelagos'}</span>
+            <span className="hidden sm:inline">{(activeLayer === 2 || activeLayer === 3) ? 'Fields' : 'Archipelagos'}</span>
             {showContinents && (
               <span className="w-1.5 h-1.5 rounded-full bg-[#D9C01B] ml-0.5 shrink-0" />
             )}
@@ -548,14 +548,14 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={() => setShowRelationships(prev => !prev)}
             title={showRelationships ? 'Hide Inter-Entity Relationship Connections' : 'Show Inter-Entity Relationship Connections'}
-            className={`flex items-center justify-center space-x-1.5 text-[11px] sm:text-xs font-sans px-2 py-0.5 sm:py-1.5 border rounded-[4px] transition-all cursor-pointer whitespace-nowrap ${
+            className={`flex items-center justify-center space-x-1.5 text-[11px] sm:text-xs font-sans px-2 py-1.5 border rounded-[4px] transition-all cursor-pointer whitespace-nowrap ${
               showRelationships
                 ? 'bg-[#111827] text-white border-[#111827] shadow-xs'
                 : 'bg-white text-[#111827] border-[#E5E7EB] hover:bg-[#FAF8F5]'
             }`}
           >
             <Network className="w-3.5 h-3.5 shrink-0" />
-            <span>Relationships</span>
+            <span className="hidden sm:inline">Relationships</span>
             {showRelationships && (
               <span className="w-1.5 h-1.5 rounded-full bg-[#D9C01B] ml-0.5 shrink-0" />
             )}
@@ -629,10 +629,11 @@ export const Header: React.FC<HeaderProps> = ({
           id="header-directory-btn"
           onClick={onOpenDirectoryModal}
           title="Open Directory View (Card & List View of all entities)"
-          className="flex items-center space-x-1.5 text-xs font-sans bg-white hover:bg-[#FAF8F5] text-[#111827] border border-[#E5E7EB] hover:border-[#111827] px-2.5 py-1.5 rounded-[4px] shadow-xs transition-all font-medium cursor-pointer whitespace-nowrap"
+          className="flex items-center space-x-1.5 text-xs font-sans bg-white hover:bg-[#FAF8F5] text-[#111827] border border-[#E5E7EB] hover:border-[#111827] px-2 sm:px-2.5 py-1.5 rounded-[4px] shadow-xs transition-all font-medium cursor-pointer whitespace-nowrap"
+          aria-label="Directory"
         >
           <BookOpen className="w-3.5 h-3.5 shrink-0 text-[#111827]" />
-          <span>Directory</span>
+          <span className="hidden sm:inline">Directory</span>
         </button>
 
         {/* About Button */}
@@ -643,10 +644,11 @@ export const Header: React.FC<HeaderProps> = ({
             onOpenAbout?.();
           }}
           title="About this ecosystem map"
-          className="flex items-center space-x-1.5 text-xs font-sans bg-white hover:bg-[#FAF8F5] text-[#111827] border border-[#E5E7EB] hover:border-[#111827] px-2.5 py-1.5 rounded-[4px] shadow-xs transition-all font-medium cursor-pointer whitespace-nowrap"
+          className="flex items-center space-x-1.5 text-xs font-sans bg-white hover:bg-[#FAF8F5] text-[#111827] border border-[#E5E7EB] hover:border-[#111827] px-2 sm:px-2.5 py-1.5 rounded-[4px] shadow-xs transition-all font-medium cursor-pointer whitespace-nowrap"
+          aria-label="About"
         >
           <Info className="w-3.5 h-3.5 shrink-0 text-[#111827]" />
-          <span>About</span>
+          <span className="hidden sm:inline">About</span>
         </button>
 
         {/* Contribute Button: icon-only on the right of About */}
@@ -670,7 +672,7 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={handleToggleFullscreen}
           title={isFullscreen ? "Exit full-screen mode (Esc)" : "Enter full-screen mode (hides browser top bar)"}
           aria-label={isFullscreen ? "Exit full screen" : "Enter full screen"}
-          className="flex items-center space-x-0.5 text-xs font-sans bg-white hover:bg-[#FAF8F5] text-[#111827] border border-[#E5E7EB] hover:border-[#111827] px-1.5 py-1.5 rounded-[4px] shadow-xs transition-all font-medium cursor-pointer whitespace-nowrap"
+          className="hidden sm:flex items-center space-x-0.5 text-xs font-sans bg-white hover:bg-[#FAF8F5] text-[#111827] border border-[#E5E7EB] hover:border-[#111827] px-1.5 py-1.5 rounded-[4px] shadow-xs transition-all font-medium cursor-pointer whitespace-nowrap"
         >
           {isFullscreen ? (
             <>

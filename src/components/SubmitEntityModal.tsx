@@ -216,7 +216,7 @@ const SearchableTagInput: React.FC<SearchableTagInputProps> = ({
           <button
             type="button"
             onClick={() => setShowSuggestions(prev => !prev)}
-            className="text-[10px] font-technical text-[#5B21B6] hover:underline cursor-pointer flex items-center space-x-0.5"
+            className="touch-hit text-[10px] font-technical text-[#5B21B6] hover:underline cursor-pointer flex items-center space-x-0.5"
           >
             <span>{showSuggestions ? 'Hide list ▲' : `Browse all (${availableSuggestions.length}) ▼`}</span>
           </button>
@@ -237,7 +237,7 @@ const SearchableTagInput: React.FC<SearchableTagInputProps> = ({
                 type="button"
                 onClick={() => onRemoveItem(item)}
                 title={`Remove ${item}`}
-                className="p-0.5 text-[#8C877F] hover:text-[#DC2626] hover:bg-black/5 rounded-[2px] cursor-pointer"
+                className="touch-hit p-0.5 text-[#8C877F] hover:text-[#DC2626] hover:bg-black/5 rounded-[2px] cursor-pointer"
               >
                 <X className="w-3 h-3" />
               </button>
@@ -272,12 +272,12 @@ const SearchableTagInput: React.FC<SearchableTagInputProps> = ({
                 setShowSuggestions(false);
               }
             }}
-            className="flex-1 bg-white border border-[#E5E7EB] focus:border-[#111827] text-xs font-sans px-3 py-1.5 rounded-[4px] outline-none shadow-2xs placeholder-[#9CA3AF]"
+            className="flex-1 min-w-0 bg-white border border-[#E5E7EB] focus:border-[#111827] text-xs font-sans px-3 py-1.5 rounded-[4px] outline-none shadow-2xs placeholder-[#9CA3AF]"
           />
           <button
             type="button"
             onClick={() => handleCommitAdd()}
-            className="flex items-center space-x-1 px-3 py-1.5 bg-[#111827] text-white text-xs font-sans rounded-[4px] hover:bg-[#20293a] cursor-pointer shrink-0 shadow-2xs"
+            className="flex items-center space-x-1 px-3 py-2.5 md:py-1.5 bg-[#111827] text-white text-xs font-sans rounded-[4px] hover:bg-[#20293a] cursor-pointer shrink-0 shadow-2xs"
           >
             <Plus className="w-3 h-3" />
             <span>Add</span>
@@ -408,7 +408,7 @@ const PrimaryArchipelagoSelect: React.FC<PrimaryArchipelagoSelectProps> = ({
                 onChange('');
                 setQuery('');
               }}
-              className="p-1 text-[#9CA3AF] hover:text-[#DC2626] rounded-[2px] cursor-pointer"
+              className="touch-hit p-1 text-[#9CA3AF] hover:text-[#DC2626] rounded-[2px] cursor-pointer"
               title="Clear selection"
             >
               <X className="w-3 h-3" />
@@ -604,7 +604,7 @@ const OtherArchipelagosSelect: React.FC<OtherArchipelagosSelectProps> = ({
         <button
           type="button"
           onClick={() => setIsOpen(prev => !prev)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[#6B7280] hover:text-[#111827] cursor-pointer"
+          className="touch-hit absolute right-2 top-1/2 -translate-y-1/2 p-1 text-[#6B7280] hover:text-[#111827] cursor-pointer"
           title="Toggle archipelagos list"
         >
           {isOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -1311,40 +1311,41 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
   return (
     <>
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 md:p-10 bg-[#111827]/60 backdrop-blur-xs select-text animate-in fade-in duration-200"
+        className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-6 md:p-10 bg-[#111827]/60 backdrop-blur-xs select-text animate-in fade-in duration-200"
         onClick={(e) => {
           if (e.target === e.currentTarget) onClose();
         }}
       >
         <div
-          className="w-full max-w-4xl max-h-[92vh] bg-white rounded-lg shadow-2xl border border-[#E5E7EB] flex flex-col overflow-hidden relative select-text"
+          className="w-full max-w-4xl h-full sm:h-auto max-h-full sm:max-h-[92dvh] bg-white sm:rounded-lg shadow-2xl sm:border border-[#E5E7EB] flex flex-col overflow-hidden relative select-text"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Top Banner (Compact Sticky Header Bar) */}
-          <div className="bg-[#FEFCE8] border-b border-[#FEF08A] px-4 md:px-5 py-2.5 flex items-center justify-between text-[#854D0E] font-technical text-xs font-semibold shrink-0 z-10">
+          <div className="bg-[#FEFCE8] border-b border-[#FEF08A] px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 flex items-center justify-between text-[#854D0E] font-technical text-xs font-semibold shrink-0 z-10">
             <div className="flex items-center space-x-2 truncate pr-2">
               <span className="text-sm shrink-0">🌱</span>
-              <span className="truncate">COMMUNITY CONTRIBUTION MODE — Submit a new entity to the ecosystem</span>
+              <span className="truncate hidden sm:inline">COMMUNITY CONTRIBUTION MODE — Submit a new entity to the ecosystem</span>
+              <span className="truncate sm:hidden">NEW ENTITY</span>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
               <button
                 type="button"
                 onClick={onClose}
-                className="text-[11px] text-[#713F12] hover:text-[#111827] underline cursor-pointer"
+                className="hidden sm:inline text-[11px] text-[#713F12] hover:text-[#111827] underline cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleOpenEmailModal}
-                className="px-3.5 py-1 bg-[#111827] text-white hover:bg-[#1F2937] rounded-[3px] text-[11px] font-technical font-semibold cursor-pointer shadow-xs transition-colors whitespace-nowrap"
+                className="px-3.5 py-2 sm:py-1 bg-[#111827] text-white hover:bg-[#1F2937] rounded-[3px] text-[11px] font-technical font-semibold cursor-pointer shadow-xs transition-colors whitespace-nowrap"
               >
                 Submit Entity →
               </button>
               <button
                 type="button"
                 onClick={onClose}
-                className="p-1 text-[#854D0E] hover:text-[#111827] hover:bg-[#FEF08A]/80 rounded-[3px] transition-colors cursor-pointer"
+                className="p-2 -m-1 sm:p-1 sm:m-0 text-[#854D0E] hover:text-[#111827] hover:bg-[#FEF08A]/80 rounded-[3px] transition-colors cursor-pointer"
                 aria-label="Close"
                 title="Close modal"
               >
@@ -1354,9 +1355,9 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
           </div>
 
           {/* Scrollable Form Body */}
-          <div className="flex-1 overflow-y-auto p-5 md:p-8 space-y-6">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-5 md:p-8 space-y-5 sm:space-y-6">
             {/* Movable Top Section: Entity Title, Type & Quadrant (Scrolls naturally with content) */}
-            <div className="bg-[#FAF8F5] border border-[#E5E7EB] rounded-[8px] p-5 md:p-6 space-y-4 shadow-2xs">
+            <div className="bg-[#FAF8F5] border border-[#E5E7EB] rounded-[8px] p-4 sm:p-5 md:p-6 space-y-4 shadow-2xs">
               <div className="space-y-2">
                 <div className="flex items-center space-x-1.5 text-[11px] font-technical uppercase font-bold text-[#111827]">
                   <span>Entity Title / Name</span>
@@ -2546,7 +2547,7 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
             </div>
 
             {/* Bottom Submit Action Bar */}
-            <div className="pt-6 border-t-2 border-[#111827]/10 flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#FAF8F5] p-5 rounded-[8px] border border-[#E5E7EB] mt-4">
+            <div className="pt-6 border-t-2 border-[#111827]/10 flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#FAF8F5] p-4 sm:p-5 rounded-[8px] border border-[#E5E7EB] mt-4">
               <div>
                 <h4 className="font-editorial text-base font-bold text-[#111827]">
                   Finished drafting this new entity?
@@ -2585,7 +2586,7 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
           onClick={() => setIsEmailModalOpen(false)}
         >
           <div 
-            className="w-full max-w-md bg-white rounded-lg shadow-2xl border border-[#E5E7EB] p-6 space-y-4"
+            className="w-full max-w-md max-h-full overflow-y-auto bg-white rounded-lg shadow-2xl border border-[#E5E7EB] p-5 sm:p-6 space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
@@ -2596,7 +2597,8 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
               <button
                 type="button"
                 onClick={() => setIsEmailModalOpen(false)}
-                className="text-[#8C877F] hover:text-[#111827] p-1 rounded cursor-pointer"
+                className="touch-hit text-[#8C877F] hover:text-[#111827] p-1 rounded cursor-pointer"
+                aria-label="Close"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2618,6 +2620,7 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
                     if (emailError) setEmailError(null);
                   }}
                   placeholder="name@example.org"
+                  autoComplete="email"
                   className="w-full bg-[#FAF8F5] border border-[#E5E7EB] focus:border-[#111827] text-xs font-sans px-3.5 py-2.5 rounded-[4px] outline-none text-[#111827]"
                   autoFocus
                   required
@@ -2667,7 +2670,7 @@ export const SubmitEntityModal: React.FC<SubmitEntityModalProps> = ({
           onClick={handleFinishAndClose}
         >
           <div 
-            className="w-full max-w-md bg-white rounded-lg shadow-2xl border border-[#E5E7EB] p-6 text-center space-y-4"
+            className="w-full max-w-md max-h-full overflow-y-auto bg-white rounded-lg shadow-2xl border border-[#E5E7EB] p-5 sm:p-6 text-center space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="w-12 h-12 rounded-full bg-[#ECFDF5] border border-[#A7F3D0] flex items-center justify-center mx-auto text-2xl">

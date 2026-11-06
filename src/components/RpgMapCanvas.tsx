@@ -571,7 +571,9 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
     if (!editMode) return;
     if (!draggingNodeId && !draggingGroupIds && !draggingVertex && !draggingContinentName && !isMarqueeSelecting && !draggingLabel && !draggingQuadrantResize && !draggingLabelRotation) return;
 
-    const handleWindowMouseMove = (e: MouseEvent) => {
+    const handleWindowMouseMove = (e: PointerEvent) => {
+      // Ignore secondary touch points (second finger of a pinch) so drags follow one finger
+      if (!e.isPrimary) return;
       const world = getWorldCoords(e);
 
       // 0a. Quadrant outer boundary and corner resizing in Edit Mode
@@ -738,7 +740,8 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
       }
     };
 
-    const handleWindowMouseUp = (e: MouseEvent) => {
+    const handleWindowMouseUp = (e: PointerEvent) => {
+      if (!e.isPrimary) return;
       const world = getWorldCoords(e);
 
       if (hasDraggedRef.current) {
@@ -868,8 +871,9 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
       setDraggingLabelRotation(null);
     };
 
-    window.addEventListener('mousemove', handleWindowMouseMove);
-    window.addEventListener('mouseup', handleWindowMouseUp);
+    window.addEventListener('pointermove', handleWindowMouseMove);
+    window.addEventListener('pointerup', handleWindowMouseUp);
+    window.addEventListener('pointercancel', handleWindowMouseUp);
 
     return () => {
       if (animFrameIdRef.current) {
@@ -880,8 +884,9 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
         cancelAnimationFrame(continentAnimFrameRef.current);
         continentAnimFrameRef.current = null;
       }
-      window.removeEventListener('mousemove', handleWindowMouseMove);
-      window.removeEventListener('mouseup', handleWindowMouseUp);
+      window.removeEventListener('pointermove', handleWindowMouseMove);
+      window.removeEventListener('pointerup', handleWindowMouseUp);
+      window.removeEventListener('pointercancel', handleWindowMouseUp);
     };
   }, [
     draggingNodeId,
@@ -929,8 +934,8 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
       // Zoom towards cursor if coordinates provided
       if (mouseX !== undefined && mouseY !== undefined && containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
-        const cx = mouseX - rect.width / 2;
-        const cy = mouseY - rect.height / 2;
+        const cx = mouseX - rect.left - rect.width / 2;
+        const cy = mouseY - rect.top - rect.height / 2;
         const zoomFactor = newZoom / prev.zoom;
         const newX = cx - (cx - prev.x) * zoomFactor;
         const newY = cy - (cy - prev.y) * zoomFactor;
@@ -961,9 +966,104 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
     handleZoom(zoomDelta, e.clientX, e.clientY);
   };
 
-  // Canvas Mouse Down
-  const handleMouseDown = (e: React.MouseEvent) => {
+  // ── Multi-touch gestures (pinch-zoom + two-finger pan) ──────────────────────
+  // All active pointers on the canvas are tracked in the capture phase, so this
+  // works even when a node/handle stops propagation of its own pointerdown.
+  const viewportRef = useRef(viewport);
+  viewportRef.current = viewport;
+  const activePointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const pinchRef = useRef<{
+    startDist: number;
+    startZoom: number;
+    anchorWorld: { x: number; y: number };
+  } | null>(null);
+  const [isPinching, setIsPinching] = useState(false);
+
+  const getPinchGeometry = () => {
+    const pts = Array.from<{ x: number; y: number }>(activePointersRef.current.values()).slice(0, 2);
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (pts.length < 2 || !rect) return null;
+    const [a, b] = pts;
+    return {
+      dist: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)),
+      // Midpoint relative to the container centre (the map's transform origin)
+      mx: (a.x + b.x) / 2 - rect.left - rect.width / 2,
+      my: (a.y + b.y) / 2 - rect.top - rect.height / 2,
+    };
+  };
+
+  const handlePointerDownCapture = (e: React.PointerEvent) => {
+    if (e.pointerType !== 'touch') return;
+    // isPrimary marks the first finger of a new gesture: drop any stale pointers
+    if (e.isPrimary) {
+      activePointersRef.current.clear();
+      pinchRef.current = null;
+    }
+    activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (activePointersRef.current.size === 2) {
+      const g = getPinchGeometry();
+      if (!g) return;
+      const v = viewportRef.current;
+      pinchRef.current = {
+        startDist: g.dist,
+        startZoom: v.zoom,
+        anchorWorld: { x: (g.mx - v.x) / v.zoom, y: (g.my - v.y) / v.zoom },
+      };
+      setIsPinching(true);
+      // A second finger turns any single-finger pan/marquee into a pinch gesture
+      hasDraggedRef.current = true;
+      clearPendingClick();
+      setIsPanning(false);
+      pointerDownPosRef.current = null;
+      if (isMarqueeSelecting) {
+        setIsMarqueeSelecting(false);
+        setMarqueeStartWorld(null);
+        setMarqueeCurrentWorld(null);
+        setMarqueeStartClient(null);
+        setMarqueeCurrentClient(null);
+      }
+    }
+  };
+
+  const handlePointerMoveCapture = (e: React.PointerEvent) => {
+    if (e.pointerType !== 'touch' || !activePointersRef.current.has(e.pointerId)) return;
+    activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const pinch = pinchRef.current;
+    if (!pinch) return;
+    const g = getPinchGeometry();
+    if (!g) return;
+    const zoom = Math.min(Math.max(0.18, pinch.startZoom * (g.dist / pinch.startDist)), 2.8);
+    // Keep the world point that started under the fingers' midpoint under the current midpoint
+    setViewport({
+      x: g.mx - pinch.anchorWorld.x * zoom,
+      y: g.my - pinch.anchorWorld.y * zoom,
+      zoom,
+    });
+  };
+
+  const handlePointerEndCapture = (e: React.PointerEvent) => {
+    if (e.pointerType !== 'touch') return;
+    activePointersRef.current.delete(e.pointerId);
+    if (pinchRef.current && activePointersRef.current.size < 2) {
+      pinchRef.current = null;
+      setIsPinching(false);
+      suppressClickRef.current = true;
+      setTimeout(() => { suppressClickRef.current = false; }, 350);
+      // Lifting one finger of a pinch continues as a one-finger pan with the other
+      const remaining = Array.from<{ x: number; y: number }>(activePointersRef.current.values())[0];
+      if (remaining && (!editMode || editToolMode === 'pan')) {
+        const v = viewportRef.current;
+        pointerDownPosRef.current = { x: remaining.x, y: remaining.y, time: Date.now() };
+        setPanStart({ x: remaining.x - v.x, y: remaining.y - v.y });
+        setIsPanning(true);
+      }
+    }
+  };
+
+  // Canvas Pointer Down (mouse, touch or pen)
+  const handleMouseDown = (e: React.PointerEvent) => {
     clearPendingClick();
+    if (pinchRef.current) return;
 
     if (e.target instanceof HTMLElement && (
       e.target.closest('#map-changelog-panel') ||
@@ -1015,13 +1115,16 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
   };
 
   // Canvas Mouse Move (Pan canvas)
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handleMouseMove = (e: React.PointerEvent) => {
+    // During a pinch the gesture handlers own the viewport
+    if (pinchRef.current) return;
     if (pointerDownPosRef.current) {
       const dist = Math.hypot(
         e.clientX - pointerDownPosRef.current.x,
         e.clientY - pointerDownPosRef.current.y
       );
-      if (dist > 4) {
+      // Fingers jitter more than a mouse, so use a larger tap slop for touch
+      if (dist > (e.pointerType === 'touch' ? 8 : 4)) {
         hasDraggedRef.current = true;
         clearPendingClick();
       }
@@ -1037,12 +1140,14 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
   };
 
   // Canvas Mouse Up
-  const handleMouseUp = () => {
+  const handleMouseUp = (e: React.PointerEvent) => {
+    // Another finger is still down (e.g. lifting one finger of a pinch): keep the gesture alive
+    if (e.pointerType === 'touch' && activePointersRef.current.size > 0) return;
     if (hasDraggedRef.current) {
       suppressClickRef.current = true;
       setTimeout(() => {
         suppressClickRef.current = false;
-      }, 60);
+      }, e.pointerType === 'touch' ? 350 : 60);
     }
     setIsPanning(false);
     pointerDownPosRef.current = null;
@@ -1357,10 +1462,16 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
     <div
       ref={containerRef}
       onWheel={handleWheel}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
+      onPointerDown={handleMouseDown}
+      onPointerMove={handleMouseMove}
+      onPointerUp={handleMouseUp}
+      onPointerCancel={handleMouseUp}
+      onPointerLeave={handleMouseUp}
+      onPointerDownCapture={handlePointerDownCapture}
+      onPointerMoveCapture={handlePointerMoveCapture}
+      onPointerUpCapture={handlePointerEndCapture}
+      onPointerCancelCapture={handlePointerEndCapture}
+      style={{ touchAction: 'none', overscrollBehavior: 'none', WebkitTouchCallout: 'none' }}
       className={`relative flex-1 h-full w-full overflow-hidden bg-[#FAF8F5] select-none ${
         isPanning || isSpacePressed
           ? 'cursor-grabbing' 
@@ -1378,7 +1489,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
       {/* RPG Background Map Board */}
       <div
         className={`absolute left-1/2 top-1/2 origin-[0_0] ${
-          isPanning || draggingNodeId || (draggingGroupIds && draggingGroupIds.length > 0) || draggingContinentName || draggingVertex 
+          isPanning || isPinching || draggingNodeId || (draggingGroupIds && draggingGroupIds.length > 0) || draggingContinentName || draggingVertex 
             ? 'transition-none' 
             : 'transition-transform duration-300 ease-out'
         }`}
@@ -1503,7 +1614,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
           <div className="quadrant-resize-handles pointer-events-none select-none z-30">
             {/* INNER RESIZE HANDLES (Top-Left) */}
             <div
-              onMouseDown={(e) => {
+              onPointerDown={(e) => {
                 e.stopPropagation();
                 setDraggingQuadrantResize({
                   quadrant: 'Inner',
@@ -1522,7 +1633,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
               <div className="w-2 h-2 rounded-full bg-[#5B21B6]" />
             </div>
             <div
-              onMouseDown={(e) => {
+              onPointerDown={(e) => {
                 e.stopPropagation();
                 setDraggingQuadrantResize({
                   quadrant: 'Inner',
@@ -1539,7 +1650,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
               className="absolute w-3 h-6 rounded bg-white border border-[#5B21B6] shadow-xs flex items-center justify-center cursor-ew-resize hover:scale-125 transition-transform pointer-events-auto z-40"
             />
             <div
-              onMouseDown={(e) => {
+              onPointerDown={(e) => {
                 e.stopPropagation();
                 setDraggingQuadrantResize({
                   quadrant: 'Inner',
@@ -1558,7 +1669,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
 
             {/* SOCIAL RESIZE HANDLES (Top-Right) */}
             <div
-              onMouseDown={(e) => {
+              onPointerDown={(e) => {
                 e.stopPropagation();
                 setDraggingQuadrantResize({
                   quadrant: 'Social',
@@ -1577,7 +1688,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
               <div className="w-2 h-2 rounded-full bg-[#D9C01B]" />
             </div>
             <div
-              onMouseDown={(e) => {
+              onPointerDown={(e) => {
                 e.stopPropagation();
                 setDraggingQuadrantResize({
                   quadrant: 'Social',
@@ -1594,7 +1705,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
               className="absolute w-3 h-6 rounded bg-white border border-[#111827] shadow-xs flex items-center justify-center cursor-ew-resize hover:scale-125 transition-transform pointer-events-auto z-40"
             />
             <div
-              onMouseDown={(e) => {
+              onPointerDown={(e) => {
                 e.stopPropagation();
                 setDraggingQuadrantResize({
                   quadrant: 'Social',
@@ -1613,7 +1724,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
 
             {/* CULTURAL RESIZE HANDLES (Bottom-Left) */}
             <div
-              onMouseDown={(e) => {
+              onPointerDown={(e) => {
                 e.stopPropagation();
                 setDraggingQuadrantResize({
                   quadrant: 'Cultural',
@@ -1632,7 +1743,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
               <div className="w-2 h-2 rounded-full bg-[#7D8764]" />
             </div>
             <div
-              onMouseDown={(e) => {
+              onPointerDown={(e) => {
                 e.stopPropagation();
                 setDraggingQuadrantResize({
                   quadrant: 'Cultural',
@@ -1649,7 +1760,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
               className="absolute w-3 h-6 rounded bg-white border border-[#7D8764] shadow-xs flex items-center justify-center cursor-ew-resize hover:scale-125 transition-transform pointer-events-auto z-40"
             />
             <div
-              onMouseDown={(e) => {
+              onPointerDown={(e) => {
                 e.stopPropagation();
                 setDraggingQuadrantResize({
                   quadrant: 'Cultural',
@@ -1668,7 +1779,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
 
             {/* SYSTEMS RESIZE HANDLES (Bottom-Right) */}
             <div
-              onMouseDown={(e) => {
+              onPointerDown={(e) => {
                 e.stopPropagation();
                 setDraggingQuadrantResize({
                   quadrant: 'Systems',
@@ -1687,7 +1798,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
               <div className="w-2 h-2 rounded-full bg-[#006080]" />
             </div>
             <div
-              onMouseDown={(e) => {
+              onPointerDown={(e) => {
                 e.stopPropagation();
                 setDraggingQuadrantResize({
                   quadrant: 'Systems',
@@ -1704,7 +1815,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
               className="absolute w-3 h-6 rounded bg-white border border-[#006080] shadow-xs flex items-center justify-center cursor-ew-resize hover:scale-125 transition-transform pointer-events-auto z-40"
             />
             <div
-              onMouseDown={(e) => {
+              onPointerDown={(e) => {
                 e.stopPropagation();
                 setDraggingQuadrantResize({
                   quadrant: 'Systems',
@@ -1901,7 +2012,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
                         : 'pointer-events-auto cursor-pointer'
                     }`}
                     onClick={(e) => handleContinentClick(e, cont.name)}
-                    onMouseDown={(e) => {
+                    onPointerDown={(e) => {
                       if (editMode) {
                         e.stopPropagation();
                         const world = getWorldCoords(e);
@@ -1942,7 +2053,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
                       className={editMode ? 'pointer-events-auto cursor-grab active:cursor-grabbing' : 'pointer-events-auto cursor-pointer'}
                       transform={`translate(${cont.labelOffsetX || 0}, ${cont.labelOffsetY || 0}) rotate(${currentTitleRot}, ${titleCenter.x}, ${titleCenter.y})`}
                       onClick={(e) => handleContinentClick(e, cont.name)}
-                      onMouseDown={(e) => {
+                      onPointerDown={(e) => {
                         if (editMode) {
                           e.stopPropagation();
                           const world = getWorldCoords(e);
@@ -2027,7 +2138,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
                           {/* Circular Rotate Grip Knob */}
                           <g
                             transform={`translate(${titleCenter.x}, ${titleCenter.y - 32})`}
-                            onMouseDown={(e) => {
+                            onPointerDown={(e) => {
                               e.stopPropagation();
                               const world = getWorldCoords(e);
                               const curRot = cont.labelRotation || 0;
@@ -2100,7 +2211,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
                       className={editMode ? 'pointer-events-auto cursor-grab active:cursor-grabbing' : 'pointer-events-auto cursor-pointer'}
                       transform={`translate(${cont.subLabelOffsetX || 0}, ${cont.subLabelOffsetY || 0}) rotate(${currentSubRot}, ${subTitleCenter.x}, ${subTitleCenter.y})`}
                       onClick={(e) => handleContinentClick(e, cont.name)}
-                      onMouseDown={(e) => {
+                      onPointerDown={(e) => {
                         if (editMode) {
                           e.stopPropagation();
                           const world = getWorldCoords(e);
@@ -2183,7 +2294,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
                           />
                           <g
                             transform={`translate(${subTitleCenter.x}, ${subTitleCenter.y - 24})`}
-                            onMouseDown={(e) => {
+                            onPointerDown={(e) => {
                               e.stopPropagation();
                               const world = getWorldCoords(e);
                               const curSub = cont.subLabelRotation !== undefined ? cont.subLabelRotation : (cont.labelRotation || 0);
@@ -2298,7 +2409,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
                         key={`vertex-${cont.name}-${pIdx}`}
                         transform={`translate(${px}, ${py})`}
                         className="pointer-events-auto cursor-crosshair group"
-                        onMouseDown={(e) => {
+                        onPointerDown={(e) => {
                           e.stopPropagation();
                           setDraggingVertex({
                             continentName: cont.name,
@@ -2621,7 +2732,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
                 </span>
 
                 {/* Tooltip on hover showing other tags */}
-                <div className="absolute bottom-1/2 left-full ml-1.5 -translate-y-1/2 hidden group-hover/tagtip:flex items-center z-[100] pointer-events-none drop-shadow-xl">
+                <div className="absolute top-1/2 left-full ml-1.5 -translate-y-1/2 hidden group-hover/tagtip:flex items-center z-[100] pointer-events-none drop-shadow-xl">
                   {/* Leftward pointer caret */}
                   <div className="w-1.5 h-1.5 bg-[#111827] border-l border-b border-[#374151] transform rotate-45 -mr-1 z-10"></div>
                   <div className="bg-[#111827] text-white text-[9px] font-sans py-1.5 px-2.5 rounded-[4px] shadow-2xl border border-[#374151] whitespace-nowrap min-w-[110px] max-w-[220px] text-left">
@@ -2673,7 +2784,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
               }`}
               style={{ left: renderX, top: renderY }}
               onClick={(e) => handleEntityClick(e, entity)}
-              onMouseDown={(e) => handleNodeMouseDown(e, entity)}
+              onPointerDown={(e) => handleNodeMouseDown(e, entity)}
               onMouseEnter={() => setHoveredEntity(entity)}
               onMouseLeave={() => setHoveredEntity(null)}
             >
@@ -2766,13 +2877,13 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
                       className="block select-none transition-transform group-hover/reltip:scale-125 drop-shadow-[0_1px_1.5px_rgba(0,0,0,0.35)]"
                       aria-label={relationshipTooltip}
                     >
-                      <circle cx="7.5" cy="7.5" r="6.75" fill="#111827" stroke="#374151" strokeWidth="1.5" />
+                      <circle cx="7.5" cy="7.5" r="6.75" fill="#FFFFFF" stroke="#111827" strokeWidth="1.5" />
                       <text
                         x="7.5"
                         y="7.5"
                         textAnchor="middle"
                         dominantBaseline="central"
-                        fill="#D9C01B"
+                        fill="#111827"
                         fontSize={relationshipNumber >= 10 ? 7 : 8.5}
                         fontWeight={700}
                         fontFamily="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
@@ -2985,7 +3096,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
 
       {/* FOCUS MODE FLOATING BANNER */}
       {focusedEntity && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 bg-[#111827]/95 text-white px-4 py-2 rounded-[6px] shadow-xl border border-[#D9C01B] flex items-center space-x-3 text-xs font-sans backdrop-blur-xs">
+        <div className="absolute top-3 left-3 right-16 md:top-4 md:right-auto md:left-1/2 md:-translate-x-1/2 z-30 bg-[#111827]/95 text-white px-3 md:px-4 py-2 rounded-[6px] shadow-xl border border-[#D9C01B] flex items-center space-x-3 text-xs font-sans backdrop-blur-xs">
           <Network className="w-4 h-4 text-[#D9C01B] shrink-0 animate-pulse" />
           <span>
             Map focus: <strong className="text-[#D9C01B] font-semibold">{focusedEntity.name}</strong> •{' '}
@@ -3333,7 +3444,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
       )}
 
       {/* MAP CONTROLS FLOATING BAR */}
-      <div className="absolute top-4 right-4 flex flex-col space-y-2 z-20">
+      <div className="absolute top-3 right-3 md:top-4 md:right-4 flex flex-col space-y-2 z-20">
         {/* Edit Mode Tool Selection */}
         {editMode && (
           <div className="bg-white border border-[#E5E7EB] rounded-[4px] shadow-xs flex flex-col p-1 space-y-1">
@@ -3422,21 +3533,21 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
           <button
             onClick={() => handleZoom(0.2)}
             title="Zoom In"
-            className="p-1.5 hover:bg-[#FAF8F5] text-[#111827] rounded-[2px] transition-colors cursor-pointer"
+            className="p-2.5 md:p-1.5 hover:bg-[#FAF8F5] text-[#111827] rounded-[2px] transition-colors cursor-pointer"
           >
             <ZoomIn className="w-4 h-4" />
           </button>
           <button
             onClick={() => handleZoom(-0.2)}
             title="Zoom Out"
-            className="p-1.5 hover:bg-[#FAF8F5] text-[#111827] rounded-[2px] transition-colors cursor-pointer"
+            className="p-2.5 md:p-1.5 hover:bg-[#FAF8F5] text-[#111827] rounded-[2px] transition-colors cursor-pointer"
           >
             <ZoomOut className="w-4 h-4" />
           </button>
           <button
             onClick={() => setViewport({ x: 0, y: 0, zoom: 0.75 })}
             title="Reset Map Center"
-            className="p-1.5 hover:bg-[#FAF8F5] text-[#111827] rounded-[2px] transition-colors cursor-pointer"
+            className="p-2.5 md:p-1.5 hover:bg-[#FAF8F5] text-[#111827] rounded-[2px] transition-colors cursor-pointer"
           >
             <Maximize2 className="w-4 h-4" />
           </button>

@@ -1852,7 +1852,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
       const continentTerm = isFieldLayer ? 'Field' : 'Archipelago';
 
       return (
-        <aside className="w-96 bg-white border-l border-[#E5E7EB] flex flex-col h-full z-30 shadow-lg relative select-text">
+        <aside className="w-full md:w-96 bg-white border-l border-[#E5E7EB] flex flex-col h-full z-30 shadow-lg relative select-text">
           {/* Header */}
           <div className="p-4 border-b border-[#E5E7EB] bg-[#FAF8F5]">
             <div className="flex items-start justify-between mb-2">
@@ -1990,7 +1990,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="p-1 text-[#8C877F] hover:text-[#111827] hover:bg-white rounded-[4px] transition-colors shrink-0 cursor-pointer"
+                className="p-2 -m-1 md:p-1 md:m-0 text-[#8C877F] hover:text-[#111827] hover:bg-white rounded-[4px] transition-colors shrink-0 cursor-pointer"
                 title="Close sidebar"
               >
                 <X className="w-5 h-5" />
@@ -3283,7 +3283,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
     );
 
     return (
-      <aside className="w-96 bg-white border-l border-[#E5E7EB] flex flex-col h-full z-30 shadow-lg relative select-text">
+      <aside className="w-full md:w-96 bg-white border-l border-[#E5E7EB] flex flex-col h-full z-30 shadow-lg relative select-text">
         {/* Top Header */}
         <div className="p-4 border-b border-[#E5E7EB] bg-[#FAF8F5]">
           <div className="flex items-start justify-between mb-2">
@@ -3311,7 +3311,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
 
             <button
               onClick={onClose}
-              className="p-1 text-[#8C877F] hover:text-[#111827] hover:bg-white rounded-[4px] transition-colors shrink-0 cursor-pointer"
+              className="p-2 -m-1 md:p-1 md:m-0 text-[#8C877F] hover:text-[#111827] hover:bg-white rounded-[4px] transition-colors shrink-0 cursor-pointer"
               title="Close sidebar"
             >
               <X className="w-5 h-5" />
@@ -3903,7 +3903,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   return (
     <>
       {!enlargedOnly && !fullPageEmbedded && (
-        <aside className="w-96 max-w-full bg-white border-l border-[#E5E7EB] flex flex-col h-full z-30 shadow-lg relative select-text overflow-hidden">
+        <aside className="w-full md:w-96 max-w-full bg-white border-l border-[#E5E7EB] flex flex-col h-full z-30 shadow-lg relative select-text overflow-hidden">
         {/* Edit Mode Alert Banner */}
         {editMode && (
           <div className="bg-[#D9C01B] border-b border-[#111827] px-4 py-2 flex items-center justify-between text-[#111827] font-technical text-xs font-semibold">
@@ -3938,7 +3938,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
             <button
               id="enlarge-entity-focus-btn"
               onClick={() => setIsEnlarged(true)}
-              className="p-1.5 text-[#8C877F] hover:text-[#111827] hover:bg-white rounded-[4px] transition-colors cursor-pointer"
+              className="p-2.5 md:p-1.5 text-[#8C877F] hover:text-[#111827] hover:bg-white rounded-[4px] transition-colors cursor-pointer"
               title="Enlarge content and focus in center"
               aria-label="Enlarge content and focus in center"
             >
@@ -3947,7 +3947,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
             <button
               id="close-entity-profile-btn"
               onClick={onClose}
-              className="p-1.5 text-[#8C877F] hover:text-[#111827] hover:bg-white rounded-[4px] transition-colors cursor-pointer"
+              className="p-2.5 md:p-1.5 text-[#8C877F] hover:text-[#111827] hover:bg-white rounded-[4px] transition-colors cursor-pointer"
               title="Close profile"
               aria-label="Close profile"
             >
@@ -5223,7 +5223,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                     <button
                       id="close-enlarged-modal-btn"
                       onClick={onClose}
-                      className="p-1.5 text-[#8C877F] hover:text-[#111827] hover:bg-white rounded-[4px] transition-colors cursor-pointer"
+                      className="p-2.5 -m-1 md:p-1.5 md:m-0 text-[#8C877F] hover:text-[#111827] hover:bg-white rounded-[4px] transition-colors cursor-pointer"
                       title={fullPageEmbedded ? "Back to Directory" : "Close"}
                       aria-label="Close"
                     >
@@ -6456,7 +6456,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.92, y: 16 }}
                     transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                    className="w-full max-w-4xl max-h-[90vh] bg-white rounded-lg shadow-2xl border border-[#E5E7EB] flex flex-col overflow-hidden relative select-text"
+                    className="w-full max-w-4xl max-h-[90dvh] bg-white rounded-lg shadow-2xl border border-[#E5E7EB] flex flex-col overflow-hidden relative select-text"
                     onClick={(e) => e.stopPropagation()}
                   >
                     {enlargedInnerContent}

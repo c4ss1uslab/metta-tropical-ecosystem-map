@@ -167,7 +167,7 @@ export const FieldCommentInfo: React.FC<FieldCommentInfoProps> = ({
         onMouseLeave={handleMouseLeave}
         onFocus={handleMouseEnter}
         onBlur={handleMouseLeave}
-        className={`inline-flex items-center justify-center p-0.5 rounded-full transition-all cursor-help shrink-0 ${
+        className={`touch-hit inline-flex items-center justify-center p-0.5 rounded-full transition-all cursor-help shrink-0 ${
           isOpen
             ? 'text-[#5B21B6] bg-[#EDE9FE] ring-2 ring-[#C4B5FD]'
             : 'text-[#9CA3AF] hover:text-[#5B21B6] hover:bg-[#F3E8FF]'
@@ -208,7 +208,7 @@ export const FieldCommentInfo: React.FC<FieldCommentInfoProps> = ({
                   setIsOpen(false);
                   setIsPinned(false);
                 }}
-                className="text-[#9CA3AF] hover:text-[#111827] p-0.5 rounded transition-colors cursor-pointer shrink-0"
+                className="touch-hit text-[#9CA3AF] hover:text-[#111827] p-0.5 rounded transition-colors cursor-pointer shrink-0"
                 title="Close note"
               >
                 <X className="w-3.5 h-3.5" />

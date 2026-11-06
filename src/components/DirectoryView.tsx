@@ -99,7 +99,10 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({
   onSelectTagList,
 }) => {
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  // Phones start with filters collapsed so the catalog gets the full width
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
+  );
   const [showColumnManager, setShowColumnManager] = useState(false);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
@@ -1120,9 +1123,9 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({
   }, [columns]);
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#FAF8F5] text-[#111827]">
+    <div className="flex flex-col h-dvh w-screen overflow-hidden bg-[#FAF8F5] text-[#111827]">
       {/* Top Bar with Navigation Button on Top-Left */}
-      <header className="px-4 py-2.5 bg-white border-b border-[#E5E7EB] flex items-center justify-between shrink-0 z-30 shadow-2xs">
+      <header className="px-2 sm:px-4 py-2.5 gap-2 bg-white border-b border-[#E5E7EB] flex items-center justify-between shrink-0 z-30 shadow-2xs">
         {/* Left Zone: Navigation Button & Directory Title */}
         <div className="flex items-center space-x-3">
           {activeSelectedEntity ? (
@@ -1506,10 +1509,20 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({
 
       {/* Main Two-Column Layout: Left Sidebar + Directory Content */}
       <div className="flex flex-1 overflow-hidden relative">
+        {/* Phones: expanded filters overlay the catalog; tap outside to close */}
+        {!sidebarCollapsed && (
+          <div
+            className="md:hidden absolute inset-0 z-[35] bg-black/25"
+            onClick={() => setSidebarCollapsed(true)}
+            aria-hidden="true"
+          />
+        )}
         {/* Left Sidebar containing map filters */}
         <aside
           className={`border-r border-[#E5E7EB] bg-[#FAF8F5] transition-all duration-300 flex flex-col z-20 shrink-0 ${
-            sidebarCollapsed ? 'w-12' : 'w-72 lg:w-80'
+            sidebarCollapsed
+              ? 'w-12'
+              : 'w-72 lg:w-80 max-md:absolute max-md:inset-y-0 max-md:left-0 max-md:z-40 max-md:w-[min(20rem,calc(100vw-3rem))] max-md:shadow-2xl'
           }`}
         >
           {/* Sidebar Header & Toggle */}

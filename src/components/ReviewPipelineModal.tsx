@@ -177,7 +177,7 @@ export const ReviewPipelineModal: React.FC<ReviewPipelineModalProps> = ({
       }}
     >
       <div 
-        className="w-full max-w-4xl max-h-[90vh] bg-white rounded-lg shadow-2xl border border-[#E5E7EB] flex flex-col overflow-hidden"
+        className="w-full max-w-4xl max-h-[90dvh] bg-white rounded-lg shadow-2xl border border-[#E5E7EB] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}

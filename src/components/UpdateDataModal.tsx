@@ -206,8 +206,8 @@ export const UpdateDataModal: React.FC<UpdateDataModalProps> = ({
     <div className="fixed inset-0 z-50 bg-[#111827]/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
       <div className={`bg-white border border-[#E5E7EB] rounded-[4px] w-full transition-all duration-200 shadow-2xl overflow-hidden flex flex-col my-auto ${
         modalStep === 'verify_headers'
-          ? 'max-w-4xl max-h-[94vh]'
-          : 'max-w-xl max-h-[92vh]'
+          ? 'max-w-4xl max-h-[94dvh]'
+          : 'max-w-xl max-h-[92dvh]'
       }`}>
         {/* Modal Header */}
         <div className="p-4 bg-[#FAF8F5] border-b border-[#E5E7EB] flex items-center justify-between shrink-0">

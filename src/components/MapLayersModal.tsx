@@ -52,7 +52,7 @@ export const MapLayersModal: React.FC<MapLayersModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-white border border-[#E5E7EB] rounded-[6px] w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+        className="bg-white border border-[#E5E7EB] rounded-[6px] w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90dvh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

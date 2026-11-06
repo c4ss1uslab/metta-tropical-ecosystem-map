@@ -19,10 +19,12 @@ export const LanguageToggle: React.FC<{ className?: string }> = ({ className = '
       onClick={() => toggleLanguage()}
       title={label}
       aria-label={label}
-      className={`flex items-center space-x-1.5 text-xs font-sans bg-white hover:bg-[#FAF8F5] text-[#111827] border border-[#E5E7EB] hover:border-[#111827] px-2 py-1.5 rounded-[4px] shadow-xs transition-all font-medium cursor-pointer whitespace-nowrap shrink-0 ${className}`}
+      className={`flex items-center sm:space-x-1.5 text-xs font-sans bg-white hover:bg-[#FAF8F5] text-[#111827] border border-[#E5E7EB] hover:border-[#111827] px-2 py-1.5 rounded-[4px] shadow-xs transition-all font-medium cursor-pointer whitespace-nowrap shrink-0 ${className}`}
     >
-      <Languages className="w-3.5 h-3.5 shrink-0 text-[#111827]" />
-      <span className="font-technical text-[10px] tracking-wide">
+      <Languages className="hidden sm:block w-3.5 h-3.5 shrink-0 text-[#111827]" />
+      {/* Phones: just the active language code to save header space */}
+      <span className="sm:hidden font-technical text-[10px] tracking-wide font-bold">{isPt ? 'PT' : 'EN'}</span>
+      <span className="hidden sm:inline font-technical text-[10px] tracking-wide">
         <span className={isPt ? 'text-[#8C877F]' : 'text-[#111827] font-bold'}>EN</span>
         <span className="text-[#D1D5DB] mx-0.5">/</span>
         <span className={isPt ? 'text-[#111827] font-bold' : 'text-[#8C877F]'}>PT-BR</span>

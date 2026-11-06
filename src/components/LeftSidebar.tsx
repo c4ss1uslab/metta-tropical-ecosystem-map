@@ -1571,8 +1571,10 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
 
   return (
     <aside
-      className={`relative border-r border-[#E5E7EB] bg-[#FAF8F5] transition-all duration-300 flex flex-col z-20 ${
-        collapsed ? 'w-12' : 'w-80'
+      className={`relative border-r border-[#E5E7EB] bg-[#FAF8F5] transition-all duration-300 flex flex-col z-20 shrink-0 ${
+        collapsed
+          ? 'w-12'
+          : 'w-80 max-md:absolute max-md:inset-y-0 max-md:left-0 max-md:z-40 max-md:w-[min(20rem,calc(100vw-3rem))] max-md:shadow-2xl'
       }`}
     >
       {/* Collapse Toggle Button */}

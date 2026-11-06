@@ -103,7 +103,7 @@ export const DiscoveryModeModal: React.FC<DiscoveryModeModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+        <div className="p-4 sm:p-6 space-y-4 max-h-[min(75vh,calc(100dvh-11rem))] overflow-y-auto">
           <p className="font-sans text-xs text-[#4B5563] leading-relaxed">
             Take a guided journey through the four cardinal quadrants of transformative work. Embarking on a quest automatically teleports the map camera to key cornerstone institutions.
           </p>

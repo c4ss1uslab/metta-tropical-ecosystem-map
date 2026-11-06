@@ -213,7 +213,7 @@ export const DirectoryModal: React.FC<DirectoryModalProps> = ({
       onClick={onClose}
     >
       <div 
-        className="bg-[#FAF8F5] border border-[#111827] rounded-[8px] w-full max-w-6xl h-[92vh] max-h-[950px] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-150 text-[#111827]"
+        className="bg-[#FAF8F5] border border-[#111827] rounded-[8px] w-full max-w-6xl h-[92dvh] max-h-[950px] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-150 text-[#111827]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Header */}

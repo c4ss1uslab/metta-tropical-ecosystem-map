@@ -20,6 +20,33 @@
     background-color: #FAF8F5;
     color: #111827;
     overflow-x: hidden;
+    /* The app is a fixed full-viewport shell: stop pull-to-refresh / rubber-band
+       scrolling from hijacking map gestures on mobile */
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Tiny icon buttons (info notes, chip remove ×, "Browse all") keep their compact
+     desktop look but get an invisible ~40px tap area on touch screens. */
+  @media (pointer: coarse) {
+    .touch-hit {
+      position: relative;
+    }
+    .touch-hit::after {
+      content: '';
+      position: absolute;
+      inset: -10px;
+    }
+  }
+
+  /* iOS Safari zooms the whole page when focusing a field under 16px and doesn't
+     zoom back out. Use 16px text for form fields on touch devices. */
+  @media (pointer: coarse) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
   }
 
   h1, h2, h3, h4, h5, h6, .font-editorial {

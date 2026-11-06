@@ -51,7 +51,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto text-xs font-sans text-[#374151] leading-relaxed">
+        <div className="p-4 sm:p-6 space-y-5 max-h-[min(75vh,calc(100dvh-11rem))] overflow-y-auto text-xs font-sans text-[#374151] leading-relaxed">
           {/* Mission */}
           <div className="p-4 bg-[#FAF8F5] border border-[#E5E7EB] rounded-[4px]">
             <p className="font-editorial text-base text-[#111827] italic leading-snug">
