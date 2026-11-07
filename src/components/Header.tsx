@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, useMemo } from 'react';
 import { Search, Globe, RefreshCw, Network, ChevronDown, X, MapPin, Building2, User, Lightbulb, BookOpen, Info, HelpCircle, Maximize2, Minimize2, PlusCircle, Layers } from 'lucide-react';
 import { EcosystemEntity, EntityType, SidebarListScope } from '../types';
 import { ExportFormat } from '../utils/excelParser';
@@ -66,6 +66,63 @@ export const Header: React.FC<HeaderProps> = ({
       setPendingContributionsCount(getPendingContributionsCount());
     });
     return () => unsub();
+  }, []);
+
+  // Responsive label collapsing: the title/subtitle never shrink on wide screens.
+  // When the bar runs out of room, the search field shrinks first, then the
+  // "Add new" and "How to" buttons drop their text and stay icon-only.
+  // Measured at runtime because label widths differ per language (EN / PT-BR).
+  const headerRef = useRef<HTMLElement>(null);
+  const brandRef = useRef<HTMLDivElement>(null);
+  const rightControlsRef = useRef<HTMLDivElement>(null);
+  const collapsibleLabelRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const [compactLabels, setCompactLabels] = useState<boolean>(true);
+  const compactLabelsRef = useRef<boolean>(true);
+
+  useLayoutEffect(() => {
+    const header = headerRef.current;
+    const brand = brandRef.current;
+    const right = rightControlsRef.current;
+    if (!header || !brand || !right) return;
+
+    const SEARCH_MIN_WIDTH = 208; // px the search field may shrink to before labels collapse
+    const LABEL_GAP = 6; // icon-to-label spacing (ml-1.5)
+    const LABEL_EXTRA_PADDING = 8; // px-1.5 → px-2.5 when the label is visible
+
+    const compute = () => {
+      let next = true;
+      if (window.innerWidth >= 1280) {
+        const cs = getComputedStyle(header);
+        const available = header.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+        const gap = parseFloat(cs.columnGap) || 0;
+        let rightFull = right.offsetWidth;
+        if (compactLabelsRef.current) {
+          for (const el of collapsibleLabelRefs.current) {
+            if (el) rightFull += el.scrollWidth + LABEL_GAP + LABEL_EXTRA_PADDING;
+          }
+        }
+        const required = brand.offsetWidth + gap + SEARCH_MIN_WIDTH + gap + rightFull;
+        next = available < required;
+      }
+      if (next !== compactLabelsRef.current) {
+        compactLabelsRef.current = next;
+        setCompactLabels(next);
+      }
+    };
+
+    compute();
+    const ro = new ResizeObserver(compute);
+    ro.observe(header);
+    ro.observe(brand);
+    ro.observe(right);
+    // Language switches rewrite text nodes in place; re-measure when that happens.
+    const mo = new MutationObserver(compute);
+    mo.observe(right, { subtree: true, characterData: true, childList: true });
+    mo.observe(brand, { subtree: true, characterData: true, childList: true });
+    return () => {
+      ro.disconnect();
+      mo.disconnect();
+    };
   }, []);
 
   // Fullscreen state
@@ -278,9 +335,9 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="min-h-16 sm:min-h-[4.5rem] py-2 sm:py-2.5 bg-[#FAF8F5] border-b border-[#E5E7EB] px-2 sm:px-4 gap-2 flex items-center justify-between sticky top-0 z-30 select-none">
+    <header ref={headerRef} className="min-h-16 sm:min-h-[4.5rem] py-2 sm:py-2.5 bg-[#FAF8F5] border-b border-[#E5E7EB] px-2 sm:px-4 gap-2 flex items-center justify-between sticky top-0 z-30 select-none">
       {/* Brand & Title */}
-      <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 shrink">
+      <div ref={brandRef} className="flex items-center space-x-2 sm:space-x-3 min-w-0 shrink xl:shrink-0">
         {/* Complete Sunflower Icon with Head & Vertical Stem Body */}
         <svg 
           viewBox="0 0 36 44" 
@@ -359,7 +416,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         <div className="flex flex-col justify-center min-w-0">
           <h1 
-            className="font-cormorant-title text-[#111827] select-text max-[420px]:sr-only"
+            className="font-cormorant-title text-[#111827] select-text max-[420px]:sr-only xl:whitespace-nowrap"
             style={{
               fontFamily: '"Cormorant Garamond", Georgia, serif',
               fontWeight: 500,
@@ -379,9 +436,9 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Center Search Bar */}
-      <div className="hidden md:flex items-center space-x-3">
-        {/* Quick Search with Dropdown Pop-up */}
-        <div className="relative w-64 lg:w-80" ref={searchContainerRef}>
+      <div className="hidden md:flex items-center justify-center flex-1 min-w-0">
+        {/* Quick Search with Dropdown Pop-up (shrinks before anything else) */}
+        <div className="relative w-full max-w-64 lg:max-w-80 min-w-0" ref={searchContainerRef}>
           <Search className="w-3.5 h-3.5 text-[#8C877F] absolute left-3 top-2.5 pointer-events-none" />
           <input
             ref={searchInputRef}
@@ -522,7 +579,7 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Right Controls & Actions */}
-      <div className="flex items-center space-x-1 sm:space-x-2 shrink-0">
+      <div ref={rightControlsRef} className="flex items-center space-x-1 sm:space-x-2 shrink-0">
         {/* Toggle Archipelagos & Relationships: Stacked vertically on small screens, side-by-side on sm+ screens */}
         <div className="flex flex-row items-center gap-1 sm:gap-1.5">
           {/* Toggle Archipelagos (Layer 1) or Fields (Layer 2 & 3) */}
@@ -611,7 +668,7 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="hidden sm:inline">Directory</span>
         </button>
 
-        {/* Contribute Button: icon-only on the right of Directory; shows "Add new" label on xl+ screens */}
+        {/* Contribute Button: shows the "Add new" label only when the bar has room (see compactLabels) */}
         <button
           id="header-contribute-btn"
           type="button"
@@ -620,10 +677,13 @@ export const Header: React.FC<HeaderProps> = ({
           }}
           title="Contribute • Submit new entity"
           aria-label="Contribute • Submit new entity"
-          className="flex items-center justify-center xl:space-x-1.5 p-1.5 xl:px-2.5 text-xs font-sans bg-white hover:bg-[#FAF8F5] text-[#111827] border border-[#E5E7EB] hover:border-[#111827] rounded-[4px] shadow-xs transition-all font-medium cursor-pointer shrink-0 whitespace-nowrap"
+          className={`flex items-center justify-center py-1.5 ${compactLabels ? 'px-1.5' : 'px-2.5'} text-xs font-sans bg-white hover:bg-[#FAF8F5] text-[#111827] border border-[#E5E7EB] hover:border-[#111827] rounded-[4px] shadow-xs transition-all font-medium cursor-pointer shrink-0 whitespace-nowrap`}
         >
           <PlusCircle className="w-3.5 h-3.5 shrink-0 text-[#111827]" />
-          <span className="hidden xl:inline">Add new</span>
+          <span
+            ref={el => { collapsibleLabelRefs.current[0] = el; }}
+            className={`inline-block overflow-hidden whitespace-nowrap ${compactLabels ? 'max-w-0 ml-0' : 'max-w-none ml-1.5'}`}
+          >Add new</span>
         </button>
 
         {/* How To Button: opens the guide modal, on the right of "Add new" */}
@@ -634,11 +694,14 @@ export const Header: React.FC<HeaderProps> = ({
             onOpenAbout?.();
           }}
           title="How to use this ecosystem map"
-          className="flex items-center space-x-1.5 text-xs font-sans bg-white hover:bg-[#FAF8F5] text-[#111827] border border-[#E5E7EB] hover:border-[#111827] px-2 sm:px-2.5 py-1.5 rounded-[4px] shadow-xs transition-all font-medium cursor-pointer whitespace-nowrap"
+          className={`flex items-center justify-center text-xs font-sans bg-white hover:bg-[#FAF8F5] text-[#111827] border border-[#E5E7EB] hover:border-[#111827] ${compactLabels ? 'px-1.5' : 'px-2.5'} py-1.5 rounded-[4px] shadow-xs transition-all font-medium cursor-pointer shrink-0 whitespace-nowrap`}
           aria-label="How to"
         >
           <HelpCircle className="w-3.5 h-3.5 shrink-0 text-[#111827]" />
-          <span className="hidden sm:inline">How to</span>
+          <span
+            ref={el => { collapsibleLabelRefs.current[1] = el; }}
+            className={`inline-block overflow-hidden whitespace-nowrap ${compactLabels ? 'max-w-0 ml-0' : 'max-w-none ml-1.5'}`}
+          >How to</span>
         </button>
 
         {/* Fullscreen Button */}
