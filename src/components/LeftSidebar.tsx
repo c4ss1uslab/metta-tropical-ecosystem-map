@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { useLanguage } from '../i18n/language';
 import { 
   Filter, Lock, Unlock, Save, RotateCcw, 
   ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Tag, Globe, Sparkles, SlidersHorizontal, CheckSquare, Square, Navigation, MapPin, Eye, EyeOff, X,
@@ -137,6 +138,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
   onCommitChanges,
   onDismissChanges
 }) => {
+  useLanguage(); // re-render so language-aware labels (layer breakdowns) update on toggle
   const [internalCollapsed, setInternalCollapsed] = useState(false);
   const collapsed = externalCollapsed !== undefined ? externalCollapsed : internalCollapsed;
   const setCollapsed = setExternalCollapsed !== undefined ? setExternalCollapsed : setInternalCollapsed;
@@ -1633,7 +1635,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
             </div>
 
             {/* Navigation Tabs */}
-            <div className={`grid ${editMode ? (showArchipelagos ? 'grid-cols-5' : 'grid-cols-4') : (showArchipelagos ? 'grid-cols-3' : 'grid-cols-2')} border-b border-[#E5E7EB] mt-3 font-sans text-xs text-center`}>
+            <div className={`grid ${editMode ? 'grid-cols-5' : 'grid-cols-3'} border-b border-[#E5E7EB] mt-3 font-sans text-xs text-center`}>
               <button
                 onClick={() => setActiveTab('filters')}
                 className={`py-1.5 font-medium border-b-2 transition-all truncate px-1 ${

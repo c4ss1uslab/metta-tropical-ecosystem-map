@@ -1,5 +1,77 @@
 import React from 'react';
-import { X, Info, Globe, Network, MapPin, Sparkles } from 'lucide-react';
+import { X, HelpCircle, Globe, Layers, Network, MapPin, Search, BookOpen, PlusCircle, type LucideIcon } from 'lucide-react';
+
+interface GuideSection {
+  title: string;
+  Icon: LucideIcon;
+  items: { label: string; text: string }[];
+}
+
+const GUIDE_SECTIONS: GuideSection[] = [
+  {
+    title: 'Moving Around the Map',
+    Icon: Globe,
+    items: [
+      { label: 'Pan:', text: 'Click and drag anywhere on the map to move around. On touch screens, drag with one finger or pan with two.' },
+      { label: 'Zoom:', text: 'Scroll with the mouse wheel, pinch on touch screens, or use the + and − buttons in the map corner. Zooming follows your cursor, so point at the area you want to explore.' },
+      { label: 'Reset View:', text: 'Use the reset button next to the zoom controls to return to the centre of the map. The current zoom level is shown as a percentage beside them.' },
+      { label: 'Full Screen:', text: 'Use the expand button in the top bar to hide the browser bar and give the map the whole screen. Press Esc to exit.' },
+    ],
+  },
+  {
+    title: 'Map Layers',
+    Icon: Layers,
+    items: [
+      { label: 'Three Layers:', text: 'The map is organised in three layers: Layer 1 (Wisdom-Centered Responses), Layer 2 (Curated Transformation) and Layer 3 (Life-Affirming Futures).' },
+      { label: 'Switching Layers:', text: 'Open the Map Layers panel in the left sidebar to switch between layers or view all of them at once. Use Read More to learn what each layer represents.' },
+    ],
+  },
+  {
+    title: 'Archipelagos, Fields & Relationships',
+    Icon: MapPin,
+    items: [
+      { label: 'Archipelagos:', text: 'In Layer 1, related entities are grouped into islands called archipelagos, each sitting in one of the map quadrants. Toggle them with the Archipelagos button in the top bar.' },
+      { label: 'Fields:', text: 'In Layers 2 and 3, entities are grouped by fields instead. The same top bar button becomes Fields.' },
+      { label: 'Exploring a Group:', text: 'Click an archipelago or field on the map, or pick one in the left sidebar, to see its description and the entities that belong to it.' },
+      { label: 'Relationships:', text: 'Toggle Relationships in the top bar to draw the connections between organisations, people and ideas. Hovering over or selecting an entity always highlights its direct connections.' },
+    ],
+  },
+  {
+    title: 'Entities',
+    Icon: Network,
+    items: [
+      { label: 'Entity Details:', text: 'Click any entity on the map, in the search results or in the Directory to open its details in the right sidebar: description, location, tags, relationships, warm data and community notes.' },
+      { label: 'Entity Types:', text: 'The counters in the left sidebar show how many Organizations, People, Ideas and Media are on the map. Click a counter to list those entities.' },
+    ],
+  },
+  {
+    title: 'Search & Filters',
+    Icon: Search,
+    items: [
+      { label: 'Search:', text: 'Type in the search bar to find entities by name, tag or location. Use the ↑ and ↓ keys to move through results and Enter to jump to one on the map.' },
+      { label: 'General Filters:', text: 'The General tab of the left sidebar filters the map by language, country, biome, operating region, maturity, size, reach and more. Advanced filters cover orientation to change and other assessments.' },
+      { label: 'Archipelagos / Fields & Tags:', text: 'The other sidebar tabs let you browse the map by group or narrow it down to entities that share specific tags.' },
+      { label: 'Resetting:', text: 'Each filter section has a reset button to clear its filters and bring every entity back.' },
+    ],
+  },
+  {
+    title: 'Directory',
+    Icon: BookOpen,
+    items: [
+      { label: 'Card & List Views:', text: 'Open the Directory from the top bar to browse every entity as cards or as a list, with its own search and filters.' },
+      { label: 'Locate & Export:', text: 'Use the locate button on any entry to find it on the map, or download the currently filtered entities as a CSV file.' },
+    ],
+  },
+  {
+    title: 'Contributing',
+    Icon: PlusCircle,
+    items: [
+      { label: 'Add New:', text: 'Use the Add new button in the top bar to suggest an organization, person, idea or media item. Contributions are reviewed before they appear on the map.' },
+      { label: 'Map Changelog:', text: 'Open the changelog on the map to see what has been added or updated in each version.' },
+      { label: 'Language:', text: 'Switch between English and Portuguese with the language button in the top bar.' },
+    ],
+  },
+];
 
 interface AboutModalProps {
   isOpen: boolean;
@@ -21,7 +93,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({
         <div className="p-4 bg-[#FAF8F5] border-b border-[#E5E7EB] flex items-center justify-between">
           <div className="flex items-center space-x-2.5">
             <div className="w-8 h-8 rounded-[4px] bg-[#FAF8F5] border border-[#E5E7EB] flex items-center justify-center">
-              <Info className="w-4 h-4 text-[#111827]" />
+              <HelpCircle className="w-4 h-4 text-[#111827]" />
             </div>
             <div>
               <h2 
@@ -34,7 +106,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({
                   textWrap: 'balance',
                 }}
               >
-                About Metta Tropical Ecosystem Map
+                How to Use the Metta Tropical Ecosystem Map
               </h2>
               <p className="font-technical text-[10px] text-[#716C64] uppercase tracking-wider mt-0.5">
                 A Living Cartography of Spiritual, Social, Cultural & Systems Transformation
@@ -62,80 +134,23 @@ export const AboutModal: React.FC<AboutModalProps> = ({
             </p>
           </div>
 
-          {/* The Four Quadrants */}
-          <div>
-            <h3 className="font-editorial text-sm font-semibold text-[#111827] uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-[#D97706]" />
-              The Four Cardinal Quadrants
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              <div className="p-3 bg-[#FAF8F5] border border-[#E5E7EB] rounded-[4px]">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#5B21B6]" />
-                  <span className="font-editorial text-xs font-semibold text-[#111827]">Spiritual Change</span>
-                </div>
-                <p className="text-[11px] text-[#6B7280]">
-                  Contemplative science, psychological development, somatic awareness, and trauma healing building individual groundedness.
-                </p>
-              </div>
-
-              <div className="p-3 bg-[#FAF8F5] border border-[#E5E7EB] rounded-[4px]">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#111827]" />
-                  <span className="font-editorial text-xs font-semibold text-[#111827]">Social Change</span>
-                </div>
-                <p className="text-[11px] text-[#6B7280]">
-                  Commons stewardship, participatory governance, civic cooperatives, and regenerative community organizing.
-                </p>
-              </div>
-
-              <div className="p-3 bg-[#FAF8F5] border border-[#E5E7EB] rounded-[4px]">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#7D8764]" />
-                  <span className="font-editorial text-xs font-semibold text-[#111827]">Cultural Change</span>
-                </div>
-                <p className="text-[11px] text-[#6B7280]">
-                  Warm Data, transcontextual inquiries, storytelling, art, and indigenous wisdom shifting foundational narratives.
-                </p>
-              </div>
-
-              <div className="p-3 bg-[#FAF8F5] border border-[#E5E7EB] rounded-[4px]">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#0284C7]" />
-                  <span className="font-editorial text-xs font-semibold text-[#111827]">Systems Change</span>
-                </div>
-                <p className="text-[11px] text-[#6B7280]">
-                  Planetary boundaries, circular economics, institutional redesign, leverage points, and ecological policy infrastructure.
-                </p>
-              </div>
+          {/* How-to Guide */}
+          {GUIDE_SECTIONS.map(({ title, Icon, items }) => (
+            <div key={title}>
+              <h3 className="font-editorial text-sm font-semibold text-[#111827] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <Icon className="w-3.5 h-3.5 text-[#166534]" />
+                {title}
+              </h3>
+              <ul className="space-y-1.5 text-[11.5px] text-[#4B5563]">
+                {items.map(({ label, text }) => (
+                  <li key={label} className="flex items-start gap-2">
+                    <span className="text-[#111827] font-semibold shrink-0">•</span>
+                    <span><strong>{label}</strong> <span>{text}</span></span>
+                  </li>
+                ))}
+              </ul>
             </div>
-          </div>
-
-          {/* Navigation Guide */}
-          <div>
-            <h3 className="font-editorial text-sm font-semibold text-[#111827] uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <Globe className="w-3.5 h-3.5 text-[#166534]" />
-              Navigating the Cartography
-            </h3>
-            <ul className="space-y-1.5 text-[11.5px] text-[#4B5563]">
-              <li className="flex items-start gap-2">
-                <span className="text-[#111827] font-semibold shrink-0">•</span>
-                <span><strong>Pan & Zoom:</strong> Drag to reposition the map, scroll to zoom in and out.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-[#111827] font-semibold shrink-0">•</span>
-                <span><strong>Archipelagos:</strong> Toggle the Archipelagos button in the top bar to visualize landmass territories grouping related clusters.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-[#111827] font-semibold shrink-0">•</span>
-                <span><strong>Relationships:</strong> Toggle Relationships to reveal network lines and partnerships connecting organizations and key leaders.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-[#111827] font-semibold shrink-0">•</span>
-                <span><strong>Entity Dossiers:</strong> Click any node on the map or in the directory to inspect detailed field data, warm data, and community notes.</span>
-              </li>
-            </ul>
-          </div>
+          ))}
         </div>
 
         {/* Footer */}

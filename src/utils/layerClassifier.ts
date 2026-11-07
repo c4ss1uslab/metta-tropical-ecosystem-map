@@ -1,5 +1,6 @@
 import { EcosystemEntity, LayerQuadrantSizes, QuadrantDimension, CategoryQuadrant } from '../types';
 import { getEntitySpreadsheetField } from './excelParser';
+import { getLanguage } from '../i18n/language';
 import { entityMatchesArchipelago, isEntityPrimaryToArchipelago } from './layoutGenerator';
 
 export type MapLayerNumber = 1 | 2 | 3;
@@ -387,22 +388,27 @@ export function calculateLayerCounts(entities: EcosystemEntity[], layer: MapLaye
  * "12 organizations, 5 people, 2 media" (hides any category whose count is 0)
  */
 export function formatLayerEntitiesBreakdown(counts: LayerEntityCounts): string {
+  // Built in the active UI language: the DOM translator can't safely pattern-match
+  // generic phrases like "{0} media" without also hitting unrelated text.
+  const pt = getLanguage() === 'pt-BR';
+  const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
   const parts: string[] = [];
 
   if (counts.organizations > 0) {
-    parts.push(`${counts.organizations} ${counts.organizations === 1 ? 'organization' : 'organizations'}`);
+    parts.push(pt ? plural(counts.organizations, 'organização', 'organizações') : plural(counts.organizations, 'organization', 'organizations'));
   }
   if (counts.people > 0) {
-    parts.push(`${counts.people} ${counts.people === 1 ? 'person' : 'people'}`);
+    parts.push(pt ? plural(counts.people, 'pessoa', 'pessoas') : plural(counts.people, 'person', 'people'));
   }
   if (counts.ideas > 0) {
-    parts.push(`${counts.ideas} ${counts.ideas === 1 ? 'idea' : 'ideas'}`);
+    parts.push(pt ? plural(counts.ideas, 'ideia', 'ideias') : plural(counts.ideas, 'idea', 'ideas'));
   }
   if (counts.media > 0) {
-    parts.push(`${counts.media} media`);
+    parts.push(pt ? `${counts.media} mídia` : `${counts.media} media`);
   }
 
-  return parts.length > 0 ? parts.join(', ') : '0 initiatives';
+  if (parts.length === 0) return pt ? '0 iniciativas' : '0 initiatives';
+  return parts.join(', ');
 }
 
 /**

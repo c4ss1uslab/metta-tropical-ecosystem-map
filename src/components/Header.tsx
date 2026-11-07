@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Search, Globe, RefreshCw, Network, ChevronDown, X, MapPin, Building2, User, Lightbulb, BookOpen, Info, Maximize2, Minimize2, RotateCcw, Save, PlusCircle, Layers } from 'lucide-react';
+import { Search, Globe, RefreshCw, Network, ChevronDown, X, MapPin, Building2, User, Lightbulb, BookOpen, Info, HelpCircle, Maximize2, Minimize2, PlusCircle, Layers } from 'lucide-react';
 import { EcosystemEntity, EntityType, SidebarListScope } from '../types';
 import { ExportFormat } from '../utils/excelParser';
 import { getPendingContributionsCount, subscribeToPipelineUpdates } from '../utils/contributionPipeline';
@@ -371,7 +371,7 @@ export const Header: React.FC<HeaderProps> = ({
           >
             Metta Tropical Ecosystem Map
           </h1>
-          <p className="hidden sm:block font-technical text-[10px] sm:text-[11px] text-[#716C64] uppercase tracking-wider leading-[1.25] mt-1">
+          <p className="hidden sm:block font-technical text-[10px] sm:text-[11px] text-[#716C64] uppercase tracking-wider leading-[1.25] mt-1 whitespace-nowrap">
             A Living Cartography of Spiritual, Social,<br />
             Cultural & Systems Transformation
           </p>
@@ -583,32 +583,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Update / Sync Spreadsheet Data & Pending Changes Buttons (Only visible when authenticated in Edit Mode) */}
         {editMode && (
           <div className="flex items-center space-x-1.5">
-            {hasUncommittedChanges && onDismissChanges && (
-              <button
-                type="button"
-                id="header-dismiss-changes-btn"
-                onClick={() => onDismissChanges(false)}
-                title="Dismiss pending uncommitted changes and revert to last saved cloud state"
-                className="flex items-center space-x-1.5 text-xs font-sans bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#B91C1C] border border-[#FECACA] hover:border-[#DC2626] px-2 py-1.5 rounded-[4px] shadow-xs transition-all font-medium cursor-pointer whitespace-nowrap"
-              >
-                <RotateCcw className="w-3.5 h-3.5 text-[#DC2626]" />
-                <span className="hidden sm:inline">Dismiss Changes</span>
-                <span className="sm:hidden">Dismiss</span>
-              </button>
-            )}
-
-            {hasUncommittedChanges && onCommitChanges && (
-              <button
-                type="button"
-                id="header-commit-changes-btn"
-                onClick={onCommitChanges}
-                title="Commit pending changes to Firestore cloud database"
-                className="flex items-center space-x-1.5 text-xs font-sans bg-[#2563EB] hover:bg-[#1D4ED8] text-white border border-[#1D4ED8] px-2 py-1.5 rounded-[4px] shadow-xs transition-all font-medium cursor-pointer whitespace-nowrap"
-              >
-                <Save className="w-3.5 h-3.5 text-white" />
-                <span className="hidden sm:inline">Commit</span>
-              </button>
-            )}
+            {/* Dismiss / Commit buttons removed from top menu — they live in the map's bottom edit ribbon */}
 
             <button
               id="header-sync-data-btn"
@@ -636,22 +611,7 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="hidden sm:inline">Directory</span>
         </button>
 
-        {/* About Button */}
-        <button
-          id="header-about-btn"
-          type="button"
-          onClick={() => {
-            onOpenAbout?.();
-          }}
-          title="About this ecosystem map"
-          className="flex items-center space-x-1.5 text-xs font-sans bg-white hover:bg-[#FAF8F5] text-[#111827] border border-[#E5E7EB] hover:border-[#111827] px-2 sm:px-2.5 py-1.5 rounded-[4px] shadow-xs transition-all font-medium cursor-pointer whitespace-nowrap"
-          aria-label="About"
-        >
-          <Info className="w-3.5 h-3.5 shrink-0 text-[#111827]" />
-          <span className="hidden sm:inline">About</span>
-        </button>
-
-        {/* Contribute Button: icon-only on the right of About; shows "Add new" label on xl+ screens */}
+        {/* Contribute Button: icon-only on the right of Directory; shows "Add new" label on xl+ screens */}
         <button
           id="header-contribute-btn"
           type="button"
@@ -664,6 +624,21 @@ export const Header: React.FC<HeaderProps> = ({
         >
           <PlusCircle className="w-3.5 h-3.5 shrink-0 text-[#111827]" />
           <span className="hidden xl:inline">Add new</span>
+        </button>
+
+        {/* How To Button: opens the guide modal, on the right of "Add new" */}
+        <button
+          id="header-howto-btn"
+          type="button"
+          onClick={() => {
+            onOpenAbout?.();
+          }}
+          title="How to use this ecosystem map"
+          className="flex items-center space-x-1.5 text-xs font-sans bg-white hover:bg-[#FAF8F5] text-[#111827] border border-[#E5E7EB] hover:border-[#111827] px-2 sm:px-2.5 py-1.5 rounded-[4px] shadow-xs transition-all font-medium cursor-pointer whitespace-nowrap"
+          aria-label="How to"
+        >
+          <HelpCircle className="w-3.5 h-3.5 shrink-0 text-[#111827]" />
+          <span className="hidden sm:inline">How to</span>
         </button>
 
         {/* Fullscreen Button */}
@@ -685,6 +660,19 @@ export const Header: React.FC<HeaderProps> = ({
             </>
           )}
         </button>
+
+        {/* About Link (icon-only): external page, between Fullscreen and Language */}
+        <a
+          id="header-about-link"
+          href="https://mettatropical.com.br/our-work/ecosystem-map"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="About this ecosystem map"
+          aria-label="About this ecosystem map"
+          className="flex items-center justify-center text-xs font-sans bg-white hover:bg-[#FAF8F5] text-[#111827] border border-[#E5E7EB] hover:border-[#111827] px-1.5 py-1.5 rounded-[4px] shadow-xs transition-all font-medium cursor-pointer shrink-0 whitespace-nowrap"
+        >
+          <Info className="w-3.5 h-3.5 shrink-0 text-[#111827]" />
+        </a>
 
         {/* Mobile Search Toggle */}
         <button

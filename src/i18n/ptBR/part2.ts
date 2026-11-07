@@ -197,7 +197,7 @@ export const PART2: Record<string, string> = {
   "Critique or analysis of why standard mainstream solutions (e.g. technofixes, market-based offsets, surface policy reforms) fail to resolve root challenges.": "Crítica ou análise de por que as soluções convencionais (ex.: soluções tecnológicas, compensações de mercado, reformas superficiais de políticas) não resolvem os desafios de raiz.",
   "Critiques Offered / Received": "Críticas feitas / recebidas",
   "Cultural": "Cultural",
-  "Cultural & Systems Transformation": "Cultural e Sistêmica",
+  "Cultural & Systems Transformation": "Espiritual, Social, Cultural e Sistêmica",
   "Cultural Change": "Mudança Cultural",
   "Cultural Quadrant": "Quadrante Cultural",
   "Cultural Quadrant (Bottom Left): Shared narratives, arts, traditions, heritage, lineages & philosophy.": "Quadrante Cultural (inferior esquerdo): narrativas compartilhadas, artes, tradições, patrimônio, linhagens e filosofia.",

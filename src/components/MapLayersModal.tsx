@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { X, Layers, Check, ExternalLink, ArrowRight, ShieldCheck, Compass } from 'lucide-react';
 import { LayerEntityCounts, formatLayerEntitiesBreakdown } from '../utils/layerClassifier';
+import { useLanguage } from '../i18n/language';
 
 interface MapLayersModalProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ export const MapLayersModal: React.FC<MapLayersModalProps> = ({
   layer2Counts,
   layer3Counts
 }) => {
+  useLanguage(); // re-render so layer breakdowns update on language toggle
   const [selectedTab, setSelectedTab] = useState<1 | 2 | 3 | 'all'>(initialTab);
 
   useEffect(() => {
