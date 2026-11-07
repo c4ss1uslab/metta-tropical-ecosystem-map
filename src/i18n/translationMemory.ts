@@ -18,7 +18,7 @@ import { db } from '../firebase';
 import { EcosystemEntity } from '../types';
 import { normalizeText, setDataTranslations, translateText } from './domTranslator';
 import { PT_BR_UI } from './ptBR.ui';
-import { isGeminiTranslationAvailable, translateStringsToPtBr } from './geminiTranslate';
+import { checkGeminiTranslationAvailable, isGeminiTranslationAvailable, translateStringsToPtBr } from './geminiTranslate';
 
 const MEMORY_DOC = 'translations_pt_BR';
 const MEMORY_CHUNK_PREFIX = 'translations_pt_BR_chunk_';
@@ -318,7 +318,8 @@ async function runSync(sources: TranslationSources): Promise<TranslationSyncStat
 
   let failed = 0;
   if (missing.length) {
-    if (!isGeminiTranslationAvailable()) {
+    const isAvail = await checkGeminiTranslationAvailable();
+    if (!isAvail) {
       const st: TranslationSyncStatus = { state: 'unavailable', message: 'GEMINI_API_KEY is not configured: pt-BR translations were not updated.', failed: missing.length };
       setStatus(st);
       return st;
