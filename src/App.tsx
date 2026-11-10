@@ -26,7 +26,8 @@ import {
   fitContinentTightlyAroundEntities,
   organizeLayerEntitiesByTags,
   generateFieldContinentsFromEntities,
-  buildPrimaryArchipelagoCounter
+  buildPrimaryArchipelagoCounter,
+  entityMatchesField
 } from './utils/layoutGenerator';
 import { exportEntities, ExportFormat, sanitizeEntityObsoleteFields, getEntitySpreadsheetField, splitLanguageValues, entityMatchesRelationship, ensureUniqueEntityIds, getSocialMediaReachTier } from './utils/excelParser';
 import { sanitizeEntitySocialProfiles } from './utils/socialMedia';
@@ -523,18 +524,17 @@ export default function App() {
   const [showRelationships, setShowRelationships] = useState(false);
   const [showEcotones, setShowEcotones] = useState(false);
 
-  // Automatically deselect archipelago if switching to layer 2 or 3
+  // Automatically deselect the focused archipelago / field when switching layers
+  // (archipelagos live in Layer 1, fields in Layers 2 and 3, so a selection never carries over).
+  // Only runs on an actual layer change, so fields can still be focused inside Layers 2 / 3.
+  const previousActiveLayerRef = useRef(filterState.activeLayer ?? 1);
   useEffect(() => {
     const activeLayer = filterState.activeLayer ?? 1;
-    if (activeLayer === 2 || activeLayer === 3) {
-      if (selectedContinentName) {
-        setSelectedContinentName(null);
-      }
-      if (activeListScope?.type === 'continent') {
-        setActiveListScope(null);
-      }
-    }
-  }, [filterState.activeLayer, selectedContinentName, activeListScope]);
+    if (previousActiveLayerRef.current === activeLayer) return;
+    previousActiveLayerRef.current = activeLayer;
+    setSelectedContinentName(null);
+    setActiveListScope(prev => (prev?.type === 'continent' ? null : prev));
+  }, [filterState.activeLayer]);
 
   // Page Views: 'map' | 'directory'
   const [currentView, setCurrentView] = useState<'map' | 'directory'>('map');
@@ -1526,6 +1526,69 @@ export default function App() {
     }
   }, [selectedEntity, saveToLocalStorage]);
 
+  // Field landmass geometry for Layer 2 / Layer 3 (hulls, organic paths, custom shapes, unique names).
+  // Kept separate from the continents memo so selection / filter changes never regenerate geometry.
+  const fieldLayerGeometry = useMemo<ContinentInfo[]>(() => {
+    const activeLayer = filterState.activeLayer ?? 1;
+    if (activeLayer !== 2 && activeLayer !== 3) return [];
+
+    const storedFields = layerFieldContinents[activeLayer];
+    const rawFieldsForLayer = (storedFields && storedFields.length > 0)
+      ? storedFields
+      : generateFieldContinentsFromEntities(entities, activeLayer);
+
+    if (!rawFieldsForLayer || rawFieldsForLayer.length === 0) return [];
+
+    // Heal and ensure 100% strictly unique names across fieldsForLayer
+    const seenNames = new Set<string>();
+    return rawFieldsForLayer.map(rawCont => {
+      let uniqueName = rawCont.name;
+      if (seenNames.has(uniqueName)) {
+        uniqueName = `${rawCont.category} ${rawCont.name}`;
+      }
+      let counter = 2;
+      while (seenNames.has(uniqueName)) {
+        uniqueName = `${rawCont.category} ${rawCont.name} ${counter}`;
+        counter++;
+      }
+      seenNames.add(uniqueName);
+      const cont = uniqueName === rawCont.name ? rawCont : { ...rawCont, name: uniqueName };
+
+      const customPoints = customContinentShapes[cont.name];
+      if (!customPoints || customPoints.length < 3) return cont;
+
+      let cMinX = Infinity, cMaxX = -Infinity, cMinY = Infinity, cMaxY = -Infinity;
+      customPoints.forEach(([px, py]) => {
+        cMinX = Math.min(cMinX, px);
+        cMaxX = Math.max(cMaxX, px);
+        cMinY = Math.min(cMinY, py);
+        cMaxY = Math.max(cMaxY, py);
+      });
+      return {
+        ...cont,
+        controlPoints: customPoints,
+        pathData: createPathFromControlPoints(customPoints),
+        minX: cMinX - 50,
+        maxX: cMaxX + 50,
+        minY: cMinY - 50,
+        maxY: cMaxY + 50,
+        isCustomShape: true
+      };
+    });
+  }, [filterState.activeLayer, layerFieldContinents, entities, customContinentShapes]);
+
+  // Focus-scope matcher: archipelagos match via primary + "Other Archipelagos" (Layer 1),
+  // fields match via primary field + the field's tag (Layers 2 / 3), so focusing a field also
+  // brings in entities that carry its tag without it being their primary field.
+  const matchesFocusScope = useCallback((ent: EcosystemEntity, scopeName: string): boolean => {
+    if (fieldLayerGeometry.length > 0) {
+      const field = fieldLayerGeometry.find(c => c.name === scopeName) ||
+        fieldLayerGeometry.find(c => normalizeArchipelagoBaseName(c.name) === normalizeArchipelagoBaseName(scopeName));
+      if (field) return entityMatchesField(ent, field.name, field.category);
+    }
+    return entityMatchesArchipelago(ent, scopeName);
+  }, [fieldLayerGeometry]);
+
   const filteredEntities = useMemo(() => {
     const matched = entities.filter(ent => {
       // 1. Search Query
@@ -1556,7 +1619,7 @@ export default function App() {
       // 1c. Active List Scope / Archipelago filtering (e.g. from clicking Category, Other Archipelagos, or Keywords/Topics in Overview)
       if (selectedContinentName || (activeListScope?.type === 'continent' && activeListScope.name)) {
         const targetCont = selectedContinentName || (activeListScope?.type === 'continent' ? activeListScope.name : null);
-        if (targetCont && !entityMatchesArchipelago(ent, targetCont)) {
+        if (targetCont && !matchesFocusScope(ent, targetCont)) {
           return false;
         }
       } else if (activeListScope?.type === 'category' && activeListScope.category) {
@@ -1956,63 +2019,15 @@ export default function App() {
     // When an archipelago is focused, calculate organic layout for guest entities so they appear right there
     const targetArchipelago = selectedContinentName || (activeListScope?.type === 'continent' ? activeListScope.name : null);
     if (targetArchipelago) {
-      const contInfo = baseContinents.find(c => normalizeArchipelagoBaseName(c.name) === normalizeArchipelagoBaseName(targetArchipelago));
-      return ensureUniqueEntityIds(calculateFocusArchipelagoPositions(matched, targetArchipelago, contInfo, baseContinents));
+      // In Layers 2 / 3 the focus target is a field, so look it up among the field landmasses
+      const scopeContinents = fieldLayerGeometry.length > 0 ? fieldLayerGeometry : baseContinents;
+      const contInfo = scopeContinents.find(c => c.name === targetArchipelago) ||
+        scopeContinents.find(c => normalizeArchipelagoBaseName(c.name) === normalizeArchipelagoBaseName(targetArchipelago));
+      return ensureUniqueEntityIds(calculateFocusArchipelagoPositions(matched, targetArchipelago, contInfo, scopeContinents));
     }
 
     return ensureUniqueEntityIds(matched);
-  }, [entities, filterState, activeListScope, selectedContinentName, baseContinents]);
-
-  // Field landmass geometry for Layer 2 / Layer 3 (hulls, organic paths, custom shapes, unique names).
-  // Kept separate from the continents memo so selection / filter changes never regenerate geometry.
-  const fieldLayerGeometry = useMemo<ContinentInfo[]>(() => {
-    const activeLayer = filterState.activeLayer ?? 1;
-    if (activeLayer !== 2 && activeLayer !== 3) return [];
-
-    const storedFields = layerFieldContinents[activeLayer];
-    const rawFieldsForLayer = (storedFields && storedFields.length > 0)
-      ? storedFields
-      : generateFieldContinentsFromEntities(entities, activeLayer);
-
-    if (!rawFieldsForLayer || rawFieldsForLayer.length === 0) return [];
-
-    // Heal and ensure 100% strictly unique names across fieldsForLayer
-    const seenNames = new Set<string>();
-    return rawFieldsForLayer.map(rawCont => {
-      let uniqueName = rawCont.name;
-      if (seenNames.has(uniqueName)) {
-        uniqueName = `${rawCont.category} ${rawCont.name}`;
-      }
-      let counter = 2;
-      while (seenNames.has(uniqueName)) {
-        uniqueName = `${rawCont.category} ${rawCont.name} ${counter}`;
-        counter++;
-      }
-      seenNames.add(uniqueName);
-      const cont = uniqueName === rawCont.name ? rawCont : { ...rawCont, name: uniqueName };
-
-      const customPoints = customContinentShapes[cont.name];
-      if (!customPoints || customPoints.length < 3) return cont;
-
-      let cMinX = Infinity, cMaxX = -Infinity, cMinY = Infinity, cMaxY = -Infinity;
-      customPoints.forEach(([px, py]) => {
-        cMinX = Math.min(cMinX, px);
-        cMaxX = Math.max(cMaxX, px);
-        cMinY = Math.min(cMinY, py);
-        cMaxY = Math.max(cMaxY, py);
-      });
-      return {
-        ...cont,
-        controlPoints: customPoints,
-        pathData: createPathFromControlPoints(customPoints),
-        minX: cMinX - 50,
-        maxX: cMaxX + 50,
-        minY: cMinY - 50,
-        maxY: cMaxY + 50,
-        isCustomShape: true
-      };
-    });
-  }, [filterState.activeLayer, layerFieldContinents, entities, customContinentShapes]);
+  }, [entities, filterState, activeListScope, selectedContinentName, baseContinents, fieldLayerGeometry, matchesFocusScope]);
 
   // Layer-filtered and dynamic focus continents:
   // In Layer 1 (default): archipelagos appear ONLY if they have assigned entities in relationship levels 1-6!
@@ -2023,15 +2038,15 @@ export default function App() {
     const targetFocusArchipelago = selectedContinentName || (activeListScope?.type === 'continent' ? activeListScope.name : null);
     const activeLayer = filterState.activeLayer ?? 1;
 
+    const isFieldLayerActive = activeLayer === 2 || activeLayer === 3;
+    const countPrimary = buildPrimaryArchipelagoCounter(filteredEntities);
+
     // In Layer 2 and Layer 3: show Field clusters (named "fields", looking just like archipelagos).
     // Heavy geometry is precomputed in fieldLayerGeometry; here we only refresh counts & sub-labels.
-    if (activeLayer === 2 || activeLayer === 3) {
-      if (fieldLayerGeometry.length === 0) return [];
-
-      // Single pass over filtered entities (same semantics as isEntityPrimaryToArchipelago)
-      const countPrimary = buildPrimaryArchipelagoCounter(filteredEntities);
-
-      return fieldLayerGeometry.map(cont => {
+    // Filter baseContinents according to activeLayer rule otherwise:
+    // In Layer 1: archipelago ONLY appears if it has entities assigned to relationship levels 1-6!
+    const layerScopedContinents = isFieldLayerActive
+      ? fieldLayerGeometry.map(cont => {
         const layerCount = countPrimary(cont.name);
         const subLabelPath = generateContinentLabelPath(
           cont.centerX,
@@ -2046,13 +2061,8 @@ export default function App() {
           `${layerCount} ${layerCount === 1 ? 'entity' : 'entities'}`
         );
         return { ...cont, count: layerCount, subLabelPath };
-      });
-    }
-
-    // Filter baseContinents according to activeLayer rule:
-    // In Layer 1: archipelago ONLY appears if it has entities assigned to relationship levels 1-6!
-    const countPrimary = buildPrimaryArchipelagoCounter(filteredEntities);
-    const layerScopedContinents = baseContinents
+      })
+      : baseContinents
       .filter(cont => doesArchipelagoAppearInLayer(cont.name, entities, activeLayer))
       .map(cont => {
         // Count ONLY the entities currently being displayed in this archipelago in this layer (primary entities matching active filters)
@@ -2090,7 +2100,7 @@ export default function App() {
       }
 
       // Count all entities appearing in this archipelago during focus (primary + guest / additional entities being shown in this layer)
-      const focusEntities = filteredEntities.filter(e => entityMatchesArchipelago(e, targetFocusArchipelago));
+      const focusEntities = filteredEntities.filter(e => matchesFocusScope(e, targetFocusArchipelago));
       const focusedCount = focusEntities.length;
 
       const subLabelPath = generateContinentLabelPath(
@@ -2149,7 +2159,7 @@ export default function App() {
         subLabelPath
       };
     });
-  }, [baseContinents, selectedContinentName, activeListScope, filteredEntities, editMode, entities, filterState.activeLayer, fieldLayerGeometry]);
+  }, [baseContinents, selectedContinentName, activeListScope, filteredEntities, editMode, entities, filterState.activeLayer, fieldLayerGeometry, matchesFocusScope]);
 
   // Check if an archipelago is currently focused (selected without an individual entity)
   const targetFocusArchipelagoName = selectedContinentName || (activeListScope?.type === 'continent' ? activeListScope.name : null);

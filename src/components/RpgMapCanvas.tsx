@@ -3,7 +3,7 @@ import {
   ZoomIn, ZoomOut, Maximize2, Move, Eye, Shield, Sparkles, Navigation, Globe, Map as MapIcon, RotateCcw, RotateCw, Plus, Trash2, Mountain, Layers, Network, Star, Save, Unlock, X, Sliders, Wand2, ChevronUp, ChevronDown, Undo2, Redo2
 } from 'lucide-react';
 import { EcosystemEntity, CategoryQuadrant, FieldCluster, MapViewport, ContinentInfo, EcotoneCorridorInfo, getEntityCompleteness, DATA_COMPLETENESS_CONFIG, getCompletenessConfig, LayerQuadrantSizes, LayerQuadrantConfig, DEFAULT_LAYER_QUADRANT_SIZES, getQuadrantSizesForLayer } from '../types';
-import { QUADRANT_CENTERS, generateContinentLabelPath, getContinentLabelCenter, isEntityDomainElevation, getEntityIntersectionZone, getEntityQuadrantGradient, INTERSECTION_ZONES, calculateEcotoneCorridors, getEntityClusterWithNumber, formatClusterWithNumber, normalizeArchipelagoBaseName, isEntityPrimaryToArchipelago, entityMatchesArchipelago, buildPrimaryArchipelagoCounter } from '../utils/layoutGenerator';
+import { QUADRANT_CENTERS, generateContinentLabelPath, getContinentLabelCenter, isEntityDomainElevation, getEntityIntersectionZone, getEntityQuadrantGradient, INTERSECTION_ZONES, calculateEcotoneCorridors, getEntityClusterWithNumber, formatClusterWithNumber, normalizeArchipelagoBaseName, isEntityPrimaryToArchipelago, entityMatchesArchipelago, buildPrimaryArchipelagoCounter, entityMatchesField, getFieldDisplayName } from '../utils/layoutGenerator';
 import { calculateAutoFitQuadrantSizes, doesArchipelagoAppearInLayer, getEntityRelationshipNumber, DEFAULT_LAYER_1_RELATIONSHIPS, DEFAULT_LAYER_2_RELATIONSHIPS, DEFAULT_LAYER_3_RELATIONSHIPS } from '../utils/layerClassifier';
 import { ChangelogWidget } from './ChangelogWidget';
 import { getConnectedEntityIds } from '../utils/socialMedia';
@@ -1319,7 +1319,9 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
       // When selected/focused: count all visible entities matching archipelago (primary + secondary/affiliated).
       // When not selected: count only visible entities that are primary to this archipelago (actually displayed in its territory).
       const displayCount = isSelected
-        ? visibleEntities.reduce((n, e) => (entityMatchesArchipelago(e, cont.name) ? n + 1 : n), 0)
+        ? visibleEntities.reduce((n, e) => ((isFieldLayer
+            ? entityMatchesField(e, cont.name, cont.category)
+            : entityMatchesArchipelago(e, cont.name)) ? n + 1 : n), 0)
         : countPrimary(cont.name);
 
       const titleCurv = cont.titleCurvature !== undefined ? cont.titleCurvature : 0.7;
@@ -1327,7 +1329,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
 
       const labelPathD = generateContinentLabelPath(
         cont.centerX, cont.centerY, cont.minX, cont.maxX, cont.minY, cont.maxY,
-        cont.controlPoints, 0, titleCurv, cont.name
+        cont.controlPoints, 0, titleCurv, isFieldLayer ? getFieldDisplayName(cont.name, cont.category) : cont.name
       );
       const subLabelPathD = generateContinentLabelPath(
         cont.centerX, cont.centerY, cont.minX, cont.maxX, cont.minY, cont.maxY,
@@ -1338,7 +1340,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
       data.set(cont.name, { isSelected, displayCount, labelPathD, subLabelPathD });
     });
     return data;
-  }, [visibleContinentsList, visibleEntities, selectedContinentName]);
+  }, [visibleContinentsList, visibleEntities, selectedContinentName, isFieldLayer]);
 
   // Calculate connection lines for selected or hovered entity or all relationships across all quadrants
   const activeFocusEntity = focusedEntity || hoveredEntity || selectedEntity;
@@ -2117,7 +2119,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
                           textAnchor="middle"
                           spacing="auto"
                         >
-                          {isFieldLayer ? `FIELD • ${cont.name.toUpperCase()}` : cont.name}
+                          {isFieldLayer ? getFieldDisplayName(cont.name, cont.category) : cont.name}
                         </textPath>
                       </text>
 

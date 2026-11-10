@@ -1247,6 +1247,126 @@ export function isEntityPrimaryToArchipelago(entity: EcosystemEntity, archipelag
     formatClusterWithNumber(primary).toLowerCase().trim() === formatClusterWithNumber(archipelagoName).toLowerCase().trim();
 }
 
+// ---------------------------------------------------------------------------
+// Fields (Layer 2 / Layer 3)
+// ---------------------------------------------------------------------------
+// Field names are generated from tags. When a tag appeared in several quadrants, the generator
+// disambiguated it internally by prefixing the quadrant (e.g. "Cultural Community Building").
+// The internal name stays unique (it is the field's identity for shapes, selection and persistence),
+// but the quadrant prefix is redundant for display and is stripped by getFieldDisplayName.
+
+const FIELD_QUADRANT_WORDS: CategoryQuadrant[] = ['Inner', 'Social', 'Cultural', 'Systems'];
+
+// Established compound terms where the quadrant word is part of the concept itself, not a prefix.
+const FIELD_PRESERVED_TERMS = new Set([
+  'social justice',
+  'social finance',
+  'social media',
+  'social science',
+  'social sciences',
+  'social technology',
+  'social innovation',
+  'social enterprise',
+  'social entrepreneurship',
+  'social economy',
+  'social movements',
+  'inner science',
+  'inner work',
+  'inner development',
+  'systems thinking',
+  'systems change',
+  'systems design',
+  'cultural heritage',
+  'cultural exchange',
+]);
+
+/**
+ * Splits a field name into its optional number prefix and the name with the redundant
+ * quadrant word removed (only when it is the field's own quadrant, or any quadrant when unknown).
+ */
+function splitFieldName(
+  name: string,
+  quadrant?: string,
+  ignorePreserved = false
+): { num: string; base: string; stripped: string } {
+  const trimmed = String(name || '').trim();
+  const numMatch = trimmed.match(/^(\d+)[\.\)]\s*/);
+  const num = numMatch ? numMatch[1] : '';
+  const base = numMatch ? trimmed.slice(numMatch[0].length).trim() : trimmed;
+
+  const quadWords = quadrant
+    ? FIELD_QUADRANT_WORDS.filter(q => q.toLowerCase() === String(quadrant).toLowerCase())
+    : FIELD_QUADRANT_WORDS;
+
+  let stripped = base;
+  if (ignorePreserved || !FIELD_PRESERVED_TERMS.has(base.toLowerCase())) {
+    for (const q of quadWords) {
+      const prefix = `${q} `;
+      if (base.length > prefix.length && base.toLowerCase().startsWith(prefix.toLowerCase())) {
+        stripped = base.slice(prefix.length).trim();
+        break;
+      }
+    }
+  }
+  return { num, base, stripped };
+}
+
+/**
+ * Display title for a Field: removes the redundant quadrant prefix, keeping the number.
+ * E.g. ("37. Cultural Consulting", "Cultural") -> "37. Consulting",
+ *      ("41. Social Justice", "Social") -> "41. Social Justice" (preserved term),
+ *      ("49. Systems Thinking", "Inner") -> unchanged (not its own quadrant).
+ */
+export function getFieldDisplayName(name: string, quadrant?: string): string {
+  if (!name) return '';
+  const { num, base, stripped } = splitFieldName(name, quadrant);
+  if (stripped === base) return String(name).trim();
+  // Stripped remainder already carries its own number (e.g. "Inner 18. Artistic ..."): keep that one.
+  if (/^\d+[\.\)]\s*/.test(stripped)) return stripped;
+  return num ? `${num}. ${stripped}` : stripped;
+}
+
+/** Lowercased tags that make an entity belong to a field (the full name and its de-prefixed tag). */
+function getFieldTagCandidates(fieldName: string, quadrant?: string): string[] {
+  // Ignore the preserved-terms list here: e.g. the "Social Media" field was generated from the tag "Media".
+  const { base, stripped } = splitFieldName(fieldName, quadrant, true);
+  const out = new Set<string>();
+  [base, stripped].forEach(s => {
+    const lower = s.toLowerCase().trim();
+    if (!lower) return;
+    out.add(lower);
+    // Generator dedupe counter suffix ("Media 2")
+    const noCounter = lower.replace(/\s+\d+$/, '').trim();
+    if (noCounter) out.add(noCounter);
+    // Nested number prefix ("Inner 18. Artistic ...")
+    const noNum = noCounter.replace(/^\d+[\.\)]\s*/, '').trim();
+    if (noNum) out.add(noNum);
+  });
+  return Array.from(out);
+}
+
+const entityTagSetCache = new WeakMap<EcosystemEntity, Set<string>>();
+function getEntityTagSet(entity: EcosystemEntity): Set<string> {
+  let set = entityTagSetCache.get(entity);
+  if (!set) {
+    set = new Set(extractEntityTagList(entity).map(t => t.toLowerCase().trim()));
+    entityTagSetCache.set(entity, set);
+  }
+  return set;
+}
+
+/**
+ * Checks whether an entity belongs to a Field: either it is the entity's primary field (its
+ * assigned continent) or the entity carries the field's tag (secondary / affiliated membership),
+ * mirroring how archipelagos match via "Other Archipelagos".
+ */
+export function entityMatchesField(entity: EcosystemEntity, fieldName: string, quadrant?: string): boolean {
+  if (!entity || !fieldName) return false;
+  if (isEntityPrimaryToArchipelago(entity, fieldName)) return true;
+  const tagSet = getEntityTagSet(entity);
+  return getFieldTagCandidates(fieldName, quadrant).some(t => tagSet.has(t));
+}
+
 /**
  * Builds an O(1) lookup equivalent to `entities.filter(e => isEntityPrimaryToArchipelago(e, name)).length`,
  * computed in a single pass over entities (instead of one full pass per archipelago / field).

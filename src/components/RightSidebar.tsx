@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { EcosystemEntity, CategoryQuadrant, EntityType, ContinentInfo, SidebarListScope, DataQualityStatus, DataCompletenessLevel, DATA_COMPLETENESS_LEVELS, DATA_COMPLETENESS_CONFIG, getEntityCompleteness, getCompletenessConfig, ConnectedInstitutionNode, LayerQuadrantSizes, LayerQuadrantConfig, DEFAULT_LAYER_QUADRANT_SIZES, getQuadrantSizesForLayer } from '../types';
-import { suggestContinent, getEntityIntersectionZone, isEntityEcotone, formatClusterWithNumber, getEntityOtherArchipelagos, entityMatchesArchipelago, filterProfileTags, isEntityPrimaryToArchipelago, normalizeArchipelagoBaseName } from '../utils/layoutGenerator';
+import { suggestContinent, getEntityIntersectionZone, isEntityEcotone, formatClusterWithNumber, getEntityOtherArchipelagos, entityMatchesArchipelago, filterProfileTags, isEntityPrimaryToArchipelago, normalizeArchipelagoBaseName, entityMatchesField, getFieldDisplayName } from '../utils/layoutGenerator';
 import { CommunityNotesSection } from './CommunityNotesSection';
 import { formatDisplayUrl, cleanWebsiteUrl, extractSocialLinks, parseSocialProfilesField, getSocialPlatformLabel, isTransformationFocusValue, SocialLink } from '../utils/socialMedia';
 import { getEntityCategorizedData, getEntityConnectedNodes, parseInstitutionList, OBSOLETE_FABRICATED_FIELDS, parseResourceLinks, ResourceLinkItem, cleanImageUrl, getFaviconFromWebsite, splitRelationshipValues, entityMatchesRelationship, ensureUniqueEntityIds } from '../utils/excelParser';
@@ -1774,10 +1774,15 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
         c.name === currentScope.name || 
         formatClusterWithNumber(c.name).toLowerCase() === formatClusterWithNumber(currentScope.name).toLowerCase()
       );
+      const isFieldScope = activeLayer === 2 || activeLayer === 3;
+      // Fields match by primary field or by carrying the field's tag; archipelagos by primary + Other Archipelagos
+      const matchesScope = (e: EcosystemEntity) => isFieldScope
+        ? entityMatchesField(e, currentScope.name, activeContinent?.category)
+        : entityMatchesArchipelago(e, currentScope.name);
       const listEntities = ensureUniqueEntityIds(
         allEntities
           .filter(e => isEntityInLayer(e, activeLayer))
-          .filter(e => entityMatchesArchipelago(e, currentScope.name))
+          .filter(matchesScope)
       );
       const currentQuadrant = (activeContinent?.category || listEntities[0]?.category || 'Inner') as CategoryQuadrant;
       const badgeBg = categoryColors[currentQuadrant] || '#111827';
@@ -1785,7 +1790,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
 
       // Candidate entities not yet belonging to this archipelago
       const candidatesToAdd = ensureUniqueEntityIds(
-        allEntities.filter(e => !entityMatchesArchipelago(e, currentScope.name))
+        allEntities.filter(e => !matchesScope(e))
           .filter(e => {
             if (!archipelagoAddSearch.trim()) return true;
             const q = archipelagoAddSearch.toLowerCase();
@@ -1965,7 +1970,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 ) : (
                   <div className="flex items-center justify-between gap-2">
                     <h2 className="font-editorial text-2xl font-bold text-[#111827] leading-tight truncate">
-                      {currentScope.name}
+                      {isFieldScope ? getFieldDisplayName(currentScope.name, activeContinent?.category) : currentScope.name}
                     </h2>
                     {isArchipelagoEditable && onRenameContinent && (
                       <button
@@ -3044,7 +3049,9 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                             ) : (
                               <span
                                 className="text-[9px] font-technical uppercase px-1.5 py-0.5 bg-amber-50 border border-amber-200 text-amber-800 font-semibold rounded-[2px]"
-                                title={`Affiliated with this archipelago via Other Archipelagos (Primary: ${ent.continent || 'None'})`}
+                                title={isFieldScope
+                                  ? `Affiliated with this field via its tag (Primary field: ${ent.continent ? getFieldDisplayName(ent.continent, ent.quadrant || ent.category) : 'None'})`
+                                  : `Affiliated with this archipelago via Other Archipelagos (Primary: ${ent.continent || 'None'})`}
                               >
                                 ★ Affiliated
                               </span>
@@ -4489,7 +4496,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
               {entContinent ? (
                 <>
                   <span className="font-editorial text-sm font-semibold text-[#111827]">
-                    {entContinent}
+                    {activeLayer === 2 || activeLayer === 3 ? getFieldDisplayName(entContinent, entity.quadrant || entity.category) : entContinent}
                   </span>
                   {onSelectContinent && (
                     <button
@@ -6181,7 +6188,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                       ) : (
                         <div className="flex items-center justify-between">
                           <span className="font-editorial text-sm font-semibold text-[#111827]">
-                            {modalEntContinent}
+                            {activeLayer === 2 || activeLayer === 3 ? getFieldDisplayName(modalEntContinent, modalEntity.quadrant || modalEntity.category) : modalEntContinent}
                           </span>
                           {onSelectContinent && (
                             <button

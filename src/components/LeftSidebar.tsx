@@ -7,7 +7,7 @@ import {
   Check, Ban, ArrowRight, ExternalLink, Mail, Calendar, AlertCircle
 } from 'lucide-react';
 import { CategoryQuadrant, EntityType, FilterState, FieldCluster, ContinentInfo, SidebarListScope, EcosystemEntity, DataQualityStatus, DataCompletenessLevel, DATA_COMPLETENESS_LEVELS, DATA_COMPLETENESS_CONFIG, getEntityCompleteness, getCompletenessConfig, ContributionSubmission } from '../types';
-import { entityMatchesArchipelago, normalizeArchipelagoBaseName, formatClusterWithNumber } from '../utils/layoutGenerator';
+import { entityMatchesArchipelago, normalizeArchipelagoBaseName, formatClusterWithNumber, getFieldDisplayName } from '../utils/layoutGenerator';
 import { getEntitySpreadsheetField, splitLanguageValues, splitRelationshipValues, entityMatchesRelationship, SOCIAL_MEDIA_REACH_TIERS, getSocialMediaReachTier } from '../utils/excelParser';
 import { 
   getStoredContributions, 
@@ -3126,7 +3126,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                                     style={{ backgroundColor: cont.color }}
                                   />
                                   <span className="font-editorial font-semibold text-xs text-[#111827] leading-snug">
-                                    {cont.name}
+                                    {isFieldLayer ? getFieldDisplayName(cont.name, cont.category) : cont.name}
                                   </span>
                                   <span className="font-technical text-[9px] uppercase tracking-wider bg-[#111827] text-white px-1.5 py-0.2 rounded-[2px] font-semibold shrink-0">
                                     Selected
@@ -3230,7 +3230,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                                         style={{ backgroundColor: cont.color }}
                                       />
                                       <span className="font-editorial font-semibold text-xs text-[#111827] leading-snug">
-                                        {cont.name}
+                                        {isFieldLayer ? getFieldDisplayName(cont.name, cont.category) : cont.name}
                                       </span>
                                     </div>
 
