@@ -35,7 +35,7 @@ export const DATA_COMPLETENESS_CONFIG: Record<DataCompletenessLevel, DataComplet
     badgeText: '#065F46',
     badgeBorder: '#A7F3D0',
     percentile: 'Top 10%',
-    description: 'Top 10% completeness (>26 fields filled)'
+    description: '>26 fields filled'
   },
   'Top 25%': {
     level: 'Top 25%',
@@ -46,7 +46,7 @@ export const DATA_COMPLETENESS_CONFIG: Record<DataCompletenessLevel, DataComplet
     badgeText: '#15803D',
     badgeBorder: '#BBF7D0',
     percentile: 'Top 25%',
-    description: 'Top 25% completeness (>15 fields filled)'
+    description: '>15 fields filled'
   },
   'Top 50%': {
     level: 'Top 50%',
@@ -57,7 +57,7 @@ export const DATA_COMPLETENESS_CONFIG: Record<DataCompletenessLevel, DataComplet
     badgeText: '#854D0E',
     badgeBorder: '#FEF08A',
     percentile: 'Top 50%',
-    description: 'Top 50% completeness (>12 fields filled)'
+    description: '>12 fields filled'
   },
   'Top 75%': {
     level: 'Top 75%',
@@ -68,7 +68,7 @@ export const DATA_COMPLETENESS_CONFIG: Record<DataCompletenessLevel, DataComplet
     badgeText: '#9A3412',
     badgeBorder: '#FED7AA',
     percentile: 'Top 75%',
-    description: 'Top 75% completeness (>10 fields filled)'
+    description: '>10 fields filled'
   },
   'Bottom 25%': {
     level: 'Bottom 25%',
@@ -79,7 +79,7 @@ export const DATA_COMPLETENESS_CONFIG: Record<DataCompletenessLevel, DataComplet
     badgeText: '#991B1B',
     badgeBorder: '#FECACA',
     percentile: 'Bottom 25%',
-    description: 'Bottom 25% completeness (<10 fields filled)'
+    description: '<10 fields filled'
   }
 };
 
