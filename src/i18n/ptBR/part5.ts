@@ -178,7 +178,7 @@ export const PART5: Record<string, string> = {
   "Updated real-time subscription listener and offline backup scripts to seamlessly hydrate chunked cloud datasets": "Atualizados o ouvinte de assinatura em tempo real e os scripts de backup offline para carregar sem falhas os conjuntos de dados particionados na nuvem",
   "Upload an updated spreadsheet (": "Envie uma planilha atualizada (",
   "Upload snapshot JSON file": "Enviar arquivo JSON de snapshot",
-  "Upper Left • Sacred & Self": "Superior esquerdo • O sagrado e o eu",
+  "Upper Left • Sacred & Self": "Superior esquerdo • O Sagrado e o Ser",
   "Upper Left • Self & Contemplation": "Superior esquerdo • Self e contemplação",
   "Upper Left • Self, Mind & Contemplation": "Superior esquerdo • Self, mente e contemplação",
   "Upper Right • Civic & Grassroots": "Superior direito • Cívico e de base",
