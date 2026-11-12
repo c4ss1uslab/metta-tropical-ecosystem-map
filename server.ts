@@ -35,7 +35,8 @@ app.use(express.json({ limit: '15mb' }));
 
 // Gemini initialization
 const API_KEY = (process.env.GEMINI_API_KEY || '').trim();
-const DEFAULT_TRANSLATION_MODEL = (process.env.GEMINI_TRANSLATION_MODEL || process.env.VITE_GEMINI_TRANSLATION_MODEL || 'gemini-flash-latest').trim();
+const rawModel = (process.env.GEMINI_TRANSLATION_MODEL || process.env.VITE_GEMINI_TRANSLATION_MODEL || 'gemini-3.8-flash').trim();
+const DEFAULT_TRANSLATION_MODEL = (rawModel === 'gemini-flash-latest' || !rawModel) ? 'gemini-3.8-flash' : rawModel;
 
 let genAiClient: GoogleGenAI | null = null;
 function getGeminiClient(): GoogleGenAI {
@@ -89,7 +90,10 @@ app.post('/api/gemini/translate', async (req: Request, res: Response) => {
   }
 
   const { items, texts, model } = req.body;
-  const targetModel = (typeof model === 'string' && model.trim()) || DEFAULT_TRANSLATION_MODEL;
+  let targetModel = (typeof model === 'string' && model.trim()) || DEFAULT_TRANSLATION_MODEL;
+  if (targetModel === 'gemini-flash-latest') {
+    targetModel = 'gemini-3.8-flash';
+  }
 
   // Format 1: items: [{ i: number, text: string }]
   // Format 2: texts: string[]

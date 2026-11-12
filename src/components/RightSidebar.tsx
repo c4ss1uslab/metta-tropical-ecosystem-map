@@ -4712,23 +4712,12 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                       <span className="text-[11px] font-sans text-[#8C877F] italic">No tags listed.</span>
                     ) : (
                       displayTags.map(field => (
-                        <button
-                          type="button"
-                          key={field}
-                          onClick={() => {
-                            const selection = window.getSelection();
-                            if (selection && selection.toString().trim().length > 0) return;
-                            if (!editMode && onSelectTagList) {
-                              onSelectTagList(field, entity.category, 'tag');
-                            }
-                          }}
-                          className={`px-2.5 py-1 bg-white border border-[#E5E7EB] text-[#111827] font-sans text-xs rounded-[4px] shadow-2xs flex items-center space-x-1 text-left select-text ${
-                            !editMode ? 'hover:border-[#111827] hover:bg-[#FAF8F5] cursor-pointer' : ''
-                          } ${editMode ? 'pr-1.5' : ''}`}
-                          title={!editMode ? `Filter entities by tag: ${field}` : undefined}
-                        >
-                          <span className="select-text">{field}</span>
-                          {editMode && (
+                        editMode ? (
+                          <div
+                            key={field}
+                            className="px-2.5 py-1 bg-white border border-[#E5E7EB] text-[#111827] font-sans text-xs rounded-[4px] shadow-2xs flex items-center space-x-1 text-left select-text pr-1.5"
+                          >
+                            <span className="select-text">{field}</span>
                             <button
                               type="button"
                               onClick={(e) => {
@@ -4736,12 +4725,28 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                                 handleRemoveTag(field);
                               }}
                               title={`Remove tag ${field}`}
-                              className="p-0.5 text-[#8C877F] hover:text-[#AD2831] hover:bg-[#FAF8F5] rounded-[2px]"
+                              className="p-0.5 text-[#8C877F] hover:text-[#AD2831] hover:bg-[#FAF8F5] rounded-[2px] cursor-pointer"
                             >
                               <X className="w-3 h-3" />
                             </button>
-                          )}
-                        </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            key={field}
+                            onClick={() => {
+                              const selection = window.getSelection();
+                              if (selection && selection.toString().trim().length > 0) return;
+                              if (onSelectTagList) {
+                                onSelectTagList(field, entity.category, 'tag');
+                              }
+                            }}
+                            className="px-2.5 py-1 bg-white border border-[#E5E7EB] text-[#111827] font-sans text-xs rounded-[4px] shadow-2xs flex items-center space-x-1 text-left select-text hover:border-[#111827] hover:bg-[#FAF8F5] cursor-pointer"
+                            title={`Filter entities by tag: ${field}`}
+                          >
+                            <span className="select-text">{field}</span>
+                          </button>
+                        )
                       ))
                     )}
                   </div>

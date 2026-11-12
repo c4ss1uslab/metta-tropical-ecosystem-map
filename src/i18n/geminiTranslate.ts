@@ -5,7 +5,8 @@
  * using the server's configured GEMINI_API_KEY.
  */
 
-const MODEL: string = (import.meta.env?.VITE_GEMINI_TRANSLATION_MODEL || 'gemini-flash-latest').trim();
+const rawModel: string = (import.meta.env?.VITE_GEMINI_TRANSLATION_MODEL || 'gemini-3.8-flash').trim();
+const MODEL: string = (rawModel === 'gemini-flash-latest' || !rawModel) ? 'gemini-3.8-flash' : rawModel;
 
 const MAX_ITEMS_PER_BATCH = 60;
 const MAX_CONCURRENCY = 3;
