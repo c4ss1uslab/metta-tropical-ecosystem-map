@@ -27,7 +27,10 @@ import {
   organizeLayerEntitiesByTags,
   generateFieldContinentsFromEntities,
   buildPrimaryArchipelagoCounter,
-  entityMatchesField
+  entityMatchesField,
+  getEntityOtherArchipelagos,
+  setArchipelagoNameOverrides,
+  getArchipelagoNameOverridesFromMetadata
 } from './utils/layoutGenerator';
 import { exportEntities, ExportFormat, sanitizeEntityObsoleteFields, getEntitySpreadsheetField, splitLanguageValues, entityMatchesRelationship, ensureUniqueEntityIds, getSocialMediaReachTier } from './utils/excelParser';
 import { sanitizeEntitySocialProfiles } from './utils/socialMedia';
@@ -42,6 +45,7 @@ import { DirectoryView } from './components/DirectoryView';
 import { ReviewPipelineModal } from './components/ReviewPipelineModal';
 import { DismissChangesModal } from './components/DismissChangesModal';
 import { PositionSnapshotModal } from './components/PositionSnapshotModal';
+import { MembershipEditorModal, EntityMembershipChange } from './components/MembershipEditorModal';
 import { SubmitEntityModal } from './components/SubmitEntityModal';
 import { TranslationSyncToast } from './components/TranslationSyncToast';
 import { syncDataTranslations } from './i18n/syncDataTranslations';
@@ -106,6 +110,8 @@ export default function App() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
+          // User-defined archipelago names must be registered before keys are canonicalized below
+          setArchipelagoNameOverrides(getArchipelagoNameOverridesFromMetadata(parsed));
           const clean: Record<string, ArchipelagoMeta> = {};
           // Pass 1: Canonical numbered entries take strict precedence
           for (const [k, v] of Object.entries(parsed)) {
@@ -128,8 +134,13 @@ export default function App() {
     } catch (e) {
       console.warn('Failed to parse archipelago metadata from localStorage', e);
     }
+    setArchipelagoNameOverrides(getArchipelagoNameOverridesFromMetadata(INITIAL_ARCHIPELAGO_METADATA));
     return INITIAL_ARCHIPELAGO_METADATA || {};
   });
+
+  // Keep user-defined archipelago names / numbers (Membership Editor) registered with the
+  // cluster-name formatter before any layout memo runs. Idempotent when the set is unchanged.
+  setArchipelagoNameOverrides(getArchipelagoNameOverridesFromMetadata(archipelagoMetadata));
 
   // Layer-specific quadrant dimensions (loaded dynamically according to active layer)
   const [layerQuadrantSizes, setLayerQuadrantSizes] = useState<LayerQuadrantConfig>(() => {
@@ -551,6 +562,7 @@ export default function App() {
   const [discoveryModalOpen, setDiscoveryModalOpen] = useState(false);
   const [reviewPipelineModalOpen, setReviewPipelineModalOpen] = useState(false);
   const [positionSnapshotModalOpen, setPositionSnapshotModalOpen] = useState(false);
+  const [membershipEditorOpen, setMembershipEditorOpen] = useState(false);
   const [dismissModalOpen, setDismissModalOpen] = useState(false);
   const [isDismissing, setIsDismissing] = useState(false);
   const [dismissSuccessToast, setDismissSuccessToast] = useState(false);
@@ -3132,8 +3144,8 @@ export default function App() {
       normalizeArchipelagoBaseName(c.name) === normalizeArchipelagoBaseName(continentName) ||
       c.name.toLowerCase() === continentName.toLowerCase()
     );
-    const oldQuadrant = cont?.category || 'Inner';
-    if (oldQuadrant === newQuadrant) return;
+    const oldQuadrant = cont?.category;
+    if (oldQuadrant && oldQuadrant === newQuadrant) return;
 
     pushHistorySnapshot(`Change quadrant of "${continentName}" to ${newQuadrant}`);
 
@@ -3390,6 +3402,231 @@ export default function App() {
       return updated;
     });
   }, [saveToLocalStorage]);
+
+
+  // ---------------------------------------------------------------------------
+  // Membership Editor: entity archipelago / field / quadrant assignment
+  // ---------------------------------------------------------------------------
+  const ARCHIPELAGO_LIST_KEYS = ['Archipelago', 'archipelago', 'Island/Cluster', 'island/cluster', 'Islands', 'islands', 'Other Archipelagos', 'other archipelagos'];
+
+  const handleUpdateEntityMembership = useCallback((entityId: string, changes: EntityMembershipChange) => {
+    const current = entitiesRef.current.find(e => e.id === entityId);
+    if (!current) return;
+    pushHistorySnapshot(`Edit archipelago / field of "${current.name}"`);
+
+    const sameGroup = (a?: string, b?: string) => {
+      if (!a || !b) return !a && !b;
+      return normalizeArchipelagoBaseName(a) === normalizeArchipelagoBaseName(b);
+    };
+
+    {
+      const prev = entitiesRef.current;
+      const ent = current;
+      const layer = getEntityMapLayer(ent);
+      const isArchipelagoLayer = layer === 1;
+
+      const nextPrimary = changes.continent !== undefined
+        ? (changes.continent && changes.continent.trim() ? changes.continent.trim() : undefined)
+        : ent.continent;
+      const baseOthers = changes.otherArchipelagos !== undefined
+        ? changes.otherArchipelagos
+        : (isArchipelagoLayer ? getEntityOtherArchipelagos(ent) : (ent.otherArchipelagos || []));
+      const nextOthers: string[] = [];
+      baseOthers.forEach(o => {
+        const t = String(o || '').trim();
+        if (!t || sameGroup(t, nextPrimary)) return;
+        if (nextOthers.some(x => sameGroup(x, t))) return;
+        nextOthers.push(t);
+      });
+      const nextQuadrant: CategoryQuadrant = changes.quadrant || ent.quadrant || ent.category;
+      const primaryChanged = !sameGroup(nextPrimary, ent.continent);
+      const quadrantChanged = nextQuadrant !== (ent.quadrant || ent.category);
+
+      // Reposition next to the new group's existing members when the primary group changes
+      let x = ent.x;
+      let y = ent.y;
+      if (primaryChanged && nextPrimary) {
+        const members = prev.filter(e => e.id !== ent.id && getEntityMapLayer(e) === layer && sameGroup(e.continent, nextPrimary));
+        const center = members.length > 0
+          ? {
+              x: members.reduce((sum, e) => sum + e.x, 0) / members.length,
+              y: members.reduce((sum, e) => sum + e.y, 0) / members.length
+            }
+          : (QUADRANT_CENTERS[nextQuadrant] || { x: ent.x, y: ent.y });
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 50 + Math.random() * 70;
+        x = Math.round(center.x + Math.cos(angle) * dist);
+        y = Math.round(center.y + Math.sin(angle) * dist);
+      }
+
+      const writeKeys = (target: Record<string, any>) => {
+        if (quadrantChanged || changes.quadrant) {
+          target['Quadrant'] = nextQuadrant;
+          target['Category'] = nextQuadrant;
+        }
+        if (isArchipelagoLayer) {
+          ARCHIPELAGO_LIST_KEYS.forEach(k => { delete target[k]; });
+          target['Archipelago'] = [nextPrimary || '', ...nextOthers].filter(Boolean).join(', ');
+          target['Island/Cluster'] = nextPrimary || '';
+          target['Other Archipelagos'] = nextOthers.join(', ');
+        }
+        return target;
+      };
+
+      const catFields = ent.categorizedFields ? { ...ent.categorizedFields } : undefined;
+      if (catFields && catFields['Overview']) {
+        catFields['Overview'] = writeKeys({ ...catFields['Overview'] });
+      }
+      const extFields = writeKeys({ ...(ent.extraFields || {}) });
+
+      const nextEnt: EcosystemEntity = {
+        ...ent,
+        continent: nextPrimary,
+        otherArchipelagos: isArchipelagoLayer ? nextOthers : ent.otherArchipelagos,
+        category: nextQuadrant,
+        quadrant: nextQuadrant,
+        spreadsheetCategory: quadrantChanged ? nextQuadrant : ent.spreadsheetCategory,
+        x,
+        y,
+        isCustomPosition: primaryChanged ? true : ent.isCustomPosition,
+        categorizedFields: catFields || ent.categorizedFields,
+        extraFields: extFields
+      };
+
+      const updated = prev.map(e => (e.id === entityId ? nextEnt : e));
+      entitiesRef.current = updated;
+      setEntities(updated);
+      saveToLocalStorage(updated);
+      setSelectedEntity(prevSel => (prevSel && prevSel.id === entityId ? nextEnt : prevSel));
+    }
+  }, [pushHistorySnapshot, saveToLocalStorage]);
+
+  // Rename / renumber an archipelago (Layer 1) or a field (Layer 2 / 3) everywhere it is referenced
+  const handleRenameMembershipGroup = useCallback((oldName: string, newName: string, layer: 1 | 2 | 3) => {
+    const trimmed = newName.trim().replace(/^(\d+)[\.\)]\s*/, '$1. ');
+    if (!trimmed || trimmed === oldName) return;
+    const oldBase = normalizeArchipelagoBaseName(oldName);
+    const matchesOld = (cand?: string) => Boolean(cand) && (
+      cand === oldName || normalizeArchipelagoBaseName(cand) === oldBase
+    );
+    const isArchipelago = layer === 1;
+    pushHistorySnapshot(`Rename ${isArchipelago ? 'archipelago' : 'field'} "${oldName}" to "${trimmed}"`);
+
+    // 1. Metadata (description, label offsets, quadrant...) moves to the new key
+    const prevMeta: Record<string, ArchipelagoMeta> = archipelagoMetadataRef.current || {};
+    const nextMeta: Record<string, ArchipelagoMeta> = {};
+    let mergedMeta: ArchipelagoMeta = {};
+    Object.entries(prevMeta).forEach(([k, v]) => {
+      if (k !== '__global__' && matchesOld(k)) {
+        mergedMeta = { ...mergedMeta, ...(v || {}) };
+      } else {
+        nextMeta[k] = v;
+      }
+    });
+    nextMeta[trimmed] = { ...(nextMeta[trimmed] || {}), ...mergedMeta };
+    if (isArchipelago) {
+      nextMeta[trimmed].customName = true;
+    } else {
+      delete nextMeta[trimmed].customName;
+    }
+    setArchipelagoNameOverrides(getArchipelagoNameOverridesFromMetadata(nextMeta));
+    archipelagoMetadataRef.current = nextMeta;
+    setArchipelagoMetadata(nextMeta);
+
+    // 2. Custom landmass shapes
+    const prevShapes: Record<string, [number, number][]> = customContinentShapesRef.current || {};
+    const nextShapes: Record<string, [number, number][]> = {};
+    let movedShape: [number, number][] | undefined;
+    Object.entries(prevShapes).forEach(([k, v]) => {
+      if (matchesOld(k)) {
+        if (!movedShape || k === oldName) movedShape = v;
+      } else {
+        nextShapes[k] = v;
+      }
+    });
+    if (movedShape && !nextShapes[trimmed]) nextShapes[trimmed] = movedShape;
+    customContinentShapesRef.current = nextShapes;
+    setCustomContinentShapes(nextShapes);
+    try {
+      localStorage.setItem(CONTINENTS_STORAGE_KEY, JSON.stringify(nextShapes));
+    } catch {}
+
+    // 3. Stored Layer 2 / 3 field clusters
+    if (!isArchipelago) {
+      setLayerFieldContinents(prevFields => {
+        const list = prevFields[layer];
+        if (!list || list.length === 0) return prevFields;
+        const next = { ...prevFields, [layer]: list.map(c => (matchesOld(c.name) ? { ...c, name: trimmed } : c)) };
+        try {
+          localStorage.setItem(LAYER_FIELDS_STORAGE_KEY, JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+    }
+
+    // 4. Entities referencing the group
+    const renameInList = (raw: any): any => {
+      if (raw === undefined || raw === null || raw === '') return raw;
+      const items = Array.isArray(raw) ? raw.map(String) : String(raw).split(/[,;|\n]+/);
+      let changed = false;
+      const out = items.map(item => {
+        if (matchesOld(item.trim())) {
+          changed = true;
+          return trimmed;
+        }
+        return item.trim();
+      });
+      if (!changed) return raw;
+      return Array.isArray(raw) ? out : out.join(', ');
+    };
+    const renameKeys = (target?: Record<string, any>) => {
+      if (!target) return target;
+      let next: Record<string, any> | undefined;
+      ARCHIPELAGO_LIST_KEYS.forEach(k => {
+        if (target[k] === undefined) return;
+        const renamed = renameInList(target[k]);
+        if (renamed !== target[k]) {
+          next = next || { ...target };
+          next[k] = renamed;
+        }
+      });
+      return next || target;
+    };
+
+    setEntities(prev => {
+      const updated = prev.map(ent => {
+        const entLayer = getEntityMapLayer(ent);
+        let next = ent;
+        if (entLayer === layer && matchesOld(ent.continent)) {
+          next = { ...next, continent: trimmed };
+        }
+        if (isArchipelago) {
+          const others = ent.otherArchipelagos;
+          if (others && others.some(o => matchesOld(o))) {
+            next = { ...next, otherArchipelagos: others.map(o => (matchesOld(o) ? trimmed : o)) };
+          }
+          const overview = ent.categorizedFields?.['Overview'];
+          const renamedOverview = renameKeys(overview);
+          if (overview && renamedOverview !== overview) {
+            next = { ...next, categorizedFields: { ...(next.categorizedFields || {}), Overview: renamedOverview as Record<string, any> } };
+          }
+          const renamedExtra = renameKeys(ent.extraFields as Record<string, any> | undefined);
+          if (ent.extraFields && renamedExtra !== ent.extraFields) {
+            next = { ...next, extraFields: renamedExtra as EcosystemEntity['extraFields'] };
+          }
+        }
+        return next;
+      });
+      entitiesRef.current = updated;
+      saveToLocalStorage(updated, nextShapes, false, nextMeta);
+      return updated;
+    });
+
+    setSelectedContinentName(prevSel => (prevSel && matchesOld(prevSel) ? trimmed : prevSel));
+    setActiveListScope(prevScope => (
+      prevScope?.type === 'continent' && matchesOld(prevScope.name) ? { type: 'continent', name: trimmed } : prevScope
+    ));
+  }, [pushHistorySnapshot, saveToLocalStorage]);
 
   // Update archipelago description / notes
   const handleUpdateContinentDescription = useCallback((continentName: string, description: string) => {
@@ -3899,6 +4136,7 @@ export default function App() {
           onDismissChanges={() => setDismissModalOpen(true)}
           onExitEditMode={() => setEditMode(false)}
           onOpenPositionSnapshotModal={() => setPositionSnapshotModalOpen(true)}
+          onOpenMembershipEditor={() => setMembershipEditorOpen(true)}
           showContinents={showContinents}
           showRelationships={showRelationships}
           showEcotones={showEcotones}
@@ -4135,6 +4373,23 @@ export default function App() {
         archipelagoMetadata={archipelagoMetadata}
         layerQuadrantSizes={layerQuadrantSizes}
         onApplySnapshot={handleApplySnapshot}
+      />
+
+      {/* Membership Editor (archipelagos / fields / quadrants of every entity) */}
+      <MembershipEditorModal
+        isOpen={membershipEditorOpen && editMode}
+        onClose={() => setMembershipEditorOpen(false)}
+        entities={entities}
+        archipelagoMetadata={archipelagoMetadata}
+        layerFieldContinents={layerFieldContinents}
+        initialLayer={(filterState.activeLayer === 2 || filterState.activeLayer === 3) ? filterState.activeLayer : 1}
+        onUpdateEntityMembership={handleUpdateEntityMembership}
+        onRenameGroup={handleRenameMembershipGroup}
+        onUpdateArchipelagoQuadrant={handleUpdateContinentQuadrant}
+        onLocateEntity={(ent) => {
+          setMembershipEditorOpen(false);
+          handleSelectEntityFromMap(ent);
+        }}
       />
 
       {/* Dismiss Success Toast */}

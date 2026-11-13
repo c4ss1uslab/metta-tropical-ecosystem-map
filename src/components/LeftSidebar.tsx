@@ -1092,7 +1092,12 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
         });
       }
     });
-    return Array.from(set).sort((a, b) => a.localeCompare(b));
+    const order = ['soul', 'systems', 'soil', 'society'];
+    const rank = (s: string) => {
+      const i = order.indexOf(s.toLowerCase().trim());
+      return i === -1 ? order.length : i;
+    };
+    return Array.from(set).sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
   }, [entities]);
 
   const streamCounts = useMemo(() => {

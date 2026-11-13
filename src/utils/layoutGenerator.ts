@@ -1030,8 +1030,44 @@ function getCanonicalBaseIndex(): Map<string, string> {
   return index;
 }
 
+// User-defined archipelago names (set via the Membership Editor). Keyed by base name (no number prefix),
+// these take precedence over the canonical lookup so a renamed / renumbered archipelago keeps its new
+// name and number everywhere (map labels, sidebar, data export).
+const archipelagoNameOverrides = new Map<string, string>();
+let archipelagoNameOverridesSignature = '';
+
+/**
+ * Registers user-defined archipelago names. Idempotent: re-registering the same list is a no-op.
+ */
+export function setArchipelagoNameOverrides(names: string[]): void {
+  const cleaned = Array.from(new Set((names || []).map(n => String(n || '').trim()).filter(Boolean))).sort();
+  const signature = cleaned.join('\u0000');
+  if (signature === archipelagoNameOverridesSignature) return;
+  archipelagoNameOverridesSignature = signature;
+  archipelagoNameOverrides.clear();
+  cleaned.forEach(name => {
+    const base = name.toLowerCase().replace(/^(\d+)[\.\)]\s*/, '').trim();
+    if (base) archipelagoNameOverrides.set(base, name.replace(/^(\d+)[\.\)]\s*/, '$1. '));
+  });
+  formatClusterCache.clear();
+}
+
+/** Collects the archipelago names flagged as user-defined in archipelago metadata. */
+export function getArchipelagoNameOverridesFromMetadata(meta?: Record<string, { customName?: boolean } | undefined> | null): string[] {
+  if (!meta) return [];
+  return Object.entries(meta)
+    .filter(([key, value]) => key !== '__global__' && Boolean(value && value.customName))
+    .map(([key]) => key);
+}
+
 function computeFormatClusterWithNumber(trimmed: string): string {
   const cleanLower = trimmed.toLowerCase();
+
+  // 0. User-defined name / number override (Membership Editor)
+  if (archipelagoNameOverrides.size > 0) {
+    const override = archipelagoNameOverrides.get(cleanLower.replace(/^(\d+)[\.\)]\s*/, '').trim());
+    if (override) return override;
+  }
 
   // 1. Exact match in canonical lookup
   if (CANONICAL_CLUSTER_MAP[cleanLower]) {

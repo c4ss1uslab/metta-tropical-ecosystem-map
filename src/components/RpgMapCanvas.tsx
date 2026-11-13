@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { 
-  ZoomIn, ZoomOut, Maximize2, Move, Eye, Shield, Sparkles, Navigation, Globe, Map as MapIcon, RotateCcw, RotateCw, Plus, Trash2, Mountain, Layers, Network, Star, Save, Unlock, X, Sliders, Wand2, ChevronUp, ChevronDown, Undo2, Redo2
-} from 'lucide-react';
+  ZoomIn, ZoomOut, Maximize2, Move, Eye, Shield, Sparkles, Navigation, Globe, Map as MapIcon, RotateCcw, RotateCw, Plus, Trash2, Mountain, Layers, Network, Star, Save, Unlock, X, Sliders, Wand2, ChevronUp, ChevronDown, Undo2, Redo2, ListTree } from 'lucide-react';
 import { EcosystemEntity, CategoryQuadrant, FieldCluster, MapViewport, ContinentInfo, EcotoneCorridorInfo, getEntityCompleteness, DATA_COMPLETENESS_CONFIG, getCompletenessConfig, LayerQuadrantSizes, LayerQuadrantConfig, DEFAULT_LAYER_QUADRANT_SIZES, getQuadrantSizesForLayer } from '../types';
 import { QUADRANT_CENTERS, generateContinentLabelPath, getContinentLabelCenter, isEntityDomainElevation, getEntityIntersectionZone, getEntityQuadrantGradient, INTERSECTION_ZONES, calculateEcotoneCorridors, getEntityClusterWithNumber, formatClusterWithNumber, normalizeArchipelagoBaseName, isEntityPrimaryToArchipelago, entityMatchesArchipelago, buildPrimaryArchipelagoCounter, entityMatchesField, getFieldDisplayName } from '../utils/layoutGenerator';
 import { calculateAutoFitQuadrantSizes, doesArchipelagoAppearInLayer, getEntityRelationshipNumber, DEFAULT_LAYER_1_RELATIONSHIPS, DEFAULT_LAYER_2_RELATIONSHIPS, DEFAULT_LAYER_3_RELATIONSHIPS } from '../utils/layerClassifier';
@@ -128,6 +127,7 @@ interface RpgMapCanvasProps {
   onResetQuadrantSizes?: (layer?: 1 | 2 | 3 | 'all') => void;
   onAutoFitQuadrantSizes?: (layer?: 1 | 2 | 3 | 'all') => void;
   onOpenPositionSnapshotModal?: () => void;
+  onOpenMembershipEditor?: () => void;
   canUndo?: boolean;
   canRedo?: boolean;
   onUndo?: () => void;
@@ -151,6 +151,7 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
   onDismissChanges,
   onExitEditMode,
   onOpenPositionSnapshotModal,
+  onOpenMembershipEditor,
   fogOfWar,
   showContinents,
   showRelationships = false,
@@ -3510,6 +3511,17 @@ export const RpgMapCanvas: React.FC<RpgMapCanvasProps> = ({
                 className="p-1.5 rounded-[2px] transition-colors flex items-center justify-center cursor-pointer text-[#4B5563] hover:bg-[#FAF8F5] hover:text-[#2563EB]"
               >
                 <Layers className="w-3.5 h-3.5" />
+              </button>
+            )}
+
+            {onOpenMembershipEditor && (
+              <button
+                id="canvas-right-membership-editor-btn"
+                onClick={onOpenMembershipEditor}
+                title="Membership Editor — Edit every entity's quadrant, archipelago and field, and rename / renumber archipelagos & fields"
+                className="p-1.5 rounded-[2px] transition-colors flex items-center justify-center cursor-pointer text-[#4B5563] hover:bg-[#FAF8F5] hover:text-[#5B21B6]"
+              >
+                <ListTree className="w-3.5 h-3.5" />
               </button>
             )}
 

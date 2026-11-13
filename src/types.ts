@@ -405,6 +405,7 @@ export interface ContinentInfo {
 
 export interface ArchipelagoMeta {
   quadrant?: CategoryQuadrant;
+  customName?: boolean; // Name / number set by the user (overrides canonical archipelago numbering)
   description?: string;
   labelOffset?: { x: number; y: number };
   subLabelOffset?: { x: number; y: number };
