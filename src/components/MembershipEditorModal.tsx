@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  X, Search, ListTree, Check, Plus, Star, Compass, ChevronDown, Edit3, ArrowRight, AlertCircle
+  X, Search, ListTree, Check, Plus, Star, Compass, ChevronDown, ArrowRight, AlertCircle
 } from 'lucide-react';
 import {
   EcosystemEntity, CategoryQuadrant, ArchipelagoMeta, ContinentInfo,
@@ -23,6 +23,15 @@ export interface EntityMembershipChange {
 }
 
 type GroupLayer = 1 | 2 | 3;
+
+type EntitySortMode = 'az' | 'za' | 'group' | 'quadrant';
+
+const SORT_LABELS: Record<EntitySortMode, string> = {
+  az: 'Name A–Z',
+  za: 'Name Z–A',
+  group: 'Archipelago / Field',
+  quadrant: 'Quadrant'
+};
 
 interface MembershipGroup {
   key: string;
@@ -341,7 +350,7 @@ export const MembershipEditorModal: React.FC<MembershipEditorModalProps> = ({
   const [groupFilter, setGroupFilter] = useState<MembershipGroup | null>(null);
   const [onlyUnassigned, setOnlyUnassigned] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [sortMode, setSortMode] = useState<EntitySortMode>('az');
   const [groupsLayer, setGroupsLayer] = useState<GroupLayer>(initialLayer);
   const [groupSearch, setGroupSearch] = useState('');
 
@@ -360,7 +369,7 @@ export const MembershipEditorModal: React.FC<MembershipEditorModalProps> = ({
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [search, layerFilter, quadrantFilter, groupFilter, onlyUnassigned]);
+  }, [search, layerFilter, quadrantFilter, groupFilter, onlyUnassigned, sortMode]);
 
   const entityLayers = useMemo(() => {
     const map = new Map<string, GroupLayer>();
@@ -447,6 +456,14 @@ export const MembershipEditorModal: React.FC<MembershipEditorModalProps> = ({
     return map;
   }, [groupsByLayer]);
 
+  const getPrimaryLabel = (ent: EcosystemEntity): string | null => {
+    if (!ent.continent || !ent.continent.trim()) return null;
+    const layer = entityLayers.get(ent.id) || 1;
+    return layer === 1
+      ? formatClusterWithNumber(ent.continent)
+      : getFieldDisplayName(ent.continent, (ent.quadrant || ent.category) as string);
+  };
+
   const filteredEntities = useMemo(() => {
     const q = search.trim().toLowerCase();
     return entities
@@ -473,8 +490,30 @@ export const MembershipEditorModal: React.FC<MembershipEditorModalProps> = ({
         ].join(' ').toLowerCase();
         return haystack.includes(q);
       })
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [entities, entityLayers, otherArchipelagosById, search, layerFilter, quadrantFilter, onlyUnassigned, groupFilter]);
+      .sort((a, b) => {
+        const byName = a.name.localeCompare(b.name);
+        if (sortMode === 'az') return byName;
+        if (sortMode === 'za') return -byName;
+        if (sortMode === 'quadrant') {
+          const qa = QUADRANTS.indexOf((a.quadrant || a.category) as CategoryQuadrant);
+          const qb = QUADRANTS.indexOf((b.quadrant || b.category) as CategoryQuadrant);
+          return (qa - qb) || byName;
+        }
+        // By archipelago / field: layer, then group number, then group name; unassigned last
+        const la = entityLayers.get(a.id) || 1;
+        const lb = entityLayers.get(b.id) || 1;
+        if (la !== lb) return la - lb;
+        const pa = getPrimaryLabel(a);
+        const pb = getPrimaryLabel(b);
+        if (!pa || !pb) return (!pa && !pb) ? byName : (!pa ? 1 : -1);
+        const na = parseInt(splitNumber(pa).num, 10);
+        const nb = parseInt(splitNumber(pb).num, 10);
+        if (!isNaN(na) && !isNaN(nb) && na !== nb) return na - nb;
+        if (!isNaN(na) !== !isNaN(nb)) return isNaN(na) ? 1 : -1;
+        return splitNumber(pa).label.localeCompare(splitNumber(pb).label) || byName;
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entities, entityLayers, otherArchipelagosById, search, layerFilter, quadrantFilter, onlyUnassigned, groupFilter, sortMode]);
 
   const filteredGroups = useMemo(() => {
     const q = groupSearch.trim().toLowerCase();
@@ -498,30 +537,22 @@ export const MembershipEditorModal: React.FC<MembershipEditorModalProps> = ({
     const others = layer === 1 ? (otherArchipelagosById.get(ent.id) || []) : [];
     const groups = groupsByLayer[layer];
     const primaryGroup = ent.continent ? groupLookup[layer].get(groupKey(layer === 1 ? formatClusterWithNumber(ent.continent) : ent.continent)) : undefined;
-    const primaryLabel = ent.continent
-      ? (layer === 1 ? formatClusterWithNumber(ent.continent) : getFieldDisplayName(ent.continent, quad))
-      : null;
-    const isEditing = editingId === ent.id;
+    const primaryLabel = getPrimaryLabel(ent);
     const dcConfig = getCompletenessConfig(getEntityCompleteness(ent));
     const quadMismatch = primaryGroup?.quadrant && primaryGroup.quadrant !== quad;
+    const term = groupTerm(layer).toLowerCase();
 
     return (
-      <div
-        key={ent.id}
-        className={`p-3 bg-white border rounded-[4px] shadow-xs transition-all ${isEditing ? 'border-[#111827]' : 'border-[#E5E7EB] hover:border-[#9CA3AF]'}`}
-      >
+      <div key={ent.id} className="p-3 bg-white border border-[#E5E7EB] hover:border-[#9CA3AF] rounded-[4px] shadow-xs transition-colors">
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
-          <button
-            type="button"
-            onClick={() => setEditingId(isEditing ? null : ent.id)}
-            className="flex items-center space-x-2 min-w-0 text-left cursor-pointer group"
-          >
-            <span className="text-sm shrink-0 select-none">{typeIcon(ent.type)}</span>
-            <h4 className="font-editorial text-sm font-bold text-[#111827] truncate group-hover:text-[#5B21B6] transition-colors">
-              {ent.name}
-            </h4>
-          </button>
+          <div className="min-w-0">
+            <div className="flex items-center space-x-2 min-w-0">
+              <span className="text-sm shrink-0 select-none">{typeIcon(ent.type)}</span>
+              <h4 className="font-editorial text-sm font-bold text-[#111827] truncate">{ent.name}</h4>
+            </div>
+            {ent.location && <div className="text-[10px] text-[#8C877F] font-sans truncate mt-0.5 pl-6">{ent.location}</div>}
+          </div>
           <div className="flex items-center space-x-1.5 shrink-0">
             <span
               className="w-2.5 h-2.5 rounded-full shrink-0"
@@ -534,147 +565,6 @@ export const MembershipEditorModal: React.FC<MembershipEditorModalProps> = ({
             <span className="text-[9px] font-technical uppercase px-1.5 py-0.5 bg-[#FAF8F5] border border-[#E5E7EB] text-[#8C877F] rounded-[2px] hidden sm:inline">
               {ent.type}
             </span>
-          </div>
-        </div>
-
-        {/* Current membership summary */}
-        <div className="flex flex-wrap items-center gap-1.5 mt-2">
-          <span
-            className="px-1.5 py-0.5 text-[10px] font-technical uppercase font-semibold text-white rounded-[2px]"
-            style={{ backgroundColor: QUADRANT_COLORS[quad] || '#6B7280' }}
-          >
-            {quad}
-          </span>
-          {primaryLabel ? (
-            <span className="px-1.5 py-0.5 text-[10.5px] font-sans font-semibold bg-[#F3F4F6] border border-[#E5E7EB] text-[#111827] rounded-[2px]">
-              {primaryLabel}
-            </span>
-          ) : (
-            <span className="px-1.5 py-0.5 text-[10.5px] font-sans italic bg-rose-50 border border-rose-200 text-rose-700 rounded-[2px]">
-              No {groupTerm(layer).toLowerCase()}
-            </span>
-          )}
-          {others.map(o => (
-            <span
-              key={o}
-              className="px-1.5 py-0.5 text-[10px] font-sans bg-amber-50 border border-amber-200 text-amber-800 rounded-[2px]"
-              title="Other archipelago (affiliated)"
-            >
-              ★ {o}
-            </span>
-          ))}
-        </div>
-
-        {/* Inline editor */}
-        {isEditing && (
-          <div className="mt-3 pt-3 border-t border-[#F3F4F6] space-y-3">
-            <div>
-              <div className="font-technical text-[10px] uppercase tracking-wider text-[#8C877F] mb-1.5">Quadrant</div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-                {QUADRANTS.map(q => (
-                  <button
-                    key={q}
-                    type="button"
-                    onClick={() => q !== quad && onUpdateEntityMembership(ent.id, { quadrant: q })}
-                    className={`px-2 py-1.5 text-[11px] font-sans font-semibold rounded-[3px] border transition-colors cursor-pointer ${
-                      q === quad ? 'text-white' : 'bg-white text-[#4B5563] border-[#E5E7EB] hover:border-[#111827]'
-                    }`}
-                    style={q === quad ? { backgroundColor: QUADRANT_COLORS[q], borderColor: QUADRANT_COLORS[q] } : undefined}
-                  >
-                    {q}
-                  </button>
-                ))}
-              </div>
-              {quadMismatch && (
-                <p className="mt-1.5 text-[10.5px] text-amber-700 font-sans flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3 shrink-0" />
-                  {primaryLabel} is in the {primaryGroup?.quadrant} quadrant.
-                </p>
-              )}
-            </div>
-
-            <div>
-              <div className="font-technical text-[10px] uppercase tracking-wider text-[#8C877F] mb-1.5">
-                {layer === 1 ? 'Primary archipelago' : `Layer ${layer} field`}
-                {primaryLabel && <span className="normal-case tracking-normal text-[#111827] font-sans font-semibold ml-1.5">· {primaryLabel}</span>}
-              </div>
-              <GroupPicker
-                layer={layer}
-                groups={groups}
-                excludeKeys={primaryGroup ? [primaryGroup.key] : []}
-                allowNone={Boolean(ent.continent)}
-                placeholder={`Move to another ${groupTerm(layer).toLowerCase()}…`}
-                onPick={(name, group) => {
-                  if (name === null) {
-                    onUpdateEntityMembership(ent.id, { continent: null });
-                    return;
-                  }
-                  onUpdateEntityMembership(ent.id, {
-                    continent: name,
-                    quadrant: group?.quadrant || quad,
-                    ...(layer === 1 ? { otherArchipelagos: others.filter(o => groupKey(o) !== groupKey(name)) } : {})
-                  });
-                }}
-              />
-              <p className="mt-1 text-[10px] text-[#8C877F] font-sans">
-                Picking a {groupTerm(layer).toLowerCase()} also sets the entity's quadrant to match it and places it beside its members.
-              </p>
-            </div>
-
-            {layer === 1 && (
-              <div>
-                <div className="font-technical text-[10px] uppercase tracking-wider text-[#8C877F] mb-1.5">Other archipelagos</div>
-                {others.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mb-1.5">
-                    {others.map(o => (
-                      <span key={o} className="inline-flex items-center gap-1 pl-1.5 pr-0.5 py-0.5 text-[10.5px] font-sans bg-amber-50 border border-amber-200 text-amber-800 rounded-[2px]">
-                        <span>{o}</span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const group = groupLookup[1].get(groupKey(o));
-                            onUpdateEntityMembership(ent.id, {
-                              continent: o,
-                              quadrant: group?.quadrant || quad,
-                              otherArchipelagos: [ent.continent || '', ...others.filter(x => x !== o)].filter(Boolean)
-                            });
-                          }}
-                          title={`Make "${o}" the primary archipelago`}
-                          className="p-0.5 hover:bg-amber-100 rounded-[2px] cursor-pointer"
-                        >
-                          <Star className="w-3 h-3" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => onUpdateEntityMembership(ent.id, { otherArchipelagos: others.filter(x => x !== o) })}
-                          title={`Remove "${o}"`}
-                          className="p-0.5 hover:bg-rose-100 hover:text-rose-700 rounded-[2px] cursor-pointer"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-                <GroupPicker
-                  layer={1}
-                  groups={groups}
-                  excludeKeys={[...(primaryGroup ? [primaryGroup.key] : []), ...others.map(groupKey)]}
-                  placeholder="Add another archipelago…"
-                  onPick={(name) => {
-                    if (!name) return;
-                    onUpdateEntityMembership(ent.id, { otherArchipelagos: [...others, name] });
-                  }}
-                />
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Actions */}
-        <div className="flex items-center justify-between pt-2 mt-2 border-t border-[#F3F4F6] text-[10px] font-sans">
-          <span className="text-[#8C877F] truncate pr-2">{ent.location || ''}</span>
-          <div className="flex items-center space-x-1.5 shrink-0">
             {onLocateEntity && (
               <button
                 type="button"
@@ -685,20 +575,113 @@ export const MembershipEditorModal: React.FC<MembershipEditorModalProps> = ({
                 <Compass className="w-3.5 h-3.5" />
               </button>
             )}
-            <button
-              type="button"
-              onClick={() => setEditingId(isEditing ? null : ent.id)}
-              className={`px-2 py-0.5 text-[10px] font-technical font-medium rounded-[2px] border transition-colors flex items-center gap-1 cursor-pointer ${
-                isEditing
-                  ? 'bg-[#111827] text-white border-[#111827]'
-                  : 'bg-white text-[#111827] border-[#E5E7EB] hover:border-[#111827]'
-              }`}
-            >
-              {isEditing ? <Check className="w-3 h-3" /> : <Edit3 className="w-3 h-3" />}
-              <span>{isEditing ? 'Done' : 'Edit'}</span>
-            </button>
           </div>
         </div>
+
+        {/* Always-open editor */}
+        <div className="mt-2.5 grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-2.5 sm:gap-3 items-start">
+          <div>
+            <div className="font-technical text-[9.5px] uppercase tracking-wider text-[#8C877F] mb-1">Quadrant</div>
+            <div className="grid grid-cols-4 gap-1">
+              {QUADRANTS.map(q => (
+                <button
+                  key={q}
+                  type="button"
+                  onClick={() => q !== quad && onUpdateEntityMembership(ent.id, { quadrant: q })}
+                  title={`${q} Quadrant`}
+                  className={`px-1.5 py-1 text-[10.5px] font-sans font-semibold rounded-[3px] border transition-colors cursor-pointer ${
+                    q === quad ? 'text-white' : 'bg-white text-[#4B5563] border-[#E5E7EB] hover:border-[#111827]'
+                  }`}
+                  style={q === quad ? { backgroundColor: QUADRANT_COLORS[q], borderColor: QUADRANT_COLORS[q] } : undefined}
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="min-w-0">
+            <div className="font-technical text-[9.5px] uppercase tracking-wider text-[#8C877F] mb-1 flex items-center gap-1.5 min-w-0">
+              <span className="shrink-0">{layer === 1 ? 'Archipelago' : `Layer ${layer} field`}</span>
+              {primaryLabel ? (
+                <span className="normal-case tracking-normal text-[#111827] font-sans font-semibold text-[11px] truncate">{primaryLabel}</span>
+              ) : (
+                <span className="normal-case tracking-normal text-rose-700 font-sans italic text-[11px]">none</span>
+              )}
+            </div>
+            <GroupPicker
+              layer={layer}
+              groups={groups}
+              excludeKeys={primaryGroup ? [primaryGroup.key] : []}
+              allowNone={Boolean(ent.continent)}
+              placeholder={primaryLabel ? `Move to another ${term}…` : `Assign a ${term}…`}
+              onPick={(name, group) => {
+                if (name === null) {
+                  onUpdateEntityMembership(ent.id, { continent: null });
+                  return;
+                }
+                onUpdateEntityMembership(ent.id, {
+                  continent: name,
+                  quadrant: group?.quadrant || quad,
+                  ...(layer === 1 ? { otherArchipelagos: others.filter(o => groupKey(o) !== groupKey(name)) } : {})
+                });
+              }}
+            />
+          </div>
+        </div>
+
+        {quadMismatch && (
+          <p className="mt-1.5 text-[10.5px] text-amber-700 font-sans flex items-center gap-1">
+            <AlertCircle className="w-3 h-3 shrink-0" />
+            {primaryLabel} is in the {primaryGroup?.quadrant} quadrant.
+          </p>
+        )}
+
+        {layer === 1 && (
+          <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+            <span className="font-technical text-[9.5px] uppercase tracking-wider text-[#8C877F] mr-0.5">Other</span>
+            {others.map(o => (
+              <span key={o} className="inline-flex items-center gap-1 pl-1.5 pr-0.5 py-0.5 text-[10.5px] font-sans bg-amber-50 border border-amber-200 text-amber-800 rounded-[2px]">
+                <span>{o}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const group = groupLookup[1].get(groupKey(o));
+                    onUpdateEntityMembership(ent.id, {
+                      continent: o,
+                      quadrant: group?.quadrant || quad,
+                      otherArchipelagos: [ent.continent || '', ...others.filter(x => x !== o)].filter(Boolean)
+                    });
+                  }}
+                  title={`Make "${o}" the primary archipelago`}
+                  className="p-0.5 hover:bg-amber-100 rounded-[2px] cursor-pointer"
+                >
+                  <Star className="w-3 h-3" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onUpdateEntityMembership(ent.id, { otherArchipelagos: others.filter(x => x !== o) })}
+                  title={`Remove "${o}"`}
+                  className="p-0.5 hover:bg-rose-100 hover:text-rose-700 rounded-[2px] cursor-pointer"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            ))}
+            <div className="flex-1 min-w-[180px]">
+              <GroupPicker
+                layer={1}
+                groups={groups}
+                excludeKeys={[...(primaryGroup ? [primaryGroup.key] : []), ...others.map(groupKey)]}
+                placeholder="Add another archipelago…"
+                onPick={(name) => {
+                  if (!name) return;
+                  onUpdateEntityMembership(ent.id, { otherArchipelagos: [...others, name] });
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -750,15 +733,30 @@ export const MembershipEditorModal: React.FC<MembershipEditorModalProps> = ({
         {tab === 'entities' ? (
           <>
             <div className="px-4 sm:px-6 py-3 space-y-2 border-b border-[#E5E7EB] bg-white">
-              <div className="relative">
-                <Search className="w-3.5 h-3.5 text-[#8C877F] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input
-                  type="text"
-                  placeholder="Filter entities by name, archipelago, field, location…"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full bg-white border border-[#E5E7EB] focus:border-[#111827] pl-8 pr-3 py-1.5 text-xs font-sans rounded-[4px] outline-none"
-                />
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1 min-w-0">
+                  <Search className="w-3.5 h-3.5 text-[#8C877F] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="Filter entities by name, archipelago, field, location…"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full bg-white border border-[#E5E7EB] focus:border-[#111827] pl-8 pr-3 py-1.5 text-xs font-sans rounded-[4px] outline-none"
+                  />
+                </div>
+                <label className="flex items-center gap-1.5 shrink-0">
+                  <span className="font-technical text-[10px] uppercase text-[#8C877F] hidden sm:inline">Sort</span>
+                  <select
+                    value={sortMode}
+                    onChange={(e) => setSortMode(e.target.value as EntitySortMode)}
+                    title="Sort entities"
+                    className="text-xs font-sans bg-white border border-[#E5E7EB] focus:border-[#111827] rounded-[4px] px-2 py-1.5 cursor-pointer outline-none"
+                  >
+                    {(Object.keys(SORT_LABELS) as EntitySortMode[]).map(m => (
+                      <option key={m} value={m}>{SORT_LABELS[m]}</option>
+                    ))}
+                  </select>
+                </label>
               </div>
               <div className="flex flex-wrap items-center gap-1.5">
                 <button type="button" className={chip(layerFilter === 'all')} onClick={() => setLayerFilter('all')}>All layers</button>
@@ -796,7 +794,28 @@ export const MembershipEditorModal: React.FC<MembershipEditorModalProps> = ({
                 </div>
               ) : (
                 <>
-                  {filteredEntities.slice(0, visibleCount).map(renderEntityRow)}
+                  {filteredEntities.slice(0, visibleCount).map((ent, idx, arr) => {
+                    if (sortMode !== 'group' && sortMode !== 'quadrant') return renderEntityRow(ent);
+                    const headerOf = (e: EcosystemEntity) => {
+                      const layer = entityLayers.get(e.id) || 1;
+                      if (sortMode === 'quadrant') return `${(e.quadrant || e.category)} Quadrant`;
+                      return `Layer ${layer} · ${getPrimaryLabel(e) || `No ${groupTerm(layer as GroupLayer).toLowerCase()}`}`;
+                    };
+                    const header = headerOf(ent);
+                    const showHeader = idx === 0 || headerOf(arr[idx - 1]) !== header;
+                    const count = showHeader ? filteredEntities.filter(e => headerOf(e) === header).length : 0;
+                    return (
+                      <React.Fragment key={ent.id}>
+                        {showHeader && (
+                          <div className="sticky top-0 z-10 -mx-1 px-1 pt-2 pb-1 bg-[#FAF8F5] font-technical text-[11px] uppercase tracking-wider text-[#111827] font-bold flex items-center justify-between border-b border-[#E5E7EB]">
+                            <span className="truncate">{header}</span>
+                            <span className="text-[#8C877F] font-normal shrink-0 ml-2">{count}</span>
+                          </div>
+                        )}
+                        {renderEntityRow(ent)}
+                      </React.Fragment>
+                    );
+                  })}
                   {visibleCount < filteredEntities.length && (
                     <button
                       type="button"
